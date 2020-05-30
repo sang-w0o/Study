@@ -9,7 +9,7 @@ JavaScript의 기본적인 내용
 * JavaScript에는 크게 number, string, bool 자료형이 존재한다.
 
 * 자료형의 검사
-  * number, string, bool등의 자료형을 검사할 때는 __typef__ 연산자를 사용한다.
+  * number, string, bool등의 자료형을 검사할 때는 __typeof__ 연산자를 사용한다.
 ```js
 typeof(128);  // --> number
 ```
