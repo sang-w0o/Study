@@ -1,4 +1,4 @@
-JavaScript의 기본적인 내용(5)
+JavaScript의 내장 
 ======
 
 <h2>기본 내장 객체</h2>
