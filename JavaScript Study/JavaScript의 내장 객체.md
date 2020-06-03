@@ -1,4 +1,4 @@
-JavaScript의 내장 
+JavaScript의 내장 객체
 ======
 
 <h2>기본 내장 객체</h2>
