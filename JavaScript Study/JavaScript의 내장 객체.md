@@ -24,7 +24,7 @@ JavaScript의 기본적인 내용(5)
 * JavaScript의 __최상위 객체__
 * Object 객체의 메소드
   
-<table border="1px">
+<table>
    <tr>
         <td>constructor()</td>
         <td>객체의 생성자 함수</td>
@@ -113,7 +113,7 @@ JavaScript의 기본적인 내용(5)
 * 숫자를 표현할 때 사용되는 객체이다.
 * Number 객체가 가지는 메소드
   
-<table border="1px">
+<table>
     <tr>
         <td>toExponential()</td>
         <td>숫자를 지수 표시로 나타낸 문자열 반환</td>
@@ -141,7 +141,7 @@ JavaScript의 기본적인 내용(5)
   alert(fixedNumber);  // 123.46 출력
   ```
 * Number객체의 생성자 함수의 속성
-<table border="1px">
+<table>
     <tr>
         <td>MAX_VALUE</td>
         <td>JavaScript의 숫자가 나타낼 수 있는 최대 숫자</td>
@@ -170,7 +170,7 @@ JavaScript의 기본적인 내용(5)
 
 * JavaScript에서 가장 많이 사용하는 내장 객체
 * String 객체의 속성
-<table border="1px">
+<table>
     <tr>
         <td>length</td>
         <td>문자열의 길이값 반환</td>
@@ -180,7 +180,7 @@ JavaScript의 기본적인 내용(5)
 * String 객체의 메소드
   * String객체의 메소드들은 자기 자신을 변화시키지 않고 새로운 문자열을 반환함을 주의한다.
   * 즉, 리턴값으로 받지 않으면 기본 문자열은 변화하지 않는다.
-<table border="1px">
+<table>
     <tr>
         <td>charAt(index)</td>
         <td>index에 위치한 문자 반환</td>
@@ -244,7 +244,7 @@ JavaScript의 기본적인 내용(5)
 <h3>Array 객체</h3>
 
 * Array 객체의 생성자
-<table border="1px">
+<table>
     <tr>
         <td>Array()</td>
         <td>빈 배열 생성</td>
@@ -260,7 +260,7 @@ JavaScript의 기본적인 내용(5)
 </table>
 
 * Array객체의 속성
-<table border="1px">
+<table>
     <tr>
         <td>length</td>
         <td>배열 요소의 개수 반환</td>
@@ -268,7 +268,7 @@ JavaScript의 기본적인 내용(5)
 </table>
 
 * Array 객체의 메소드
-<table border="1px">
+<table>
     <tr>
         <td>concat(arr)</td>
         <td>매개변수로 입력한 배열의 요소를 기존 배열에 붙여 새로운 배열 반환</td>
@@ -430,7 +430,7 @@ JavaScript의 기본적인 내용(5)
 <h3>ECMAScript5 Array 객체</h3>
 
 * Array생성자 함수에 추가된 메소드
-<table border="1px">
+<table>
     <tr>
         <td>Array.isArray()</td>
         <td>배열인지의 유무 반환</td>
@@ -438,7 +438,7 @@ JavaScript의 기본적인 내용(5)
 </table>
 
 * 탐색 메소드
-<table border="1px">
+<table>
     <tr>    
         <td>indexOf(element)</td>
         <td>특정 원소를 앞쪽부터 검색</td>
@@ -450,7 +450,7 @@ JavaScript의 기본적인 내용(5)
 </table>
 
 * 반복 메소드
-<table border="1px">
+<table>
     <tr>    
         <td>forEach()</td>
         <td>배열 각각의 요소를 사용해 특정 함수를 for-in반복문처럼 수행</td>
@@ -487,7 +487,7 @@ JavaScript의 기본적인 내용(5)
 
 * 조건 메소드 (filter, every, some)
   * 조건 메소드는 forEach의 인수로 들어가는 함수와 같이 element, index, array를 인수로 사용한다.
-<table border="1px">
+<table>
     <tr>    
         <td>filter()</td>
         <td>특정 조건을 만족하는 원소를 추출해 새로운 배열 생성</td>
@@ -537,7 +537,7 @@ JavaScript의 기본적인 내용(5)
   ```
 
 * 연산 메소드
-<table border="1px">
+<table>
     <tr>
         <td>reduce()</td>
         <td>배열의 요소가 하나가 될 때 까지 좌측부터 우측으로 원소를 2개씩 묶는다.</td>
@@ -562,7 +562,7 @@ JavaScript의 기본적인 내용(5)
 
 <h3>ECMAScript 5 String 객체에 추가된 메소드</h3>
 
-<table border="1px">
+<table>
     <tr>
         <td>trim()</td>
         <td>문자열 양쪽 끝의 공백 제거</td>
@@ -575,7 +575,7 @@ JavaScript의 기본적인 내용(5)
 
 * JSON 객체 : Javascript객체의 형태를 갖는 문자열
 
-<table border="1px">
+<table>
     <tr>    
         <td>JSON.stringify()</td>
         <td>JavaScript객체를 JSON문자열로 반환</td>
