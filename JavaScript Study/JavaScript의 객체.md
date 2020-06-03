@@ -1,4 +1,4 @@
-JavaScript의 기본적인 내용(3)
+JavaScript의 객체
 ======
 
 <h2>객체</h2>
