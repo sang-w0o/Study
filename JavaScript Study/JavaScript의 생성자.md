@@ -1,4 +1,4 @@
-JavaScript의 기본적인 내용(4)
+JavaScript의 생성자
 ======
 
 <h2>생성자</h2>
