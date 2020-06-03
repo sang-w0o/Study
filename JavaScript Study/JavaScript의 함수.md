@@ -1,4 +1,4 @@
-JavaScript의 기본적인 내용(2)
+JavaScript의 함수
 ======
 
 <h2>JavaScript의 함수</h2>
