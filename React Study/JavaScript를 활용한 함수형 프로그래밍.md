@@ -316,7 +316,7 @@ console.log(distinctColors);
 
 <hr/>
 
-<h3>#4. 고차 함수(HOF, High Order Function)</h3>
+<h3>(4) 고차 함수(HOF, High Order Function)</h3>
 
 * 고차 함수는 다른 함수를 조작할 수 있는 함수다.
 * 즉, 다른 함수를 인자로 받거나 함수를 반환할 수 있다.
@@ -338,7 +338,7 @@ invokeIf(false, showWelcome, showUnauthorized);  // unauthorized 출력
 
 <hr/>
 
-<h3>(5). 재귀(Recursion)</h3>
+<h3>(5) 재귀(Recursion)</h3>
 
 * 재귀는 자기 자신을 호출하는 함수를 만드는 기법이다.
 ```js
@@ -354,9 +354,7 @@ countdown(10, value => console.log(value));
 
 <hr/>
 
-<h3>(6). 합성(Composition)</h3>
-
-<hr/>
+<h3>(6) 합성(Composition)</h3>
 
 * 함수형 프로그래밍은 로직을 구체적인 작업을 담당하는 여러 작은 순수 함수로 나눈다.
 * 그 과정에서 언젠가는 모든 작은 함수를 하나로 합쳐야할 필요가 있는데, 이를 합성이라 한다.
