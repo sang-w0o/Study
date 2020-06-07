@@ -20,11 +20,11 @@ ECMAScript 6 기본
   // var topic is : javaScript 출력
   ```
 
-  <hr/>
+<hr/>
 
-  <h2>템플릿 문자열(Template String)</h2>
+<h2>템플릿 문자열(Template String)</h2>
 
-  <hr/>
+<hr/>
 
   ```js
   // 기존 JS 문자열 연결 방식
