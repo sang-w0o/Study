@@ -215,7 +215,7 @@ React.createElement(
   * (2) 상태가 없는 함수형 컴포넌트 사용
 <hr/>
 
-<h3>#7 - (2) React.Component</h3>
+<h3>#7 - (1) React.Component</h3>
 
 * React Component를 새로 만들 때에는 React.Component를 추상 클래스로 사용할 수 있다.
 * ES6 구문으로 이 추상클래스를 상속하면 Custom Component를 만들 수 있다.
