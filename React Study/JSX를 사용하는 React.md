@@ -364,3 +364,65 @@ export default IngredientList
 ```
 
 * 이제 Recipe 컴포넌트를 리팩토링해보자.
+```js
+import IngredientList from './IngredientList'
+import Instructions from './Instructions'
+
+const Recipe = ({name, ingredients, steps}) => 
+  <section id={name.toLowerCase().replace(/ /g, "-")}>
+    <h1>{name}</h1>
+    <IngredientList list={ingredients}/>
+    <Instructions title="조리 절차"
+                  steps={steps}/>
+</section>
+export default Recipe
+```
+
+* 위 코드에서는 먼저 사용하려는 IngredientList와 Instructions를 import한다.
+* 다음으로는 Menu컴포넌트를 모듈화 해보자.
+```js
+import Recipe from './Recipe'
+
+const Menu = ({recipes}) =>
+  <article>
+    <header>
+      <h1>Tasty Instructions</h1>
+    </header>
+    <div className="recipes">
+      {recipes.map((recipe, i) => 
+        <Recipe key={i}{...recipe} />)
+      }
+    </div>
+  </article>
+
+export default Menu    
+```
+
+* 다음에는 실질적으로 웹 페이지에 요소를 추가하는 작업을 하는 index.js를 작성해보자.
+```js
+import React from 'react'
+import {render} from 'react-dom'
+import Menu from './components/Menu'
+import data from './data/recipes'
+
+window.React = React;
+
+render(<Menu recipes={data}/>,
+  document.getElementById('react-container')
+)
+```
+* 위 코드의 4줄은 필요한 모듈을 임토프하는 것이다.
+* react와 react-dom을 script태그에서 import하는 대신, 여기서 그 둘을   
+  import해서 웹팩이 번들에 이 두 라이브러리를 추가하게 만든다.
+```js
+window.React = React;
+```
+* 위 코드는 브라우저 저체가 리액트 라이브러리를 참조할 수 있게 하는 것이다.   
+  그 이유는 React.createElement가 제대로 작동하길 보장하기 위함이다.
+<hr/>
+
+
+<h3>웹팩 설치하기</h3>
+
+* ~~책 따라하는데 무슨 2년 됬다고 다 deprecated 되는 건가~~
+* ~~나중에 시간날 때 더 찾아보겠음 ㅡㅡ;;;~~  
