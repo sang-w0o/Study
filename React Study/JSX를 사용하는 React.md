@@ -101,7 +101,7 @@ function appendTitle({this.props.title}) {
   </script>
 ```
 
-<h2>#3. JSX로 작성한 코드 예시</h2>
+<h2>#3. JSX로 작성한 코드 예시 (조리법)</h2>
 
 * JSX로 작성한 코드는 React Element를 깔끔하게 기술할 수 있게 해주며, 가독성이 뛰어나다.
 * 단점은 브라우저가 해석하지 못한다는 것이다. 따라서 JSX를 순수 React로 변환해야 한다.
@@ -239,4 +239,128 @@ ReactDOM.render(<Menu recipes={data} title="Cooking!"/>,
 
 <h2>#4. Web Pack</h2>
 
-* 웹 팩에 대해서는 나중에 정리한다.
+* React를 Production에 사용하려면 다음과 같이 고려할 사항이 꽤 많다.
+  * JSX와 ES6 이상의 트랜스파일링 처리
+  * 프로젝트의 의존관계 관리
+  * 이미지와 CSS의 최적화
+
+* 위와 같은 사항들을 해결해주는 도구들 중 하나가 바로 웹팩이다.
+* 웹팩은 모듈 번들러(Module Bundler)로, 여러 파일들을 받아서 하나의 파일로 묶는다.
+* 이 때, 모듈성(Modularity)와 네트워크 성능(Network Performance)의 이익을 볼 수 있다.
+  * 모듈성 : 소스코드를 작업하기 쉽게 여러 부분 또는 모듈로 나눠서 다루는 것.
+  * 의존 관계가 있는 파일을 묶은 번들을 브라우저가 한 번만 읽기에 네트워크 성능도 좋아진다.
+    * 각 script태그는 HTTP요청을 만들며, 이러한 HTTP요청마다 약간의 대기시간이 발생한다.
+    * 모든 의존 관계를 하나의 파일로 묶으면 한번의 HTTP요청으로 가져올 수 있으므로   
+        그만큼 추가 대기 시간을 방지할 수 있는 것이다.
+
+* 트랜스파일링 외에 웹팩이 처리할 수 있는 작업
+  * 코드 분리 : 코드를 여러 덩어리러 나누어 필요 시 각각을 로딩할 수 있다.
+    * 이를 Rollup 또는 Layer라고 부르기도 한다.
+  * 코드 축소 : 공백, 줄바꿈, 긴 변수명 등을 없애 파일의 크기를 줄인다.
+  * 특징 켜고 끄기 : 코드 기능 테스트 시 코드를 각각의 환경에 맞춰 보낸다.
+  * HMR(Hot Module Replacement) : 소스 코드의 변경을 감지해서 바뀐 코드만 즉시 갱신한다.
+
+* 웹팩 모듈 번들러를 사용할 때의 이점
+  * 모듈성 : CommonJS의 모듈 패턴을 이용해 모듈을 외부로 export하고, 나중에 그 모듈을   
+    필요한 곳에 import해서 사용할 수 있다.
+  * 조합 : 모듈을 사용하면 application을 효율적으로 구축할 수 있고, 작고 단순하며   
+    재사용하기 쉬운 React Component를 구축할 수 있다. Component가 작으면 이해하고,   
+    테스트하거나 재사용하기 쉽다.
+  * 속도 : 모든 application을 하나의 파일에 packaging하면 클라이언트에서 단 한번만   
+    HTTP요청을 보내면 된다.
+  * 일관성 : 웹팩이 JSX를 React로, ES6나 ES7를 일반 JS로 변환해주기 때문에 아직   
+    비표준인 JS 문법이나 미래의 문법을 사용할 수 있다. 
+<hr/>
+
+<h3>#4 - (1) 웹팩 로더</h3>
+
+* Loader : 빌드 과정에서 코드를 변환하는 방식을 처리하는 기능
+  * 앱이 ES6, JS 등 브라우저가 이해할 수 없는 언어를 사용한다면 webpack.config.js에   
+    필요한 로더를 지정해서 앱 코드를 브라우저가 이해할 수 있는 코드로 변환해야 한다.
+  * 이전에 사용한 babel 또한 웹팩에서 제공하는 수많은 로더 중 하나이다.
+<hr/>
+
+<h3>#4 - (2) 웹팩 빌드를 사용한 위의 조리법 코드</h3>
+
+* Component를 Module로 나누기
+* 이전의 Recipe 컴포넌트 코드를 보자.
+```js
+const Recipe = ({name, ingredients, steps}) =>
+<section id={name.toLowerCase().replace(/ /g, "-")}>
+    <h1>{name}</h1>
+    <ul className="ingredients">
+        {ingredients.map((ingredient, i) =>
+            <li key={i}>{ingredient.name}</li>
+        )}
+    </ul>
+    <section className="instructions">
+        <h2>조리 절차</h2>
+        {steps.map((step, i) => 
+            <p key={i}>{step}</p>
+        )}
+    </section>
+</section>
+```
+* 위 컴포넌트는 h1태그에 조리법 제목을 표시하고, 재료들의 ul을 만들고, 조리 절차의   
+  각 단계를 p 요소로 만들어 표시하는 작업을 한다.
+* Recipe를 더 작고 담당하는 기능 범위가 더 좁은 여러개의 함수형 컴포넌트로 분리하고,   
+  그렇게 나온 컴포넌트들을 합성하는 방식으로 처리하면 더욱 함수적인 접근 방식이 된다.
+
+* 먼저 조리 절차를 상태가 없는 함수형 컴포넌트로 따로 분리하고, 독립 파일에   
+  모듈로 만들어서 어떠한 절차든 표시할 수 있는 기능으로 분리하자.
+```js
+const Instructions = ({ title, steps}) =>
+    <section className="instructions">
+        <h2>{title}</h2>
+        {steps.map((step, i) => 
+            <p key={i}>{step}</p>
+        )}
+    </section>
+
+export default Instructions
+```
+
+* 다음으로는 재료(Ingredient)를 살펴보자. 기존 Recipe 컴포넌트에서는 재료명만 보여준다.   
+  하지만 재료 데이터에는 분량(amount)와 단위(measurement) 정보도 있으므로 이들까지   
+  표시해주는 컴포넌트를 만들어보자.
+```js
+const Ingredient = ({ amount, measurement, name }) => 
+    <li>
+        <span className="amount">{amount}</span>
+        <span className="measurement">{measurement}</span>
+        <span className="name">{name}</span>
+    </li>
+
+export default Ingredient
+```
+
+* 이제 재료들의 목록을 표시하는 IngredientList 컴포넌트를 Ingredient 컴포넌트를   
+  활용하여 만들어보자.
+```js
+import Ingredient from './Ingredient'
+
+const IngredientList = ({ list }) =>
+    <ul className="ingredients">
+        {list.map((ingredient, i) => 
+            <Ingredient key={i}{...ingredient} />
+        )}
+    </ul>
+
+export default IngredientList
+```
+
+* 위 파일을 이용하여 각 재료를 표시하기 위해서는 먼저 Ingredient 컴포넌트를   
+  import 해야 한다. 이 컴포넌트에 전달되는 재료의 배열은 list라는 property   
+  에 들어 있는 배열이다.
+* IngredientList를 분석해보자.
+```js
+<Ingredient {...ingredient} />
+```
+* 위 코드에서는 스프레드 연산자를 사용한다. 위 코드는 아래와 같다.
+```js
+<Ingredient amount={ingredient.amount}
+            measurement={ingredient.measurement}
+            name={ingredient.name} />
+```
+
+* 이제 Recipe 컴포넌트를 리팩토링해보자.
