@@ -75,11 +75,7 @@ BootStrap 기본
     </tr>
     <tr>
         <td>muted</td>
-        <td></td>
-    </tr>
-    <tr>
         <td>컨텐츠가 덜 강조되게, 즉 흐리게 한다.</td>
-        <td></td>
     </tr>
     <tr>
         <td>dark</td>
