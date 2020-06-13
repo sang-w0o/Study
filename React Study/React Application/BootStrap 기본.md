@@ -23,23 +23,23 @@ BootStrap 기본
     <tr>
         <td>bg-primary</td>
         <td>element의 용도에 대한 시각적 단서를 제공하는 스타일 컨텍스트</td>
-    <tr>
+    </tr>
     <tr>
         <td>text-white</td>
         <td>element content의 텍스트에 흰색 스타일 적용</td>
-    <tr>
+    </tr>
     <tr>
         <td>text-center</td>
         <td>element content에 수평 기준의 가운데 정렬 적용</td>
-    <tr>
+    </tr>
     <tr>
         <td>p-2</td>
         <td>element content의 주변에 여백 추가</td>
-    <tr>
+    </tr>
     <tr>
         <td>m-1</td>
         <td>element의 주변에 여백 추가</td>
-    <tr>
+    </tr>
 </table>
 
 <hr/>
@@ -52,43 +52,39 @@ BootStrap 기본
     <tr>
         <td>primary</td>
         <td>컨텐츠의 주된 영역을 나타낸다.</td>
-    <tr>
+    </tr>
     <tr>
         <td>secondary</td>
         <td>컨텐츠의 보조 영역을 나타낸다.</td>
-    <tr>
+    </tr>
     <tr>
         <td>success</td>
         <td>결과가 성공적임을 나타낸다.</td>
-    <tr>
+    </tr>
     <tr>
         <td>info</td>
         <td>추가 정보를 나타낸다.</td>
-    <tr>
+    </tr>
     <tr>
         <td>warning</td>
         <td>경고성 정보를 나타낸다.</td>
-    <tr>
+    </tr>
     <tr>
         <td>danger</td>
         <td>심각한 경고성 정보를 나타낸다.</td>
-    <tr>
+    </tr>
     <tr>
         <td>muted</td>
-        <td></td>
-    <tr>
-    <tr>
         <td>컨텐츠가 덜 강조되게, 즉 흐리게 한다.</td>
-        <td></td>
-    <tr>
+    </tr>
     <tr>
         <td>dark</td>
         <td>검은색으로 명암 대비를 높인다.</td>
-    <tr>
+    </tr>
     <tr>
         <td>white</td>
         <td>흰색으로 명암 대비를 높인다.</td>
-    <tr>
+    </tr>
 </table>
 
 * 위 예시 코드에서 __bg-primary__ 는 이 element의 배경색이   
@@ -151,19 +147,19 @@ BootStrap 기본
     <tr>
         <td>table</td>
         <td>table요소와 그 row에 일반적인 스타일 적용</td>
-    <tr>
+    </tr>
     <tr>
         <td>table-striped</td>
         <td>table의 row마다 교대로 배경색을 달리한다.(줄무늬)</td>
-    <tr>
+    </tr>
     <tr>
         <td>table-bordered</td>
         <td>모든 row, column에 테두리 적용</td>
-    <tr>
+    </tr>
     <tr>
         <td>table-sm</td>
         <td>테이블의 공간을 줄여 더 촘촘한 레이아웃 생성</td>
-    <tr>
+    </tr>
 </table>
 
 * 주의 : 테이블 정의 시에는 __tbody,thead__ 등을 생략하지 말자.   
