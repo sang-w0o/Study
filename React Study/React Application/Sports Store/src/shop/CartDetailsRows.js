@@ -1,5 +1,4 @@
 import React, {Component} from 'react';
-import { isCompositeComponent } from 'react-dom/test-utils';
 
 export class CartDetailsRows extends Component {
     handleChange = (product, event) => {
