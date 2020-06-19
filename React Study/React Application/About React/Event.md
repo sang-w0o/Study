@@ -307,3 +307,94 @@ toggleCheckBox = (event) => {
 <hr/>
 
 <h2>이벤트 전파</h2>
+
+* 이벤트에는 __생명 주기__ 가 있다. 이로 인해 element의 조상이 후손이 일으킨   
+  이벤트를 받을 수 있으며, 이벤트가 element에 도착하기 전에 가로채는   
+  일도 가능하다.
+
+* 이벤트 전파와 관련된 SyntheticEvent의 프로퍼티와 메소드
+<table>
+  <tr>
+    <td>eventPhase</td>
+    <td>이 프로퍼티는 현재의 이벤트 전파 단계를 반환한다. 그러나 react가 이벤트를 다루는 방식으로 인해 이 프로퍼티는 유용하지 않다.</td>
+  </tr>
+  <tr>
+    <td>bubbles</td>
+    <td>이 프로퍼티는 이벤트가 bubble단계에 진입할 상황이면 true를 반환한다.</td>
+  </tr>
+  <tr>
+    <td>currentTarget</td>
+    <td>이 프로퍼티는 이벤트 핸들러가 이벤트 처리를 할 대상 element를 나타내는 객체를 반환한다.</td>
+  </tr>
+  <tr>
+    <td>stopPropagation()</td>
+    <td>이 메소드는 이벤트 전파를 중단시킬 때 호출된다.</td>
+  </tr>
+  <tr>
+    <td>isPropagationStopped()</td>
+    <td>이 메소드는 이벤트에 대해 stopPropagation()이 호출됐다면 true를 반환한다.</td>
+  </tr>
+</table>
+
+<hr/>
+
+<h3>Target 단계와 Bubble 단계</h3>
+
+* 처음 촉발된 이벤트는 먼저 __Target Phase__ 에 진입한다. 이는 이벤트의   
+  원천인 element에 이벤트 핸들러가 적용되는 단계이다.
+* 이벤트 핸들러의 실행이 완료된 다음에 이벤트는 __Bubble Phase__ 에 들어간다.   
+  이는 이벤트가 조상 element를 거슬러 올라가면서 해당 유형의 이벤트에 적용되는   
+  모든 이벤트 핸들러가 호출되는 단계이다.
+
+* Bubble Phase는 컴포넌트가 rendering한 컨텐츠를 넘어 확장돼, HTML element   
+  계층도 전체에 전파된다.
+
+* SyntheticEvent 객체의 target, currentTarget 프로퍼티 차이점 간단 정리
+  * target : 이벤트를 발생시킨 element 반환
+  * currentTarget : 이벤트 핸들러를 호출한 element 반환
+<hr/>
+
+<h3>Capture 단계</h3>
+
+* __Capture phase__ 는 Target phase보다 먼저 element가 이벤트를   
+  처리할 수 있는 기회를 제공한다.
+* 즉, 브라우저는 Bubble phase와는 반대로 body element에서 시작해   
+  이벤트를 element 계층도로 따라 내려보내며 처리할 수 있게 한다.
+
+```js
+// src/ThemeButton.js
+
+import React, {Component} from 'react';
+
+export class ThemeButton extends Component {
+
+    handleClick = (event) => {
+        console.log(`ThemeButton : Type : ${event.type}` + 
+        ` Target : ${event.target.tagName}` + 
+        ` CurrentTarget : ${event.currentTarget.tagName}`);
+
+        this.props.callback(this.props.theme);
+    }
+
+    render() {
+        return <span className="m-1" onClick={this.handleClick}
+            onClickCapture={this.handleClick}>
+            <button className={`btn btn-${this.props.theme}`}
+                onClick={this.handleClick}>
+                    Select {this.props.theme} Theme
+                </button>
+        </span>
+    }
+}
+```
+* 위 코드에서는 onClick에 대응하는 캡처 프로퍼티가 __onClickCapture__   
+  임을 알 수 있다. 그리고, 이를 
+* 위 코드를 실행하고, ThemeButton 객체를 클릭하면 다음과 같이   
+  콘솔에 출력된다.
+```text
+ThemeButton: Type: click Target: BUTTON CurrentTarget: SPAN
+ThemeButton: Type: click Target: BUTTON CurrentTarget: BUTTON
+ThemeButton: Type: click Target: BUTTON CurrentTarget: SPAN
+App: Type: click Target: BUTTON CurrentTarget: DIV
+App: Type: click Target: BUTTON CurrentTarget: DIV
+```
