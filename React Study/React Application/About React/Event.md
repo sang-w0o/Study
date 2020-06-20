@@ -387,8 +387,7 @@ export class ThemeButton extends Component {
     }
 }
 ```
-* 위 코드에서는 onClick에 대응하는 캡처 프로퍼티가 __onClickCapture__   
-  임을 알 수 있다. 그리고, 이를 
+* 위 코드에서는 onClick에 대응하는 캡처 프로퍼티가 __onClickCapture__ 임을 알 수 있다.
 * 위 코드를 실행하고, ThemeButton 객체를 클릭하면 다음과 같이   
   콘솔에 출력된다.
 ```text
