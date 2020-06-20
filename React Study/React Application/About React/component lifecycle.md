@@ -235,7 +235,7 @@ export function HooksMessage(props) {
   app의 성능을 향상시킨다.
 * shouldComponentUpdate 메소드는 __Update phase__ 에서 호출되며,   
   컴포넌트의 새 컨텐츠를 rendering할지 판단한다.
-* snouldComponentUpdate의 인자는 __새 props와 상태 객체__ 인데, 이는   
+* shouldComponentUpdate의 인자는 __새 props와 상태 객체__ 인데, 이는   
   기존 값들과 비교하기 위해 사용된다.   
   shouldComponentUpdate 메소드가 true를 반환하면 React는 update phase를   
   계속 진행하고, false를 반환하면 React는 update phase를 중단한다. 따라서   
