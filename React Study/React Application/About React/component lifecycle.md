@@ -274,3 +274,14 @@ export class Message extends Component {
   * props 객체 : 부모 컴포넌트로부터 받은 prop값들이 들어간다.
   * state 객체 : 현재의 상태 데이터가 들어간다.
   * 반환값: props 데이터를 기준으로 갱신된 새로운 State 객체 
+  ```js
+  static getDerivedStateFromProps(props, state) {
+    if(props.value !== state.lastValue) {
+      return {
+        lastValue:props.value,
+        direction:state.lastValue > props.value ? "down" : "up"
+      }
+    }
+    return state;
+  }
+  ```
