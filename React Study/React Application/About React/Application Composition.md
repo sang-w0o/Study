@@ -782,3 +782,205 @@ export default class App extends Component {
 <hr/>
 
 <h3>컨텍스트 API 사용</h3>
+
+* React는 rendering prop함수 방식 보다 더 쉽게 context에 접근할 수 있는   
+  또 다른 수단을 제공한다.
+```js
+// src/ProModeToggle.js
+import React, {Component} from 'react';
+import {ProModeContext} from './ProModeContext';
+
+export class ProModeToggle extends Component {
+
+    static contextType = ProModeContext;
+
+    render() {
+        return(
+            <div className="form-check">
+                <input type="checkbox" className="form-check-input"
+                    value={this.context.proMode}
+                    onChange={this.context.toggleProMode}/>
+                <label className="form-check-label">
+                    {this.props.label}
+                </label>
+            </div>
+        )
+    }
+}
+```
+* 위 예시에서는 __contextType__ 라는 static영역에 context를 할당함으로써, 기존과 다르게   
+  __this.context__ 로 컨텍스트에 접근이 가능해졌다.
+<hr/>
+
+<h3>Hook을 이용한 컨텍스트 소비</h3>
+
+* __useContext__ hook은 함수형 컴포넌트를 위해 위의 __contextType__ 에 상응하는   
+  결과를 제공한다.
+```js
+// src/ProModeToggle.js
+import React, {useContext} from 'react';
+import {ProModeContext} from './ProModeContext';
+
+export function ProModeToggle(props) {
+
+    const context = useContext(ProModeContext);
+
+    return(
+        <div className="form-check">
+            <input type="checkbox" className="form-check-input"
+                value={context.proMode}
+                onChange={context.toggleProMode}/>
+            <label className="form-check-label">
+                {props.label}
+            </label>
+        </div>
+    )
+}
+```
+* __useContext__ hook은 context 객체를 반환하며, 리를 통해   
+  프로퍼티나 함수에 접근할 수 있다.
+<hr/>
+
+<h2>에러 경계</h2>
+
+* 컴포넌트의 rendering 메소드나 생명주기 메소드에서 에러가 발생하면, 에러는   
+  app의 최상부에 도달할 때까지 컴포넌트 계층도를 따라 전파되며, 그 시점에서   
+  app의 모든 컴포넌트는 __unmount__ 된 상태가 된다.   
+  이는 어떤 에러든 사실상 app을 종료시킬 수 있다는 뜻으로, 결코 이상적이지 않다.
+* 기본 에러 처리 방식을 알아보기 위해 버튼을 두번 클릭하면 에러가 발생하도록   
+  ActionButton 컴포넌트를 다음과 같이 변경하자.
+```js
+import React, {Component} from 'react';
+import {ProModeContext} from './ProModeContext';
+
+export class ActionButton extends Component {
+
+    constructor(props){
+        super(props);
+        this.state={
+            clickCount:0
+        }
+    }
+
+    handleClick = () => {
+        this.setState({clickCount : this.state.clickCount + 1});
+        this.props.callback();
+    }
+
+    render() {
+        return (
+            <ProModeContext.Consumer>
+                {contextData => {
+                    if(this.state.clickCount > 1) {
+                        throw new Error("Click Counter Error.");
+                    }
+                    return <button className={this.getClasses(this.context.proMode)}
+                                disabled={!contextData.proMode}
+                                onClick={this.handleClick}>
+                                {this.props.text}
+                            </button>
+                    }
+                }
+            </ProModeContext.Consumer>
+        )
+    }
+
+    getClasses(proMode) {
+        let col = proMode ? this.props.theme : "danger";
+        return `btn btn-${col} m-2`;
+    }
+}
+```
+* 위 컴포넌트를 실행하고, Sort 버튼을 2번째 누르면 모든 컴포넌트가   
+  unmount되어 빈 화면만 출력된다.
+* 또한 JavaScript Console에선 에러에 관한 StackTrace내용을 볼 수 있다.
+<hr/>
+
+<h3>에러 경계 컴포넌트</h3>
+
+* 클래스 기반의 컴포넌트는 __componentDidCatch__ 라는 생명주기 메소드를  
+  구현할 수 있는데, 이 메소드는 __자식 컴포넌트가 에러를 던지면 호출된다__.
+
+* React에서는 이른바 __에러 경계(Error Boundary)__ 라는 컴포넌트에 에러 처리를   
+  위임할 수 있다. 이 컴포넌트는 던져진 에러를 가로채 app이 계속 진행되게 하거나,   
+  문제의 본질을 나타내는 메시지를 사용자에게 보여줄 수 있다.
+```js
+// src/ErrorBoundary.js
+import React, {Component} from 'react';
+
+export class ErrorBoundary extends Component {
+
+    constructor(props){
+        super(props);
+        this.state={
+            errorThrown:false
+        }
+    }
+
+    componentDidCatch = (error, info) => this.setState({errorThrown:true});
+
+    render() {
+        return (
+            <React.Fragment>
+                {this.state.errorThrown && 
+                    <h3 className="bg-danger text-white text-center m-2 p-2">
+                        Error Detected.
+                    </h3>
+                }
+                {this.props.children}
+            </React.Fragment>
+        )
+    }
+}
+```
+
+* componentDidCatch 메소드는 __문제의 컴포넌트가 던진 에러와 logging에 유용하게 쓸 수__   
+  __있는 컴포넌트의 stacktrace 내용이 담긴 추가 정보 객체__ 를 인자로 받는다.
+* 에러 경계 컴포넌트가 사용될 때 React는 __componentDidCatch메소드를 호출하고 그 다음에__   
+  __render 메소드를 호출__ 한다.
+* 에러 경계 컴포넌트가 rendering한 컨텐츠 역시 컴포넌트의 __mounting phase__ 에서 처리되며,   
+  모든 컴포넌트의 인스턴스가 새로 생성된다.
+* 위의 순서를 통해 에러 경계 컴포넌트는 문제를 회피할 수 있는 컨텐츠 rendering을 하거나,   
+  app의 상태를 변경해 에러가 다시 발생하지 않게 할 수 있는 기회를 갖는다.
+* 위 코드는 동일한 컨텐츠를 다시 rendering하되, 에러가 발생했음을 알리는 메시지를   
+  포함시키는 방법이다.
+```js
+// src/SortedList.js
+import React, {Component} from 'react';
+import {GeneralList} from './GeneralList';
+import {ActionButton} from './ActionButton';
+import {ErrorBoundary} from './ErrorBoundary';
+
+export class SortedList extends Component {
+    constructor(props) {
+        super(props);
+        this.state={
+            sort:false
+        }
+    }
+
+    getList(){
+        return this.state.sort ? [...this.props.list].sort() : this.props.list;
+    }
+
+    toggleSort = () => {
+        this.setState({sort : !this.state.sort});
+    }
+
+    render() {
+        return(
+            <div>
+                <ErrorBoundary>
+                    <GeneralList list={this.getList()} theme="info"/>
+                    <div className="text-center m-2">
+                        <ActionButton theme="primary" text="Sort" 
+                            proMode={this.props.proMode} callback={this.toggleSort}/>
+                    </div>
+                </ErrorBoundary>
+            </div>
+        )
+    }
+}
+```
+* 에러 경계 컴포넌트는 자신이 포함하는 모든 컴포넌트와 그 모든 자손에서   
+  던져진 어떠한 에러라도 처리할 것이다.
