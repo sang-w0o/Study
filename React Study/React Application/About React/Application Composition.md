@@ -415,4 +415,370 @@ export function ProController(FeatureComponent) {
 
 <h2>Render Prop</h2>
 
-* p.531
+* Rendering Prop은 rendering돼야 할 컨텐츠를 컴포넌트에 제공하는 함수prop이며,   
+  이는 한 컴포넌트가 다른 컴포넌트를 wrapping하는 또 하나의 방법이다.
+
+* 이 전의 ProFeature 컴포넌트가 rendering prop을 사용하도록 변경해보자.
+```js
+// src/ProFeature.js
+import React, {Component} from 'react';
+
+export function ProFeature(props) {
+    if(props.pro) {
+        return props.render();
+    } else {
+        return(
+            <h5 className="bg-warning text-white text-center">
+                This is a Pro Feature.
+            </h5>
+        )
+    }
+}
+```
+* Rendering prop을 사용하는 컴포넌트도 일반적인 방법으로 정의하면 된다.   
+  단지 다른점은 부모가 제공한 컨텐츠를 보여주기 위해 __render라는 이름의__   
+  __함수prop을 호출하는 점__ 이다.
+* 부모 컴포넌트는 자식 컴포넌트를 적용할 때 rendering prop을 위한 함수를 제공해야 한다.
+<hr/>
+
+<h3>인자가 있는 rendering prop</h3>
+
+* Rendering prop은 보통의 JS함수이며, 따라서 인자도 받을 수 있다.
+* 인자를 사용하면 rendering prop을 호출하는 컴포넌트가 자신을 wrapping하는   
+  컨텐츠에 props를 전달할 수 있다.
+```js
+// src/ProFeature.js
+
+import React, {Component} from 'react';
+
+export function ProFeature(props) {
+    if(props.pro) {
+        return props.render("PRO FEATURE");
+    } else {
+        return(
+            <h5 className="bg-warning text-white text-center">
+                This is a Pro Feature.
+            </h5>
+        )
+    }
+}
+```
+
+```js
+// src/App.js
+
+// 기타 코드 동일
+
+export default class App extends Component{
+    //...
+
+    render() {
+    return (
+        <div className="container-fluid">
+          <div className="row">
+            <div className="col-12 text-center p-2">
+              <div className="form-check">
+                 <input type="checkbox" className="form-check-input"
+                   value={this.state.proMode} onChange={this.toggleProMode}/>
+                 <label className="form-check-label">Pro Mode</label>
+              </div>
+            </div>
+          </div>
+          <div className="row">
+            <div className="col-6">
+             <ProFeature pro={this.state.proMode}
+              render={(text)=>
+               <React.Fragment>
+                 <h4 className="text-right">{text}</h4>
+                 <SortedList list={this.state.names}/>
+               </React.Fragment>}
+               />
+            </div>
+          </div>
+        </div>
+    )   
+  }
+
+}
+```
+
+<hr/>
+
+<h2>전역 데이터를 위한 컨텍스트</h2>
+
+* Application Composition과 관계없이 props를 관리하는 app의 복잡도가  
+  증가함에 따라 어려워진다. 컴포넌트의 계층도가 커짐에 따라 상태 data는   
+  app내에서 점점 더 끌어 올려지며, 그 결과 모든 컴포넌트가 자신이 직접   
+  사용하지도 않는 props를 후손을 위해 전달하게 된다.
+* 이의 해결을 위해 React는 __Context__ 기능을 제공한다.
+
+* Context는 상태 데이터가 정의된 곳으로부터 필요로하는 곳까지 중간 컴포넌트들을   
+  거치지 않고 전달되게 해준다.
+```js
+// src/ActionButton.js
+import React, {Component} from 'react';
+
+export class ActionButton extends Component {
+
+    render() {
+        return (
+            <button className={this.getClasses(this.props.proMode)}
+                disabled={!this.props.proMode}
+                onClick={this.props.callback}>
+                    {this.props.text}
+            </button>
+        )
+    }
+
+
+    getClasses(proMode) {
+        let col = proMode ? this.props.theme : "danger";
+        return `btn btn-${col} m-2`;
+    }
+}
+```
+* ActionButton이 의존하는 proMode 프로퍼티는 App 컴포넌트의 상태 일부분으로  
+  사용될 것이다. App컴포넌트는 또한 proMode 값을 변경할 때 사용할 checkbox도   
+  정의할 것이다.
+* 컴포넌트 사슬의 결과, 부모로부터 받은 proMode 프로퍼티를 자식에게 전달하게 된다.
+* 이는 곧 props가 `App 컴포넌트` 에서 `SortedList 컴포넌트` 로, 그리고 다시   
+  `SortedList 컴포넌트` 에서 `ActionButton 컴포넌트` 로 전달된다는 뜻이다.
+
+* 위와 같은 구조를 __prop drilling 또는 prop threading__ 이라 하는데, 이는 곧 데이터 값을   
+  필요로하는 곳으로 컴포넌트 계층도를 통해 prop이 전달되는 것을 의미한다.
+* 하지만 prop drilling은 위에서 얘기한대로, 계층도가 복잡해지면 구현이 복잡해진다.
+* 이를 해결하기 위해 등장한 것이 __Context__ 이다.
+<hr/>
+
+<h3>컨텍스트 정의</h3>
+
+* Context는 Application의 어느 곳에서든 정의할 수 있다.
+```js
+// src/ProModeContext.js
+import React from 'react';
+
+export const ProModeContext = React.createContext({
+    proMode:false
+})
+```
+* 위와 같이 새 context를 만들 때엔 __React.createContext__ 메소드를 사용하며,   
+  컨텍스트의 기본값을 지정하기 위한 데이터 객체를 넣을 수 있다.
+* __이 객체의 값은 컨텍스트가 사용되는 곳에서 바뀔 수 있다__.
+<hr/>
+
+<h3>컨텍스트 소비자</h3>
+
+* 컨텍스트 소비자(Context consumer) : 데이터 값이 필요한 곳에서 context를 소비하는 것
+```js
+// src/ActionButton.js
+
+import React, {Component} from 'react';
+import {ProModeContext} from './ProModeContext';
+
+export class ActionButton extends Component {
+
+    render() {
+        return (
+            <ProModeContext.Consumer>
+                {contextData =>
+                    <button className={this.getClasses(this.props.proMode)}
+                        disabled={!this.props.proMode}
+                        onClick={this.props.callback}>
+                        {this.props.text}
+                    </button>
+                }
+            </ProModeContext.Consumer>
+        )
+    }
+
+    getClasses(proMode) {
+        let col = proMode ? this.props.theme : "danger";
+        return `btn btn-${col} m-2`;
+    }
+}
+```
+* Context를 소비하는 방법은 rendering prop을 정의할 때와 비슷한데,   
+  context를 필요로 하는 HTML element를 추가하면 된다.
+* 우선 __context이름에 해당하는 HTML Element를(여기서는 ProModeContext)를__,   
+  __그 다음엔 마침표를, 마지막엔 Consumer를 적는다.__
+* 위 HTML Element의 시작과 끝 태그 사이엔 __컨텍스트 객체를 받고, 그와 함께 컨텐츠를__   
+  __rendering하는 함수를 넣는다__.
+```js
+return <ProModeContext.Consumer>
+    // Context가 소비되는 부분
+    </ProModeContext.Consumer>
+```
+<hr/>
+
+<h3>컨텍스트 제공자</h3>
+
+* Context Provider : 컨텍스트에 상태 데이터를 결부시킨다.
+```js
+import React, {Component} from 'react';
+import {GeneralList} from './GeneralList';
+import {SortedList} from './SortedList';
+import {ProFeature} from './ProFeature';
+import { ProModeContext } from './ProModeContext';
+
+export default class App extends Component {
+  constructor(props){
+    super(props);
+    this.state = {
+      names:["Zoe", "Bob", "Alice", "Doom", "Jack"],
+      cities:["London", "New York", "Paris", "Seoul", "Boston"],
+      proContextData:{
+        proMode:false
+      }
+    }
+  }
+
+  toggleProMode = () => {
+    this.setState(state => state.proContextData.promo != state.proContextData.proMode);
+  }
+
+  render() {
+    return (
+     <div className="container-fluid">
+       <div className="row">
+         <div className="col-12 text-center p-2">
+           <div className="form-check">
+              <input type="checkbox" className="form-check-input"
+                value={this.state.proContextData.proMode} onChange={this.toggleProMode}/>
+              <label className="form-check-label">Pro Mode</label>
+           </div>
+         </div>
+       </div>
+       <div className="row">
+         <div className="col-6">
+          <ProModeContext.Provider value={this.state.proContextData}>
+            <SortedList list={this.state.names}/>
+          </ProModeContext.Provider>
+       </div>
+     </div>
+    </div>
+    )
+  }
+}
+```
+* Context 소비자에게 App컴포넌트의 모든 상태 데이터를 노출하지 않기 위해   
+  proMode 프로퍼티를 갖는 proContextData 상태 객체를 만들었다.
+* Context를 적용하려면 또 다른 Custom HTML Element를 사용해야 하는데, 먼저   
+  __컨텍스트 이름(위에선 ProModeContext)를, 그 다음엔 마침표를, 마지막으로__   
+  __Provider 를 적는다.__
+* 위 코드의 구조는 다음과 같다.
+  * ProModeContext.Providor의 시작과 끝 태그 사이에 정의된 컴포넌트는   
+    ProModeContext.Consumer element를 이용해 상태 데이터에 접근할 수 있다.
+  * 즉, App컴포넌트의 proMode 상태 데이터 프로퍼티를 ActionButton컴포넌트가   
+    SortedList 컴포넌트를 거치지 않고도 직접 사용할 수 있다는 뜻이다.
+<hr/>
+
+<h3>컨텍스트 데이터 변경</h3>
+
+* 컨텍스트 내의 데이터는 읽기 전용이지만, __함수 prop을 컨텍스트 객체에 포함시켜__   
+  __상태 데이터를 갱신할 수 있다__.
+```js
+// src/ProModeContext.js
+import React from 'react';
+
+export const ProModeContext = React.createContext({
+    proMode:false,
+    toggleProMode: () => {}
+})
+```
+* toggleProMode는 context 공급업체가 value 프로퍼티를 사용하지 않고 컨텐츠를  
+  적용할 때 사용될 수 있는 임시 역할의 함수이다.
+* toggleProMode는 빈 함수이며, 오직 소비자로부터 기본 데이터 객체를 받았을   
+  경우의 에러를 방지한다.
+```js
+// src/ProModeToggle.js
+import React, {Component} from 'react';
+import {ProModeContext} from './ProModeContext';
+
+export class ProModeToggle extends Component {
+    render() {
+        return(
+            <ProModeContext.Consumer>
+                {contextData => (
+                    <div className="form-check">
+                        <input type="checkbox" className="form-check-input"
+                            value={contextData.proMode}
+                            onChange={contextData.toggleProMode}/>
+                        <label className="form-check-label">
+                            {this.props.label}
+                        </label>
+                    </div>
+                )}
+            </ProModeContext.Consumer>
+        )
+    }
+}
+```
+* 위 컴포넌트는 컨텍스트 소비자로서, proMode 프로퍼티를 사용해 체크박스의   
+  값을 설정하고, 그 값이 바뀌면 toggleProMode함수를 호출한다.
+```js
+// src/App.js
+import React, {Component} from 'react';
+import {SortedList} from './SortedList';
+import { ProModeContext } from './ProModeContext';
+import {ProModeToggle} from './ProModeToggle';
+
+export default class App extends Component {
+  constructor(props){
+    super(props);
+    this.state = {
+      names:["Zoe", "Bob", "Alice", "Doom", "Jack"],
+      cities:["London", "New York", "Paris", "Seoul", "Boston"],
+      proContextData:{
+        proMode:false,
+        toggleProMode:this.toggleProMode
+      },
+      superProContextData:{
+        proMode:false,
+        toggleProMode:this.toggleSuperMode
+      }
+    }
+  }
+
+  toggleProMode = () => {
+    this.setState(state => state.proContextData.proMode = !state.proContextData.proMode);
+  }
+
+  toggleSuperMode = () => {
+    this.setState(state => state.superProContextData.proMode = !state.superProContextData.proMode)
+  }
+
+  render() {
+    return (
+     <div className="container-fluid">
+       <div className="row">
+         <div className="col-6 text-center p-2">
+           <ProModeContext.Provider value={this.state.proContextData}>
+             <ProModeToggle label="PRO MODE"/>
+          </ProModeContext.Provider>
+         </div>
+         <div className="col-6 text-center p-2">
+           <ProModeContext.Provider value={this.state.superProContextData}>
+             <ProModeToggle label="SUPER PRO MODE"/>
+           </ProModeContext.Provider>
+         </div>
+       </div>
+       <div className="row">
+         <div className="col-6">
+           <ProModeContext.Provider value={this.state.proContextData}>
+             <SortedList list={this.state.names}/>
+           </ProModeContext.Provider>
+         </div>
+         <div className="col-6">
+           <ProModeContext.Provider value={this.state.superProContextData}>
+             <SortedList list={this.state.cities}/>
+           </ProModeContext.Provider>
+         </div>
+       </div>
+     </div>
+    )
+  }
+}
+```
+<hr/>
+
+<h3>컨텍스트 API 사용</h3>
