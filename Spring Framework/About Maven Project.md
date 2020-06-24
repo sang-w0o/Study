@@ -173,7 +173,7 @@ mvn package
 * Maven을 사용하지 않으면, 개발자는 의존하는 모듈들을 일일히 설치해야 한다.
 <hr/>
 
-<h3>`dependency` 태그 내의 `scope` 태그</h3>
+<h3>dependency 태그 내의 scope 태그</h3>
 
 * `scope` 태그는 의존하는 모듈이 언제 사용되는지를 결정한다.
 * `scope` 태그에 올 수 있는 값들
