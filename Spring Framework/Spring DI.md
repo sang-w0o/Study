@@ -468,7 +468,7 @@ ApplicationContext ctx = new AnnotationConfigApplicationContext(AppConf1.class, 
 ```
 <hr/>
 
-<h2>@Configuration, @Autowired 어노테이션</h2>
+<h2>@Autowired 어노테이션</h2>
 
 * __@Autowired__ 어노테이션은 __Spring Bean에 의존하는 다른 Bean을 자동으로 주입하고 싶을 때__ 사용한다.
 ```java
