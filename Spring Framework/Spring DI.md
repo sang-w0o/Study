@@ -17,7 +17,7 @@ public class MemberRegisterService {
 
     public void regist(RegisterRequest req) throws Exception {
 
-        // Email로 회원 데이터 저회
+        // Email로 회원 데이터 조회
         Member member = memberDao.selectByEmail(req.getEmail());
 
         // 해당 이메일을 가진 회원이 이미 존재하는 경우
@@ -470,7 +470,7 @@ ApplicationContext ctx = new AnnotationConfigApplicationContext(AppConf1.class, 
 
 <h2>@Configuration, @Autowired 어노테이션</h2>
 
-* __@Autowired__ 어노테이션은 __Spring Beean에 의존하는 다른 Bean을 자동으로 주입하고 싶을 때__ 사용한다.
+* __@Autowired__ 어노테이션은 __Spring Bean에 의존하는 다른 Bean을 자동으로 주입하고 싶을 때__ 사용한다.
 ```java
 // import 문
 
