@@ -269,4 +269,247 @@ public Object measure(ProceedingJoinPoint joinPoint) throws Throwable {
 
 <h2>Proxy의 생성 방식</h2>
 
-* p.167
+```java
+// AppCtx 클래스
+@Bean
+public Calculator calculator() {
+    return new RecCalculator();
+}
+```
+
+* 위와 같이 AppCtx 설정 클래스에서 `calculator` Bean 객체는 `Calculator`를 상속받는 `RecCalculator`   
+  객체를 반환하고 있다. 다음과 같이 MainAspect 클래스를 수정해보자.
+```java
+
+/* 이전
+Calculator cal = ctx.getBean("calculator", Calculator.class);
+*/
+
+RecCalculator cal = ctx.getBean("calculator", RecCalculator.class);
+```
+* 위 코드를 실행하면 `getBean()` 메소드에 사용한 타입이 `RecCalculator`인데, 실제 타입은 `$Proxy17` 이라는   
+  메시지가 나온다. `$Proxy17`은 Spring이 런타임에 생성한 Proxy 객체의 클래스이름이다.   
+  이 `$Proxy17`은 `RecCalculator`와 마찬가지로 `Calculator` 인터페이스를 상속받게 된다.
+
+* Spring은 AOP를 위한 Proxy 객체를 생성할 때 실제 생성할 Bean 객체가 어떤 interface를 상속하면 그 interface를   
+  이용해서 Proxy 객체를 생성한다.
+```java
+// 설정 클래스:
+// AOP 적용 시 RecCalculator가 상속받은 Calculator 인터페이스를 이용하여 Proxy 생성
+@Bean
+public Calculator calculator() {
+    return new RecCalculator();
+}
+
+// 자바 코드 : 
+// "calculator" Bean의 실제 타입은 Calculator를 상속한 Proxy 타입이므로
+// RecCalculator로 타입변환을 할 수 없기에 Exception이 발생한다.
+RecCalculator cal = ctx.getBean("calculator", RecCalculator.class);
+```
+
+* Bean 객체가 인터페이스를 상속할 때 인터페이스가 아닌 클래스를 이용하여 Proxy를 생성하고 싶다면 아래와 같이 한다.
+```java
+@Configuration
+@EnableAspectJAutoProxy(proxyTargetClass=true)
+public class AppCtx {
+
+    //..
+
+}
+```
+* __@EnableAspectJAutoProxy__ 어노테이션의 __proxyTargetClass__ 속성을 __true__로 지정하면 인터페이스가 아닌   
+  자바 클래스를 상속받아 Proxy 객체를 생성한다.
+```java
+@Configuration
+@EnableAspectJAutoProxy(proxyTargetClass=true)
+public class AppCtx {
+
+    //...
+
+}
+
+// 자바 코드 :
+// "calculator" Proxy의 실제 타입은 RecCalculator를 상속받았으므로
+// RecCalculator로 타입 변환이 가능하다.
+RecCalculator cal = ctx.getBean("calculator", RecCalculator.class);
+```
+<hr/>
+
+<h3>execution 명시자 표현식</h3>
+
+* Aspect를 적용할 위치를 지정할 때 위에서 사용한 __Pointcut__ 설정을 보자.
+```java
+@Pointcut("execution(public * chap07..*(..))")
+private void publicTarget() {
+
+}
+```
+* __execution__ 명시자는 __Advice__ 를 적용할 메소드를 지정할 때 사용한다. 기본 형식은 아래와 같다.
+```text
+execution(수식어패턴? 리턴타입패턴 클래스이름패턴? 메소드이름패턴(파라미터패턴))
+```
+  * 수식어 패턴 : 생략 가능하며, public, protected 등이 온다. Spring AOP는 __public 메소드에만 적용 가능__ 하다.
+  * 리턴타입 패턴 : 리턴 타입 명시
+  * 클래스이름 패턴 : 클래스 이름 명시
+  * 메소드이름 패턴 : 메소드 이름 명시
+  * 파라미터 패턴 : 매칭될 파라미터에 대해서 명시
+* 패턴 : `*` 은 __모든 값을 표현__ 하고, `..` 는 __0개 이상__ 이라는 의미를 갖는다.   
+  아래는 execution 명시자의 예시이다.
+<table>
+    <tr>
+        <td>execution(public void set*(..))</td>
+        <td>리턴 타입이 void이며 메소드명은 set으로 시작하고, 파라미터가 0개 이상인 메소드 호출</td>
+    </tr>
+    <tr>
+        <td>execution(* chap07.*.*())</td>
+        <td>chap07 패키지의 타입에 속한 파라미터가 없는 모든 메소드 호출</td>
+    </tr>
+    <tr>
+        <td>execution( * chap07..*.*(..))</td>
+        <td>chap07 패키지 및 하위 패키지에 있는 파라미터가 0개 이상인 메소드 호출, 패키지 부분에 '..'를 사용하여 해당 패키지 또는 하위 패키지임을 표현했다.</td>
+    </tr>
+    <tr>
+        <td>execution(Long chap07.Calculator.factorial(..))</td>
+        <td>리턴타입이 Long인 Calculator 타입의 factorial() 메소드 호출</td>
+    </tr>
+    <tr>
+        <td>execution(* get*(*))</td>
+        <td>이름이 get으로 시작하고 파라미터가 1개인 메소드 호출</td>
+    </tr>
+    <tr>
+        <td>execution(* get*(*, *))</td>
+        <td>이름이 get으로 시작하고 파라미터가 2개인 메소드 호출</td>
+    </tr>
+    <tr>
+        <td>execution(* read*(Integer, ..))</td>
+        <td>메소드명이 get으로 시작하고, 첫 번째 파라미터 타입이 Integer이며, 한 개 이상의 파라미터를 갖는 메소드 호출</td>
+    </tr>
+</table>
+
+<hr/>
+
+<h3>Advice의 적용 순서</h3>
+
+* 한 Pointcut에 여러 Advice를 적용할 수 있다.
+```java
+@Aspect
+public class CacheAspect {
+	
+	private Map<Long, Object> cache = new HashMap<>();
+	
+	@Pointcut("execution(public * chap07..*(long))")
+	public void cacheTarget() {
+		
+	}
+	
+	@Around("cacheTarget()")
+	public Object execute(ProceedingJoinPoint joinPoint) throws Throwable {
+		Long num = (Long)joinPoint.getArgs()[0];
+		if(cache.containsKey(num)) {
+			System.out.printf("CacheAspect : Cache에서 구함[%d]\n", num);
+			return cache.get(num);
+		}
+		
+		Object result = joinPoint.proceed();
+		cache.put(num,  result);
+		System.out.printf("CacheAspect : Cache에 추가[%d]\n", num);
+		return result;
+	}
+}
+```
+* 위 코드에서는 __@Around__ 값으로 `cacheTarget()` 메소드를 지정했다. __@Pointcut__ 설정은 첫 번째   
+  인자가 long인 메소드를 대상으로 한다. 따라서 `execute()` 메소드는 앞서 작성한 `Calculator`의   
+  `factorial(long)` 메소드에 적용된다.
+```java
+@Configuration
+@EnableAspectJAutoProxy
+public class AppCtxWithCache {
+	
+	@Bean
+	public CacheAspect cacheAspect() {
+		return new CacheAspect();
+	}
+	
+	@Bean
+	public ExeTimeAspect exeTimeAspect() {
+		return new ExeTimeAspect();
+	}
+	
+	@Bean
+	public Calculator calculator() {
+		return new RecCalculator();
+	}
+}
+```
+
+```java
+public class MainAspectWithCache {
+	
+	public static void main(String[] args) {
+		AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(AppCtxWithCache.class);
+		
+		Calculator cal = ctx.getBean("calculator", Calculator.class);
+		cal.factorial(7);
+		cal.factorial(7);
+		cal.factorial(5);
+		cal.factorial(5);
+		
+		ctx.close();
+	}
+}
+```
+* 위 코드의 실행 결과 흐름은 다음과 같다.
+
+* `cal.factorial(7)` 을 수행했을 때, HashMap에 데이터가 저장되지 않은 경우
+  * 먼저 `CacheAspect` 클래스에서 __@Pointcut__ 어노테이션의 속성값에 `Calculator.factorial()`이 해당하므로 `CacheAspect` 클래스의   
+    `cacheTarget` 메소드로 제어가 넘어가고, 이 후 __@Around("cacheTarget())__ 어노테이션이 붙은 `execute()` 메소드로 제어가 넘어간다.   
+    이 때, if문에 들어가지 않기 때문에 `Object result = joinPoint.proceed()`가 수행된다.
+  * `Object result = joinPoint.proceed()` 의 대상이 `ExeTimeAspect` 클래스이므로, `ExeTimeAspect`는 실제 대상 객체를 실행하고,   
+    콘솔에 시간을 출력한다. 
+  * `ExeTimeAspect`의 수행이 끝나면 `CacheAspect`는 cache Map에 데이터를 넣고, 데이터 추가 메시지를 출력한다.
+* `cal.factorial(5)`를 수행했을 때, HashMap에 데이터가 저장되어 있는 경우
+  * 위와 마찬가지로 처음에 제어는 `CacheAspect`의 `execute()` 메소드로 넘어간다.
+  * 이 때에는 if문에 들어가기 때문에 제어가 `ExeTimeAspect`로 넘어가지 않고, 단순히 출력을 하고 종료된다.
+
+* 어떤 Aspect가 먼저 적용될지는 Spring Framework나 Java의 버전에 따라 달라질 수 있으므로, 만약 적용 순서가 중요하다면   
+  __@Order__ 어노테이션을 사용하면 된다.
+* __@Order__ 어노테이션은 지정한 값이 작으면 먼저 적용하고, 크면 나중에 적용한다.
+```java
+@Aspect
+@Order(1)
+public class ExeTimeAspect {
+
+   //..
+
+}
+
+//-==========================
+
+@Aspect
+@Order(2)
+public class CacheAspect {
+
+    //..
+
+}
+```
+* 위와 같이 하면 `ExeTimeAspect`가 먼저 적용되고, 그 다음에 `CacheAspect`가 적용됨을 확인할 수 있다.
+<hr/>
+
+<h3>@Around의 Pointcut 설정과 @Pointcut의 재사용</h3>
+
+* __@Pointcut__ 어노테이션이 아닌 __@Around__ 어노테이션이 __exexution 명시자를 직접 지정__ 할 수 있다.
+```java
+@Aspect
+public class CacheAspect {
+
+    @Around("execution(public * chap07..*(..))")
+    public Object execute(ProceedingJoinPoint joinPoint) throws Throwable {
+
+        //..
+
+    }
+}
+```
+* 여러 Aspect에서 공통으로 사용되는 Pointcut이 있다면, 별도 클래스에 Pointcut을 정의하고, 각 Aspect 클래스에서  
+  해당 Pointcut을 사용하도록 구성하면 Pointcut의 관리가 편해진다.
