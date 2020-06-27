@@ -317,7 +317,7 @@ public class AppCtx {
 
 }
 ```
-* __@EnableAspectJAutoProxy__ 어노테이션의 __proxyTargetClass__ 속성을 __true__로 지정하면 인터페이스가 아닌   
+* __@EnableAspectJAutoProxy__ 어노테이션의 __proxyTargetClass__ 속성을 __true__ 로 지정하면 인터페이스가 아닌   
   자바 클래스를 상속받아 Proxy 객체를 생성한다.
 ```java
 @Configuration
