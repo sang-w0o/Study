@@ -158,7 +158,7 @@ public class MvcConfig implements WebMvcConfigurer {
 ```
 * 위의 `MvcConfig` 설정 클래스는 `WebMvcConfigurer` 인터페이스를 구현한다. 이 때, __@Configuration__   
   어노테이션이 붙은 클래스 역시 컨테이너에 Bean으로 등록되므로 `MvcConfig` 클래스는   
-  ``WebMvcConfigurer` 타입의 Bean이 된다.
+  `WebMvcConfigurer` 타입의 Bean이 된다.
 * __@EnableWebMvc__ 어노테이션을 적용하면 `WebMvcConfigurer` 타입인 Bean객체의 메소드를   
   호출해서 MVC 설정을 추가한다. 예를 들어 `ViewResolver` 설정을 추가하기 위해 `WebMvcConfigurer`   
   타입인 Bean 객체의 `configureViewResolvers()` 메소드를 호출한다. 따라서 `WebMvcConfigurer`를   
@@ -233,7 +233,7 @@ public class HelloController {
     <url-pattern>/</url-pattern>
 </servlet-mapping>
 ```
-* 매핑 경로가 '/'인 경우, __.jsp로 끝나는 요청을 제외한 모든 요청을 `DispatcherServlet`이   
+* 매핑 경로가 '/'인 경우, __.jsp__ 로 끝나는 요청을 제외한 모든 요청을 `DispatcherServlet`이   
   처리한다. 즉, index.html과 같이 확장자가 .jsp가 아닌 모든 요청을 처리하게 된다.   
   그런데 __@EnableWebMvc__ 어노테이션이 등록하는 `HandlerMapping`은 __@Controller__   
   어노테이션을 적용한 Bean 객체가 처리할 수 있는 요청 경로만 대응할 수 있다.

@@ -86,7 +86,7 @@ public void configureViewResolvers(ViewResolverRegistry registry) {
   인터페이스에 정의된 메소드로, 각각 Default Servlet과 ViewResolver와 관련된 설정을 조정한다.
 <hr/>
 
-<h3>web.xml에  DispatcherServlet 설정
+<h3>web.xml에  DispatcherServlet 설정</h3>
 
 * Spring MVC가 웹 요청을 처리하려면 `DispatcherServlet`을 통해 웹 요청을 받아야 한다.   
   이를 위해 web.xml에 `DispatcherServlet`을 등록한다.
