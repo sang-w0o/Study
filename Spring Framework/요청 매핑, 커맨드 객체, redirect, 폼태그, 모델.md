@@ -431,3 +431,80 @@ public class MvcConfig implements WebMvcConfigurer {
 <hr/>
 
 <h2>커맨드 객체의 중첩, 컬렉션 프로퍼티</h2>
+
+* 아래의 두 코드가 있다고 하자.
+```java
+package survey;
+
+public class Respondent {
+	
+	private int age;
+	private String location;
+	
+	public int getAge() {
+		return age;
+	}
+	
+	public void setAge(int age) {
+		this.age = age;
+	}
+	
+	public String getLocation() {
+		return location;
+	}
+	
+	public void setLocation(String location) {
+		this.location = location;
+	}
+}
+```
+
+```java
+public class AnsweredData {
+	
+	private List<String> responses;
+	private Respondent res;
+	
+	public List<String> getResponses() {
+		return responses;
+	}
+	
+	public void setResponses(List<String> responses) {
+		this.responses = responses;
+	}
+	
+	public Respondent getRes() {
+		return res;
+	}
+	
+	public void setRes(Respondent res) {
+		this.res = res;
+	}
+}
+```
+* 위 `AnsweredData` 클래스는 앞서 커맨드 객체로 사용한 클래스와 다음 차이점을 갖는다.
+  * List 타입의 프로퍼티가 존재한다.
+  * 중첩 프로퍼티를 갖는다. 즉, `AnsweredData`는 `Respondent`를 갖고, `Respondent`는 그 프로퍼티로   
+    age와 location을 갖는다.
+* Spring MVC는 커맨드 객체가 컬렉션 타입의 프로퍼티를 가졌거나 중첩 프로퍼티를 가진 경우에도 요청 파라미터의   
+  값을 알맞게 커맨드 객체에 설정해주는 기능을 제공하는데, 다음 규칙을 지켜야 한다.
+  * HTTP요청 파라미터 이름이 "프로퍼티명[인덱스]" 형식이면 List 타입 프로퍼티의 값 목록으로 처리한다.
+  * HTTP요청 파라미터 이름이 "프로퍼티명.프로퍼티명" 과 같은 형식이면 중첩 프로퍼티 값을 처리한다.
+
+* 다음으로는 아래와 같이 `AnsweredData` 클래스를 커맨드 객체로 사용하는 컨트롤러 클래스를 작성하자
+```java
+@Controller
+@RequestMapping("/pages/survey")
+public class SurveyController {
+	
+	@GetMapping
+	public String form() {
+		return "/survey/surveyForm";
+	}
+	@PostMapping
+	public String submit(@ModelAttribute("ansData") AnsweredData data) {
+		return "/survey/submitted";
+	}
+}
+```
+* 
