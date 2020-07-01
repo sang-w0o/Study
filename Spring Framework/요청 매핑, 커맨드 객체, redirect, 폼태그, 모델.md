@@ -727,4 +727,90 @@ public class LoginController {
 
 <h3> input 태그 관련 커스텀 태그</h3>
 
-* 
+* Spring은 `<input>` 태그를 위해 아래의 커스텀 태그들을 제공한다.
+
+<table>
+    <tr>
+        <td>form:input</td>
+        <td>text 타입의 input 태그</td>
+    </tr>
+    <tr>
+        <td>form:password</td>
+        <td>password 타입의 input 태그</td>
+    </tr>
+    <tr>
+        <td>hidden</td>
+        <td>hidden 타입의 input 태그</td>
+    </tr>
+</table>
+
+* `<form:input>` 커스텀 캐그는 아래와 같이 __path__ 속성을 사용해서 연결할 커맨드 객체의 프로퍼티를 지정한다.
+```jsp
+<form:form modelAttribute="registerRequest" action="step3">
+    <p>
+        <label>이메일:<br/>
+        <form:input path="email" />
+        </label>
+    </p>
+</form:form>
+```
+* 위 코드가 생성하는 실제 HTML의 input 태그는 아래와 같다.
+```jsp
+<form id="registerRequest" action="step3" method="post">
+    <p>
+        <label>이메일:<br/>
+        <input id="email" name="email" type="text" value="" />
+        </label>
+    </p>
+</form>
+```
+<hr/>
+
+<h3>select 관련 커스텀 태그</h3>
+
+<table>
+    <tr>
+        <td>form:select</td>
+        <td>select 태그를 생성한다. option태그를 생성할 때 필요한 컬렉션을 전달받을 수도 있다.</td>
+    </tr>
+    <tr>
+        <td>form:options</td>
+        <td>지정한 컬렉션 객체를 이용하여 option 태그를 생성한다.</td>
+    </tr>
+    <tr>
+        <td>form:option</td>
+        <td>option 태그 1 개를 생성한다.</td>
+    </tr>
+</table>
+
+* `<select>` 태그는 선택 옵션을 제공할 때 주로 사용한다. 아래 메소드를 보자.
+```java
+@GetMapping("/login")
+public String form(Model model) {
+    List<String> loginTypes = new ArrayList<>();
+    loginTypes.add("일반 회원");
+    loginTypes.add("기업 회원");
+    loginTypes.add("인턴");
+    model.addAttribute("loginTypes", loginTypes);
+    return "login/form";
+}
+```
+* `<form:select>` 커스텀 태그를 사용하면 view에 전달한 `Model` 객체를 갖고 간단하게 `<select>, <option>` 태그를 생성할 수 있다
+```jsp
+<form:form modelAttribute="login">
+    <p>
+        <label for="loginType">로그인 타입</label>
+        <form:select path="loginType" items="${loginTypes}"/>
+    </p>
+</form:form>
+```
+* __path__ 속성은 커맨드 객체의 프로퍼티이름을 지정하며, __items__ 속성에는 `<option>` 태그를 생성할 때   
+  사용할 컬렉션 객체를 지정한다.위 코드의 `<form:select>` 태그는 아래의 HTML 태그를 생성한다.
+```jsp
+<select id="loginType" name="loginType">
+    <option value="일반 회원">일반 회원</option>
+    <option value="기업 회원">기업 회원</option>
+    <option value="인턴">인턴</option>
+</select>
+```
+* p.310부터 정리
