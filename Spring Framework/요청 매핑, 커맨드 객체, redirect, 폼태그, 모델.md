@@ -813,4 +813,122 @@ public String form(Model model) {
     <option value="인턴">인턴</option>
 </select>
 ```
-* p.310부터 정리
+* 위 코드는 `<form:options>` 태그를 사용할 수도 있다. `<form:select>` 태그 내에 `<form:options>` 태그를   
+  중첩하셔 사용한다. `<form:options>` 태그의 items 속성에 값 목록으로 사용할 Model이름을 설정하면 된다.
+```jsp
+<form:select path="loginType">
+    <option value="">---선택하세요---</option>
+    <form:options items="${loginTypes}"/>
+</form:select>
+```
+* 위와 같이 `<form:options>` 태그는 주로 컬렉션에 있는 값을 `<option>`태그로 추가할 때 사용한다.
+
+* `<form:option>` 태그는 `<option>` 태그를 직접 지정할 때 사용된다.
+
+```jsp
+<form:select path="loginType">
+    <form:option value="일반 회원"/>
+    <form:option value="기업 회원">기업</form:option>
+    <form:option value="인턴" label="인턴" />
+<form:select>
+```
+* `<form:option>` 커스텀 태그의 value속성은 `<option>` 태그의 value 속성 값을 지정한다.   
+  만약 `<form:option>` 커텀태그의 몸체 내용을 입력하지 않으면 value속성에 지정한 값을 텍스트로 사용한다.
+
+<hr/>
+
+<h3>체크 박스 관련 커스텀 태그></h3>
+
+* 한 개 이상의 값을 커멘드 객체의 특정 프로퍼티에 저장하고 싶다면 배열이나 List와 같은 타입을 사용해서 저장한다.
+```java
+public class MemberRegistRequest {
+
+    private String[] favoriteOs;
+
+    public String[] getFavoriteOs() {
+        return favoriteOs;
+    }
+
+    public void setFavoriteOs(String[] favoriteOs) {
+        this.favoriteOs = favoriteOs;
+    }
+}
+```
+
+* Spring이 제공하는 checkbox 타입의 `<input>` 태그는 다음과 같다.
+
+<table>
+    <tr>    
+        <td>form:checkboxes</td>
+        <td>커맨드 객체의 특정 프로퍼티와 관련된 checkbox 타입의 input 태그 목록을 생성한다.</td>
+    </tr>
+    <tr>    
+        <td>form:checkbox</td>
+        <td>커맨드 객체의 특정 프로퍼티와 관련된 한 개의 checkbox 타입의 input 태그를 생성한다.</td>
+    </tr>
+</table>
+
+* `<form:checkboxes>` 태그는 items 속성을 이용하여 값으로 사용할 컬렉션을 지정한다.   
+  path속성으로 커맨드 객체의 플퍼티를 지정한다.
+```jsp
+<p>
+    <label>선호 OS</label>
+    <form:checkboxes items="${favoriteOsNames}" path="favoriteOs" />
+</p>
+```
+
+* `<form:checkbox>` 커스텀 태그는 한 개의 checkbox 타입의 `<input>` 태그를 한 개 생성할 때 사용된다.   
+  이 태그는 value 속성과 label속성을 사용해서 값과 텍스트를 설정한다.
+```jsp
+<form:checkbox path="favoriteOs" value="WIN8" label="Widnows8" />
+<form:checkbox path="favoriteOs" value="WIN10" label="Windows10" />
+```
+<hr/>
+
+<h3>라디오버튼 관련 커스텀 태그</h3>
+
+* 여러 가지 옵션들 중 한 가지를 선택해야 하는 경우, radio 타입의 `<input>` 태그를 사용한다.
+* Spring이 제공하는 radio 타입의 `<input>` 태그들은 다음과 같다.
+
+<table>
+    <tr>    
+        <td>form:radiobuttons</td>
+        <td>커맨드 객체의 특정 프로퍼티와 관련된 radio타입의 input 태그 목록을 생성한다.</td>
+    </tr>
+    <tr>    
+        <td>form:radiobutton</td>
+        <td>커맨드 객체의 특정 프로퍼티와 관련된 한 개의 radio 타입의 input 태그를 생성한다.</td>
+    </tr>
+</table>
+
+* `<form:radiobuttons>` 커스텀 태그는 다음과 같이 items속성에 값으로 사용할 컬렉션을 전달받고,   
+  path속성에 커맨드 객체의 프로퍼티를 지정한다.
+```jsp
+<p>
+    <label>주로 사용하는 개발 툴</label>
+    <form:radiobuttons items="${tools}" path="tool" />
+</p>
+```
+
+* `<form:radiobutton>` 커스텀 태그는 1개의 radio 타입 `<input>` 태그를 생성할 때 사용되며,   
+  value와 label속성을 사용하여 값과 텍스트를 설정한다. 사용 법은 `<form:checkbox>`와 동일하다.
+<hr/>
+
+<h3>textarea 태그를 위한 커스텀 태그</h3>
+
+* 게시글 내용과 같이 여러 줄을 입력받아야 하는 경우, `<textarea>` 태그를 사용한다.   
+  Spring은 `<form:textarea>` 커스텀 태그를 제공한다. 이 태그를 이용하면 커맨드 객체와 관련된   
+  `<textarea>` 태그를 생성할 수 있다.
+```jsp
+<p>
+    <label for="etc">기타</label>
+    <form:textarea path="etc" cols="20" rows="3"/>
+</p>
+```
+* 위 코드는 아래와 같은 HTML 태그를 생성한다.
+```jsp
+<p>
+    <label for="etc">기타</label>
+    <textarea id="etc" name="etc" rows="3" cols="20"></textarea>
+</p>
+```
