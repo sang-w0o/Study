@@ -89,7 +89,7 @@ public class RegisterController {
 </body>
 </html>
 ```
-* 위 코드를 실행하고, `localhost:8080/chap11/register/step1 에 들어가면 step1.jsp를 볼 수 있다.
+* 위 코드를 실행하고, `localhost:8080/chap11/register/step1` 에 들어가면 step1.jsp를 볼 수 있다.
 <hr/>
 
 <h2>GET과 POST의 구분 : @GetMapping, @PostMapping</h2>
@@ -209,7 +209,7 @@ public class RegisterController {
 </head>
 <body>
 	<h2>회원 정보 입력</h2>
-	<form action="step2" method="post">
+	<form action="step3" method="post">
 		<p>
 			<label>이메일 :<br>
 			<input type="text" name="email" id="email">
@@ -507,4 +507,224 @@ public class SurveyController {
 	}
 }
 ```
+
+* 위를 테스트하기 위해 요청 파라미터를 저장하는 surveyForm.jsp는 다음과 같다.
+```jsp
+<body>
+	<h2>설문 조사</h2>
+	<form method="post">
+		<p>
+			1. 당신의 역할은?<br/>
+			<label><input type="radio" name="responses[0]" value="서버">서버 개발자</label>
+			<label><input type="radio" name="responses[0]" value="프론트">프론트 개발자</label>
+			<label><input type="radio" name="responses[0]" value="풀스택">풀스택 개발자</label>
+		</p>
+		<p>
+			2. 가장 많이 사용하는 개발 도구는?<br/>
+			<label><input type="radio" name="responses[1]" value="Eclipse">Eclipse</label>
+			<label><input type="radio" name="responses[1]" value="Intellij">Intellij</label>
+			<label><input type="radio" name="responses[1]" value="Sublime">Sublime</label>
+		</p>
+		<p>
+			3. 하고싶은 말<br/>
+			<input type="text" name="responses[2]"/>
+		</p>
+		<p>
+			<label>응답자 위치 :<br/>
+				<input type="text" name="res.location"/>
+			</label>
+		</p>
+		<p>
+			<label>응답자 나이 :<br/>
+				<input type="text" name="res.age"/>
+			</label>
+		</p>
+		<input type="submit" value="전송"/>
+	</form>
+</body>
+```
+* 이전에 작성한 `파라미터명[인덱스]`로 개발 분야와 개발 도구, 하고싶은 말을 저장했으며,   
+  `파라미터명.파라미터명` 형식으로 나이와 위치를 저장했다.
+* 위에 저장한 파라미터를 읽어와 페이지에 출력해주는 submitted.jsp는 다음과 같다.
+```jsp
+<body>
+	<p>응답 내용</p>
+	<ul>
+		<c:forEach var="response" items="${ansData.responses}" varStatus="status">
+			<li>${status.index + 1}번 문항 : ${response}</li>
+		</c:forEach>
+	</ul>
+	<p>응답자 위치 : ${ansData.res.location}</p>
+	<p>응답자 나이 : ${ansData.res.age}</p>
+</body>
+```
+
+<hr/>
+
+<h2>Model을 통해 컨트롤러에서 view에 데이터 전달하기</h2>
+
+* 컨트롤러는 view가 응답 화면을 구성하는데 필요한 데이터를 생성해서 전달해야 한다. 이 때 사용하는 것이 `Model`이다.
+
+```java
+@Controller
+public class HelloController {
+
+    @RequestMapping("/pages/hello")
+    public String hello(Model model, @RequestParam(value="name", required=false) String name) {
+        model.addAttribute("WELCOME " + name);
+        return "/hello";
+    }
+}
+```
+* View에 데이터를 전달하는 컨트롤러는 위의 `hello()` 메소드처럼 다음 두 가지를 하면 된다.
+  * 요청 매핑 어노테이션이 적용된 메소드의 파라미터로 `Model` 객체 추가
+  * `Model#addAttrbute()` 메소드로 view에서 사용할 데이터 전달
+
+```java
+@Controller
+@RequestMapping("/pages/survey")
+public class SurveyController {
+	
+	@GetMapping
+	public String form(Model model) {
+		List<Question> questions = createQuestions();
+		model.addAttribute("questions", questions);
+		return "/survey/surveyForm";
+	}
+	
+	private List<Question> createQuestions() {
+		Question q1 = new Question("당신의 역할은?", Arrays.asList("서버", "프론트", "풀스택"));
+		Question q2 = new Question("사용하는 개발도구는?", Arrays.asList("이클립스", "인텔리J", "서브라임"));
+		Question q3 = new Question("하고 싶은 말을 적어주세요.");
+		return Arrays.asList(q1, q2, q3);
+	}
+	
+	@PostMapping
+	public String submit(@ModelAttribute("ansData") AnsweredData data) {
+		return "/survey/submitted";
+	}
+}
+```
+* 위에서는 `form()` 메소드의 인자로 `Model` 객체를 넣어줬다.
+* 이제 아래와 같이 jsp에서 Model 객체의 attribute에 접근할 수 있다.
+```jsp
+<c:forEach var="q" items="${questions}" varStatus="status">
+	<p>
+		${status.index + 1}.${q.title}<br/>
+		<c:if test="${q.choice}">
+			<c:forEach var="option" items="${q.options}">
+				<label><input type="radio" name="responses[${status.index}]" value="${option}">${option}</label>
+			</c:forEach>
+		</c:if>
+		<c:if test="${!q.choice}">
+			<input type="text" name="responses[${status.index}]"/>
+		</c:if>
+	</p>
+</c:forEach>
+```
+<hr/>
+
+<h3>ModelAndView를 통한 View 선택과 Model 전달</h3>
+
+* 위에서 구현한 `SurveyController`는 아래의 두 가지 기능을 담당한다.
+  * `Model`을 이용해서 View에 전달할 데이터 설정
+  * 결과를 보여줄 View 이름 반환
+
+* `ModelAndView` 객체를 사용하면 위 두가지를 한번에 처리할 수 있다. 요청 매핑 어노테이션을 적용한 메소드는   
+  `String` 타입 대신 `ModelAndView`를 반환할 수 있다. `ModelAndView`는 Model과 View이름을 함께 제공한다.
+```java
+@GetMapping
+public ModelAndView form() {
+	List<Question> questions = createQuestions();
+	ModelAndView mav = new ModelAndView();
+	mav.addObject("questions", questions);
+	mav.setViewName("/survey/surveyForm");
+	return mav;
+}
+```
+* View에 전달할 Model 데이터는 `addObject()` 메소드로 추가하며, View 이름은 `setViewName()` 메소드를 이용하여 지정한다.
+<hr/>
+
+<h3>GET 방식과 POST 방식에 동일 이름의 커맨드 객체 사용하기</h3>
+
+* `<form:form>` 태그를 사용하려면 커맨드 객체가 반드시 존재해야 하며, Model 객체도 존재해야 한다.
+```java
+@PostMapping("/pages/register/step2")
+public String handleStep2(@RequestParam(value="agree", defaultValue="false") Boolean agree, Model model) {
+    if(!agree) {
+        return "/register/step1";
+    }
+    model.addAttribute("registerRequest", new RegisterRequest());
+    return "/register/step2";
+}
+```
+* 이때, 커맨드 객체를 파라미터로 추가하면 `addAttribute()` 메소드를 사용하지 않아도 된다.
+```java
+@PostMapping("/pages/register/step2")
+public String handleStep2(@RequestParam(value="agree", defaultValue="false") Boolean agree, RegisterRequest registerRequest) {
+    if(!agree) {
+        return "/register/step1";
+    }
+    return "/register/step2";
+}
+```
+* 커맨드 객체의 이름을 명시적으로 지정하려면 __@ModelAttribute__ 어노테이션을 사용해야 한다.   
+  예를 들어 "/login" 요청 경로일 때 GET방식이면 로그인 폼을 보여주고, POST방식이면 로그인을 처리하도록 구현한   
+  컨트롤러를 만들어야 한다고 하자. 입력 폼과 폼 전송 처리에서 사용할 커맨드 객체의 속성 이름이 클래스명과 다르다면   
+  아래와 같이 GET요청과 POST요청을 처리하는 메소드에 __@ModelAttribute__ 어노테이션을 붙인 커맨드 객체를   
+  파라미터에 추가해야 한다.
+```java
+@Controller
+@RequestMapping("/login")
+public class LoginController {
+
+    @GetMapping
+    public String form(@ModelAttribute("login")LoginCommand loginCommand) {
+        return "login/loginForm";
+    }
+
+    @PostMapping
+    public String form(@ModelAttribute("login")LoginCommand loginCommand) {
+
+        //..
+
+    }
+}
+```
+<hr/>
+
+<h2>주요 form 태그</h2>
+
+* Spring MVC는 `<form:form>`, `<form:input>` 등 HTML form과 커맨드 객체를 연동하기 위한 JSP 태그라이브러리를 제공한다.   
+
+<hr/>
+
+<h3> form 태그를 위한 커스텀 태그</h3>
+
+* `<form:form>` 커스텀 태그는 `<form>` 태그를 생성할 때 사용된다.
+```jsp
+<%@ taglib prefix="c" uri="http://www.springframework.org/tags/form" %>
+...
+<form:form>
+...
+<input type="submit" value="가입 완료">
+</form:form>
+```
+* `<form:form>` 태그의 method 속성과 action속성을 지정하지 않으면, method는 __post__ 로 설정되고,   
+  action은 __현재 요청 URL__ 로 설정된다.
+* `<form:form>` 태그에서 커맨드 객체 사용 시, 커맨드 객체의 이름이 기본값인 "command"가 아니면 아래와 같이   
+  modelAttribute 속성값으로 커맨드 객체의 이름을 설정해야 한다.
+```jsp
+<form:form modelAttribute="loginCommand">
+...
+</form:form>
+```
+* `<form:form>` 태그는 `<form>` 태그와 관련하여 다음 속성을 추가적으로 제공한다.
+  * action : 폼 데이터를 전송할 URL
+  * enctype : 전송될 데이터의 인코딩 타입
+  * method : 전송 방식
+<hr/>
+
+<h3> input 태그 관련 커스텀 태그</h3>
+
 * 
