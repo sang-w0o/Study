@@ -142,7 +142,7 @@ it('renders without crashing', () => {
 ```
 * 위는 기초적인 유닛 테스트이며, it 함수를 캡슐화 한다.   
   it함수의 첫 번째 인자는 __테스트에 대한 설명__ 이고, 두 번째 인자는 __어떤 작업을 수행하는 함수로서, 테스트 자체에__   
-  __해당한다__. 여기서는 App 컴포넌트를 div element내에서 rendering한 후 unmound를 한다.
+  __해당한다__. 여기서는 App 컴포넌트를 div element내에서 rendering한 후 unmount를 한다.
 * Unit test를 수행하기 위한 명령어는 다음과 같다.   
   `npm run test`
 * 테스트가 실행된 다음에 테스트 도구는 __감시 모드__ 에 들어가고, 이후에 파일이 변경되면 다시 test가 실행돼   
@@ -247,7 +247,7 @@ const wrapper = shallow(<App/>);
 
 * 위의 메소드들은 컴포넌트가 rendering한 컨텐츠를 탐색하고 조사하기 위해 사용된다.
 ```js
-const valCount = wrapper.find(valueInput).length;
+const valCount = wrapper.find(ValueInput).length;
 ```
 * 위 코드는 `find()` 메소드를 이용해 `App` 컴포넌트가 rendering하는 모든 `ValueInput` element를 찾고,   
   찾은 element의 개수를 length 프로퍼티로 읽어낸다.
