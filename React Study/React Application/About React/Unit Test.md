@@ -312,4 +312,204 @@ expect(valCount).toBe(3);
 
 <h2>전체 rendering을 사용한 컴포넌트 테스트</h2>
 
-* p.662
+* 전체 rendering은 모든 자손 컴포넌트를 처리한다. 자손 컴포넌트 element는 rendering 컨텐츠 내에 포함되는데,   
+  이는 `App` 컴포넌트가 전체 rendering하면 실제 자손 컴포넌트가 있는 컴포넌트를 만든다는 뜻이다.
+* 이제 전체 rendering을 할 수 있게 appContent.test.js 를 다음과 같이 `mount()` 메소드를 사용하게 바꾸자.
+```js
+// src/appContent.test.js
+
+import React from 'react';
+import Adapter from 'enzyme-adapter-react-16';
+import Enzyme, {shallow} from 'enzyme';
+import App from './App';
+import {ValueInput} from './ValueInput';
+
+Enzyme.configure({adapter : new Adapter()});
+
+it("Renders three ValueInputs", () => {
+    const wrapper = shallow(<App />);
+    const valCount = wrapper.find(ValueInput).length;
+    expect(valCount).toBe(3);
+});
+
+it("Fully renders three inputs", () => {
+    const wrapper = mount(<App title="TESTER" />);
+    const count = wrapper.find("input.form control").length;
+    expect(count).toBe(3);
+});
+
+it("Shallow renders zero inputs", () => {
+    const wrapper = shallow(<App />);
+    const count = wrapper.find("input.form-control").length;
+    expect(count).toBe(0);
+})
+```
+* 테스트 메시지가 "Fully renders three inputs" 인 `it()` 메소드는 Enzyme의 `mount()` 메소드를 이용해   
+  `App`와 그 자손들을 모두 rendering 한다. `mount()` 가 반환하는 Wrapper 객체는 `shallow()`에서 정리한   
+  비교자 메소드들을 지원한다.
+* 테스트 메시지가 "Shallow renders zero inputs"인 `it()` 메소드는 얕은 rendering을 사용해 input element를   
+  찾으며, 컨텐츠 내에 그러한 element가 존재하지 않음을 확인한다.
+<hr/>
+
+<h2>props, state, method, event를 사용한 테스트</h2>
+
+* 컴포넌트가 rendering한 컨텐츠는 사용자의 입력이나 갱신의 응답으로서 변경될 수 있다.   
+  이와 같은 컴포넌트 행위의 테스트를 지원하기 위해 Enzyme은 다음 메소드들을 제공한다.
+
+<table>
+  <tr>
+    <td>instance()</td>
+    <td>컴포넌트 객체를 반환한다.</td>
+  </tr>
+  <tr>
+    <td>prop(key)</td>
+    <td>key에 해당하는 prop의 값을 반환한다.</td>
+  </tr>
+  <tr>
+    <td>props()</td>
+    <td>컴포넌트의 모든 prop을 반환한다.</td>
+  </tr>
+  <tr>
+    <td>setProps(props)</td>
+    <td>지정한 props를 기존의 props에 병합한다.</td>
+  </tr>
+  <tr>
+    <td>state(key)</td>
+    <td>key에 해당하는 state의 값을 반환한다. key가 지정되지 않았다면, 컴포넌트의 모든 State 데이터를 반환한다.</td>
+  </tr>
+  <tr>
+    <td>setState(state)</td>
+    <td>컴포넌트의 state 데이터를 변경하고, 컴포넌트가 다시 rendering되게 한다.</td>
+  </tr>
+  <tr>
+    <td>simulate(event, args)</td>
+    <td>지정한 이벤트를 컴포넌트에 부착한다.</td>
+  </tr>
+  <tr>
+    <td>update()</td>
+    <td>컴포넌트를 강제로 다시 rendering 되게 한다.</td>
+  </tr>
+</table>
+
+* 가장 간단한 행위 테스트는 __컴포넌트가 props를 반영하는지 확인__ 하는 테스트이다.
+```js
+// src/appBehavior.java
+
+import React from "react";
+import Adapter from "enzyme-adapter-react-16";
+import Enzyme, {shallow} from 'enzyme';
+import App from './App';
+
+Enzyme.configure({adapter : new Adapter()});
+
+it("uses title prop", () => {
+    const titleVal = "test title";
+    const wrapper = shallow(<App title={titleVal}/>);
+
+    const firstTitle = wrapper.find("h5").text();
+    const stateValue = wrapper.state("title");
+
+    expect(firstTitle).toBe(titleVal);
+    expert(stateValue).toBe(titleVal);
+});
+```
+* 위 코드에서 `App` 컴포넌트가 `shallow()` 메소드에 전달될 때 title prop이 함께 설정된다.   
+  그 다음엔 `h5` element를 찾아 그 텍스트 컨텐츠를 `text()` 메소드로 읽어오고, title prop값을 읽어온다.   
+  __h5 element의 컨텐츠와 state 프로퍼티가 모두 title prop의 값과 동일해야__ 이 테스트는 통과된다.
+<hr/>
+
+<h3>메소드 테스트</h3>
+
+* `instance()` 메소드는 컴포넌트 객체를 얻기 위해 사용되며, 그 다음엔 그 객체의 메소드를 호출할 수 있다.   
+
+```js
+// src/AppBehavior.js
+
+import React from "react";
+import Adapter from "enzyme-adapter-react-16";
+import Enzyme, {shallow} from 'enzyme';
+import App from './App';
+
+Enzyme.configure({adapter : new Adapter()});
+
+it("updates state data", () => {
+    const wrapper = shallow(<App />);
+    const values = [10, 20, 30];
+
+    values.forEach((val, index) => 
+        wrapper.instance.updateFieldValue(index + 1, val));
+    
+    wrapper.instance().updateTotal();
+
+    expect(wrapper.state("total")).toBe(values.reduce((total, val) => total + val), 0);
+});
+```
+* 위 코드는 `App` 컴포넌트에 대해 얕은 rendering을 수행하고, `instance()` 메소드를 이용하여 `App` 컴포넌트 객체를   
+  반환받은 후, 그에 대해 `App`컴포넌트의 메소드인 `updateFieldValue()`와 `updateTotal()` 메소드를 호출하고 있다.   
+  마지막에는 `state()` 메소드로 total 상태 프로퍼티의 값을 가져와, `updateFieldValue()` 메소드에 전달했던 값들의 합계와 비교한다.
+<hr/>
+
+<h3>이벤트 테스트</h3>
+
+* `simulate()` 메소드는 컴포넌트의 이벤트 핸들러에게 이벤트를 전달할 때 사용된다.   
+  이런 유형의 테스트는 컴포넌트의 이벤트 처리 능력보다는 React의 이벤트 전달 능력만을 테스트하고 끝내는 실수를 범하기 쉽다.   
+  따라서 대부분의 경우엔 __이벤트의 응답으로 실행될 메소드를 직접 호출하는 방법__ 이 더 낫다.
+```js
+// src/AppBehavior.js
+
+import React from "react";
+import Adapter from "enzyme-adapter-react-16";
+import Enzyme, {shallow} from 'enzyme';
+import App from './App';
+
+Enzyme.configure({adapter : new Adapter()});
+
+it("updates total when button is clicked", () => {
+    const wrapper = shallow(<App />);
+    const button = wrapper.find("button").first();
+
+    const values = [10, 20, 30];
+    values.forEach((val, index) =>
+        wrapper.instance().updateFieldValue(index + 1, val));
+    
+        button.simulate("click");
+
+        expect(wrapper.state("total")).toBe(values.reduce((total, val) => total + val), 0);
+})
+```
+* 위의 테스트 메소드는 click 이벤트를 simulate 함으로써 컴포넌트의 `updateTotal()` 메소드가 호출되게 한다.   
+  그 다음엔 이벤트의 처리됨을 확인하기 위해 total 상태 프로퍼티를 읽는다.
+<hr/>
+
+<h3>컴포넌트 상호작용 테스트</h3>
+
+* 컴포넌트가 rendering한 컨텐츠의 탐색 기능은 위에서 정리한 메소드과 조합이 가능하며,   
+  이를 이용해 컴포넌트 사이의 상호작용을 테스트할 수 있다.
+```js
+// src/AppBehavior.js
+
+import React from 'react';
+import Adapter from 'enzyme-adapter-react-16';
+import Enzyme, {shallow, mount} from 'enzyme';
+import App from './App';
+import {ValueInput} from './ValueInput';
+
+Enzyme.configure({adapter : new Adapter()});
+
+it("child function prop updates state", () => {
+    const wrapper = mount(<App />);
+    const valInput = wrapper.find(ValueInput).first();
+    const inputElem = valInput.find("input").first();
+
+    inputElem.simulate("change", {target:{value:"100"}});
+    wrapper.instance().updateTotal();
+
+    expect(valInput.state("fieldValue")).toBe("100");
+    expect(wrapper.state("total")).toBe(100);
+});
+```
+* 위 테스트는 `ValueInput`이 rendering한 `input` element를 찾아 change 이벤트를 촉발하는데, 이 때   
+  컴포넌트 핸들러에 공급할 값을 인자로 전달한다. 그 다음엔 `instance()` 메소드를 통해 `App` 컴포넌트의   
+  `updateTotal()` 메소드를 호출하며, 마지막엔 `state()` 메소드를 사용해 `App`와 `ValueInput`의 컴포넌트가   
+  제대로 갱신됐는지를 확인한다.
+<hr/>
