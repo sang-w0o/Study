@@ -63,7 +63,7 @@ padding, paddingTop, paddingBottom, paddingLeft, paddingRight
 
 <h2>Linear Layout 사용하기</h2>
 
-* LinearLayout의 필수 속성에는 `android:layout_width`, `android:layout_height`, `android:orientation` 이다.   
+* LinearLayout의 필수 속성에는 `android:layout_width`, `android:layout_height`, `android:orientation` 이 있다.   
 ```xml
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -110,7 +110,7 @@ public class MainActivity extends AppCompatActivity {
 }
 ```
 * 위 코드에서 `setContentView()` 의 값으로 R.layout.activity_main이 전달되는데, 이는 `activity_main.xml`과   
-  연결하라는 뜨시다. 즉, acticity_main.xml 파일과 MainActivity.java가 연결되어 하나의 화면을 구성하는 것이다.
+  연결하라는 뜻이다. 즉, acticity_main.xml 파일과 MainActivity.java가 연결되어 하나의 화면을 구성하는 것이다.
 
 * Java 코드에서 위의 xml 코드를 구성하면 다음과 같다.
 ```java
