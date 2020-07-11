@@ -781,6 +781,147 @@ public boolean onCreateOptionsMenu(Menu menu) {
 ```
 <hr/>
 
-<h2>상단 탭, 하단 탭 만들기</h2>
+<h2>상단 탭 만들기</h2>
+
+* 상단 탭을 만들기 위해서는 `Dependencies --> Library Dependency`에서 `com.android.support:design`을 추가한다.
+* `activity_main.xml`을 다음과 같이 작성하자.
+```xml
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    >
+
+   <androidx.coordinatorlayout.widget.CoordinatorLayout
+       android:layout_width="match_parent"
+       android:layout_height="match_parent">
+       <com.google.android.material.appbar.AppBarLayout
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+           
+           <androidx.appcompat.widget.Toolbar
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:background="@color/colorPrimaryDark"
+               android:theme="@style/ThemeOverlay.AppCompat.Dark"
+               android:elevation="1dp"
+               android:id="@+id/toolbar"
+               >
+               <TextView
+                   android:layout_width="wrap_content"
+                   android:layout_height="wrap_content"
+                   android:id="@+id/titleText"
+                   android:textAppearance="@style/Base.TextAppearance.Widget.AppCompat.Toolbar.Title"/>
+           </androidx.appcompat.widget.Toolbar>
+           
+           <com.google.android.material.tabs.TabLayout
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:id="@+id/tabs"
+               app:tabMode="fixed"
+               app:tabGravity="fill"
+               app:tabTextColor="@color/colorPrimary"
+               app:tabSelectedTextColor="@color/colorAccent"
+               android:elevation="1dp"
+               android:background="@android:color/background_light"/>
+       </com.google.android.material.appbar.AppBarLayout>
+       
+       <FrameLayout
+           android:layout_width="match_parent"
+           android:layout_height="match_parent"
+           app:layout_behavior="@string/appbar_scrolling_view_behavior"
+           android:id="@+id/container">
+       </FrameLayout>
+   </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+</RelativeLayout>
+```
+* `CoordinatorLayout`은 ActionBar 영역을 포함한 전체 화면의 위치를 잡아주는 역할을 하므로 가장 바깥에 위치한다.   
+  `CoordinatorLayout`내에 `AppBarLayout`과 함께 다른 layout을 넣으면, 그 둘의 간격이나 위치가 자동으로 결종된다.   
+  `AppBarLayout`은 ActionBar를 가리키는데, 이 안에는 `Toolbar`가 들어갈 수 있으며, 탭을 사용하는 경우에는 탭의 버튼들이 들어갈 수 있는   
+  `TabLayout`을 추가할 수 있다. `AppBarLayout`아래에는 `FrameLayout`을 넣어 화면의 내용을 구성할 수 있다.
+
+* XML Layout에서 정의한 `Toolbar`객체는 `setSupportActionBar()`로 ActionBar로 설정할 수 있다.
+```java
+Toolbar toolbar = findViewById(R.id.toolbar);
+setSupportActionBar(toolbar);
+```
+
+* `TabLayout`에 탭을 추가할 때는 `addTab()` 메소드를 사용한다.
+```java
+TabLayout tabs = findViewById(R.id.tabs);
+tabs.addTab(tabs.newTab().setText("TAB 1"));
+tabs.addTab(tabs.newTab().setText("TAB 2"));
+```
+* `TabLayout`의 선택된 것에 따라 다르게 처리하고 싶다면 아래와 같이 한다.
+```java
+tabs.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+    @Override
+    public void onTabSelected(TabLayout.Tab tab) {
+        int position = tab.getPosition();
+        switch(tab) {
+            //..
+        }
+    }
+});
+```
+<hr/>
+
+<h3>하단 탭 만들기</h3>
+
+* 하단 탭은 `BottomNavigationView` 위젯으로 만들 수 있다. 상단 탭과 마찬가지로 design 라이브러리를 추가해야 한다.
+* `/app/res/menu/` 폴더에 `menu_bottom.xml`이 있고, 그 파일에는 `<menu>` 태그 내에 3개의 `<item>`태그들이 있다 하자.
+* 아래는 `activity_main.xml` 이다.
+```xml
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    >
+    
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/container"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/bottom_navigation"
+        android:layout_marginEnd="0dp"
+        android:layout_marginStart="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:itemBackground="@color/colorPrimary"
+        app:itemIconTint="@drawable/item_color"
+        app:itemTextColor="@drawable/item_color"
+        app:menu="@menu/menu_bottom"/>
+</androidx.constraintlayout.widget.ConstraintLayout>
+```
+* 위에서 하단 탭을 보여주는 `BottomNavigationView`는 `ConstraintLayout`안에 넣었고, `layout_constraintButtom_toBottomOf`   
+  등의 ConstraintLayout의 속성을 지정해서 화면의 아래 부분에 배치했다.
+
+* 하단 탭이 선택됐을 때의 이벤트를 받아 처리하려면 `BottomNavigationView#setOnNavigationItemSelectedListener()`메소드를   
+  사용하면 된다. 아래는 예시이다.
+```java
+BottomNavigationView bottomNavigation = findViewById(R.id.bottom_navigation);
+bottomNavigation.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        switch(item.getIemId()) {
+
+            //..
+        }
+        return true;
+    }
+});
+```
+<hr/>
+
+<h2>ViewPager 만들기</h2>
 
 * 
