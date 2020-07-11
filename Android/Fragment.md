@@ -924,4 +924,317 @@ bottomNavigation.setOnNavigationItemSelectedListener(new BottomNavigationView.On
 
 <h2>ViewPager 만들기</h2>
 
-* 
+* ViewPager는 손가락으로 좌우 스크롤하여 넘겨볼 수 있는 기능을 제공한다.   
+  ViewPager는 그 안에 Fragment를 넣을 수 있고, 좌우 스크롤로 Fragment를 전환하게 된다. ViewPager는 내부에서 Adapter라는 것과   
+  상호작용하게 돼있는데 이는 ViewPager가 여러 개의 아이템 중에 하나를 보여주는 방식으로 동작하기 때문이다.
+```xml
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".MainActivity">
+
+    <androidx.viewpager.widget.ViewPager
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/pager"/>
+</LinearLayout>
+```
+* 위 xml에서는 `<ViewPager>`태그를 width, height속성을 모두 match_parent로 하여 화면에 가득 차게 했다.
+
+```java
+public class MainActivity extends AppCompatActivity {
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+    }
+    
+    class MyPagerAdapter extends FragmentStatePagerAdapter {
+        ArrayList<Fragment> items = new ArrayList<>();
+        public MyPagerAdapter(FragmentManager fm) {
+            super(fm);
+        }
+        public void addItem(Fragment item) {
+            items.add(item);
+        }
+        
+        @Override
+        public Fragment getItem(int position) {
+            return items.get(position);
+        }
+        
+        @Override
+        public int getCount() {
+            return items.size();
+        }
+    }
+}
+```
+* `MyPagerAdapter` 클래스는 내부 클래스로 만들어졌으며, `FragmentStatePagerAdapter`클래스를 상속한다.   
+  Adapter는 ViewPager에서 보여줄 각 Fragment들을 관리하는 역할을 하며, ViewPager에 설정하면 서로 상호작용하며   
+  화면에 표시해주게 된다.
+
+* ViewPager는 Adapter와 상호작용 하면서 `getCount()` 메소드로 몇 개의 Fragment들이 들어있는지 확인한다.   
+  그런 다음 화면의 상태에 따라 해당하는 Fragment를 꺼내와 보여주게 된다. 이 Adapter를 사용할 수 있도록 `MainActivity.java`의   
+  `onCreate()` 메소드에 코드를 추가하자.
+```java
+public class MainActivity extends AppCompatActivity {
+
+    ViewPager pager;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        
+        pager = findViewById(R.id.pager);
+        pager.setOffscreenPageLimit(3);
+        
+        MyPagerAdapter adapter = new MyPagerAdapter(getSupportFragmentManager());
+        
+        Fragment1 fragment1 = new Fragment1();
+        adapter.addItem(fragment1);
+        Fragment2 fragment2 = new Fragment2();
+        adapter.addItem(fragment2);
+        Fragment3 fragment3 = new Fragment3();
+        adapter.addItem(fragment3);
+        
+        pager.setAdapter(adapter);
+    }
+}
+```
+* 위 코드에서는 XML Layout에 있는 `ViewPager`객체를 `findViewById()`로 찾아 참조한 후 변수에 할당했다.   
+  그리고 `setOffscreenPageLimit(3)`으로 미리 로딩해 놓을 아이템의 수를 3개로 지정했다.   
+  ViewPager는 Adapter가 가지는 아이템 중에서 몇 개를 미리 로딩해 두었다가 좌우 스크롤할 때 빠르게 보여줄 수 있다.
+
+* 또한 `Fragment1~Fragment3`객체들을 `addItem()`메소드로 Adapter에 추가했으며, 마지막으로 `ViewPager#setAdapter()`메소드로   
+  참조한 `ViewPager`객체에 `Adapter`객체를 설정했다.
+
+* 만약 사용자가 손가락으로 화면을 전환하지 않고, 코드에서 전환시키고 싶다면 `ViewPager#setCurrentItem()`를 사용하면 된다.   
+  아래는 id가 button인 `Button`객체가 XML Layout에 있고, 그 버튼을 클릭했을 때 보여줄 Fragment를 바꾸는 예시이다.
+```java
+// MainActivity.java
+
+@Override
+public void onCreate(Bundle savedInstanceState) {
+
+    //..
+
+    Button button = findViewById(R.id.button);
+    button.setOnClickListener(new View.onClickListener() {
+        @Override
+        public void onClick(View view) {
+            pager.setCurrentItem(1);
+        }
+    })
+}
+```
+
+* `TitleStrip` 객체는 `ViewPager` 사용 시, 위나 아래쪽에 전체 아이템의 개수와 현재 보고 있는 아이템이 어떤 것인지 보여준다.   
+  `TabStrip`도 비슷한 기능을하지만, 이는 탭 모양으로 아이템을 구분하여 보여준다.
+
+* `TitleStrip`을 추가하려면 `activity_main.xml`에 있는 `<ViewPager>` 태그 안에 `<PagerTitleStrip>`태그를 추가해야 한다.   
+```xml
+<androidx.viewpager.widget.ViewPager
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/pager">
+        
+        <androidx.viewpager.widget.PagerTitleStrip
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top"
+            android:background="#55cedf"
+            android:textColor="#FFFFFF"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp">
+        </androidx.viewpager.widget.PagerTitleStrip>
+    </androidx.viewpager.widget.ViewPager>
+```
+* 이제 `PagerTitleStrip`에 보여줄 문자열을 지정하기 위해 `FragmentStatePagerAdapter`의 `getPageTitle()` 메소드를 재정의하자.
+```java
+class MyPagerAdapter extends FragmentStatePagerAdapter {
+
+    //..
+
+    @Nullable
+    @Override
+    public CharSequence getPageTitle(int position) {
+        return "page " + position;
+    }
+}
+```
+<hr/>
+
+<h2>바로가기 메뉴 만들기</h2>
+
+* 바로가기 메뉴는 `NavigationDrawer`라는 이름으로 불린다.   
+  바로가기 메뉴를 추가하는 가장 쉬운 방법은 프로젝트 생성 시 `Navigation Drawer Activity`를 선택하는 것이다.
+```xml
+<androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawer_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    tools:openDrawer="start">
+
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" >
+        
+        <com.google.android.material.appbar.AppBarLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:theme="@style/AppTheme.AppBarOverlay" >
+            <androidx.appcompat.widget.Toolbar
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:id="@+id/toolbar"
+                android:background="?attr/colorPrimary"
+                app:popupTheme="@style/AppTheme.PopupOverlay" />
+        </com.google.android.material.appbar.AppBarLayout>
+        
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/container"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior">
+            
+        </FrameLayout>
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+    <com.google.android.material.navigation.NavigationView
+        android:id="@+id/nav_view"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:fitsSystemWindows="true"
+        app:headerLayout="@layout/nav_header_main"
+        app:menu="@menu/activity_main_drawer" />
+</androidx.drawerlayout.widget.DrawerLayout>
+```
+* `AppBarLayout`의 아래 쪽에 `FrameLayout`을 추가했는데, 이 layout은 메인 화면의 역할을 할 layout이다.   
+  따라서 id를 container로 설정했고, 속성 중 layout_behavior은 `CoordinatorLayout`내에서 해당 layout이 스크롤 등의   
+  작업이 진행될 때 차지할 면적을 자동으로 계산하도록 만든다.
+
+* `NavigationView`객체에는 headerLayout속성과 menu속성이 있다. headerLayout속성은 바로가기메뉴의 상단에 표시되면서   
+  사용자 프로필 등을 보여줄 수 있도록 하고, menu속성은 그 아래에 메뉴를 보여줄 수 있도록 해준다.   
+  menu속성에 지정된 `activity_main_drawer.xml`을 아래와 같이 3개의 item으로 구성되게 작성해보자.
+```xml
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/menu1"
+            android:icon="@drawable/ic_menu_camera"
+            android:title="Import" />
+        <item
+            android:id="@+id/menu2"
+            android:icon="@drawable/ic_menu_gallery"
+            android:title="Gallery" />
+        <item
+            android:id="@+id/menu3"
+            android:icon="@drawable/ic_menu_slideshow"
+            android:title="Slideshow" />
+    </group>
+</menu>
+```
+
+* 아래는 `MainActivity.java` 파일이다.
+```java
+public class MainActivity extends AppCompatActivity 
+    implements NavigationView.OnNavigationItemSelectedListener, FragmentCallback {
+    
+    Fragment1 fragment1;
+    Fragment2 fragment2;
+    Fragment3 fragment3;
+    
+    Toolbar toolbar;
+
+    private AppBarConfiguration mAppBarConfiguration;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+        
+        fragment1 = new Fragment1();
+        fragment2 = new Fragment2();
+        fragment3 = new Fragment3();
+        
+        getSupportFragmentManager().beginTransaction().add(R.id.container, fragment1).commit();
+    }
+
+    @Override
+    public void onBackPressed() {
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        if(drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+        int id = menuItem.getItemId();
+        
+        if(id == R.id.menu1) {
+            Toast.makeText(this, "first menu selected.", Toast.LENGTH_LONG).show();
+            onFragmentSelected(0,null);
+        } else if(id == R.id.menu2) {
+            Toast.makeText(this,"second menu selected", Toast.LENGTH_LONG).show();
+            onFragmentSelected(1,null);
+        } else if(id == R.id.menu3) {
+            Toast.makeText(this, "third menu selected.", Toast.LENGTH_LONG).show();
+            onFragmentSelected(2,null);
+        }
+        return true;
+    }
+
+    @Override
+    public void onFragmentSelected(int position, Bundle bundle) {
+        Fragment curFragment = null;
+        
+        if(position == 0) {
+            curFragment = fragment1;
+            toolbar.setTitle("First screen");
+        } else if(position == 1) {
+            curFragment = fragment2;
+            toolbar.setTitle("Second screen"); 
+        } else if(position==2) {
+            curFragment=fragment3;
+            toolbar.setTitle("Third screen");
+        }
+        getSupportFragmentManager().beginTransaction().replace(R.id.container, curFragment).commit();
+    }
+}
+```
+
+* 아래는 `FragmentCallback.java` 파일이다.
+```java
+public interface FragmentCallback {
+    public void onFragmentSelected(int position, Bundle bundle);
+}
+```
