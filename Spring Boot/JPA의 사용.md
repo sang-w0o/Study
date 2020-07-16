@@ -231,3 +231,228 @@ spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL5InnoDBDialec
   * Request 데이터를 받을 Dto
   * API 요청을 받을 Controller
   * Transaction, Domain 기능간의 순서를 보장하는 Service
+
+<hr/>
+
+<h3>Sprng Web 계층</h3>
+
+* Spring Web 계층은 아래와 같은 영역으로 구성된다.
+* Web Layer
+  * 흔히 사용하는 컨트롤러(@Controller)와 JSP 등의 View Template 영역이다.   
+    이외에도 필터(@Filter), Interceptor, @ControllerAdvice 등 __외부 요청과 응답__ 에 대한 전반적인 영역이다.
+* Service Layer
+  * @Service에 사용되는 서비스 영억으로, 일반적으로 Controller와 Dao의 중간 영역에서 사용된다.   
+    @Transactional이 사용되어야 하는 영역이기도 하다.
+* Repository Layer
+  * DB와 같이 데이터 저장소에 접근하는 영역이다. DAO 영역과 동일하다.
+* Dtos
+  * Dto(Data Transfer Object)는 __계층간에 데이터 교환을 위한 객체__ 를 의미하며, Dtos는 이들의 영역이다.   
+    예를들어 View Template에서 사용될 객체나 Repository Layer에서 결과로 넘겨준 객체 등이 이에 해당한다.
+* Domain Model
+  * Domain이라 불리는 개발 대상을 모든 사람이 동일한 관점에서 이해할 수 있고 공유할 수 있도록 단순화시킨 것을 의미한다.
+  * 예를들어 택시 앱이라면 배차, 탑승, 요금 등이 모두 도메인에 해당한다.
+  * @Entity가 사용되는 영역 역시 domain 영역이라 한다.
+  * 단, 무조건 DB의 테이블과 관계가 있어야하는 것은 아니다. VO객체들도 이 영역에 해당하기 때문이다.
+
+* 위에서 본 5가지 Layer에서 Business Logic의 처리를 담당해야하는 부분은 __Domain__ 이다.
+
+* 기존에 서비스로 처리하던 방식을 __Transaction Script__ 라 한다. 주문 취소 로직을 예로 들면 아래와 같다.
+```java
+@Transactional
+public OrdersDto cancelOrder(int orderId) {
+
+    OrdersDto order = ordersDao.selectOrders(orderId);
+    BillingDto billing = billingDao.selectBilling(orderId);
+    DeliveryDto delivery = deliveryDto.selectDelivery(orderId);
+
+    String deliveryStatus = delivery.getStatus();
+
+    if("IN_PROGRESS".equals(deliveryStatus)) {
+        delivery.setStatus("CANCEL");
+        deliveryDao.update(delivery);
+    }
+
+    order.setStatus("CANCEL");
+    ordersDao.update(order);
+
+    billing.setStatus("CANCEL");
+    deliveryDao.update(billing);
+
+    return order;
+}
+```
+* 위에서는 모든 로직이 Service class 내부에서 처리된다. 따라서 서비스 계층이 무의미해지며, 객체란 단순히 데이터의 덩어리   
+  역할만 하게 된다. 반면 이를 Domain영역에서 처리할 경우, 아래와 같은 코드가 될 수 있다.
+```java
+@Transactional
+public Orders cancelOrder(int orderId) {
+
+    Orders order = ordersRepository.findById(orderId);
+    Billing billing = billingRepository.findByOrderId(orderId);
+    Delivery delivery = deliveryRepository.findByOrderId(orderId);
+
+    delivery.cancel();
+    order.cancel();
+    billing.cancel();
+
+    return order;
+}
+```
+* 위 코드에서 order, billing, delivery는 각자 본인의 취소 이벤트 처리를 하며, 서비스 메소드는 __Transaction과 domain간의 순서를 보장__   
+  해주는 역할만 한다.
+<hr/>
+
+<h3>등록, 삭제, 수정 기능의 구현</h3>
+
+* 먼저 게시글을 등록하는 기능을 구현해보자.
+* `web` 패키지에 `PostsApiController`를, `web.dto` 패키지에 `PostsSaveRequestDto`를, 그리고 `service.posts` 패키지에   
+  `PostsService`를 작성하자.
+```java
+// PostsApiController.java
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+@RequiredArgsConstructor
+@RestController
+public class PostsApiController {
+    
+    private final PostsService postsService;
+    
+    @PostMapping("/api/v1/posts")
+    public Long save(@RequestBody PostsSaveRequestDto requestDto) {
+        return postsService.save(requestDto);
+    }
+}
+```
+
+```java
+// PostsService.java
+
+import com.sangwoo.board.domain.posts.PostsRepository;
+import com.sangwoo.board.web.dto.PostsSaveRequestDto;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@RequiredArgsConstructor
+@Service
+public class PostsService {
+    
+    private final PostsRepository postsRepository;
+    
+    @Transactional
+    public Long save(PostsSaveRequestDto requestDto) {
+        return postsRepository.save(requestDto.toEntity()).getId();
+    }
+}
+```
+
+* Spring에서는 Bean 객체를 주입 받는 방식이 @Autowired, setter, 생성자 3가지로 분류된다.   
+  이 중 가장 권장되는 방식은 __생성자로 주입__ 받는 방식이다. 즉, 생성자로 Bean 객체를 받도록 하면 __@Autowired__ 와   
+  동일한 효과를 볼 수 있다. 위 코드에서 생성자는 __final이 선언된 모든 필드를 인자값으로 하는 생성자를 lombok의__   
+  __@RequiredArgsConstructor__ 가 대신 생성해준 것이다. 생성자를 직접 안쓰고 Lombok 어노테이션을 사용하는 이유는   
+  해당 클래스의 의존성 관계가 변경될 때 마다 생성자 코드를 계속해서 수정하는 번거로움을 덜기 위해서이다.
+
+```java
+// PostsSaveRequestDto
+
+import com.sangwoo.board.domain.posts.Posts;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Getter
+@NoArgsConstructor
+public class PostsSaveRequestDto {
+    private String title;
+    private String content;
+    private String author;
+
+    @Builder
+    public PostsSaveRequestDto(String title, String content, String author) {
+        this.title = title;
+        this.content = content;
+        this.author = author;
+    }
+
+    public Posts toEntity() {
+        return Posts.builder().title(title).content(content).author(author).build();
+    }
+}
+```
+
+* 위 코드에서 `PostsSaveRequestDto`는 Entity class와 거의 유사한 형태임에도 Dto 클래스를 추가로 생성했다.   
+  __절대로 Entity Class를 Request/Response를 위한 클래스로 사용하면 안된다.__ 그 이유는 Entity class를 기준으로 테이블이 생성되고,   
+  스키마가 변경되기 때문이다. 수많은 서비스 클래스나 비즈니스 로직들이 Entity class를 기준으로 동작한다. 만약 Entity Class가   
+  변경되면 여러 클래스에 영향을 끼치지만, Request/Response용 Dto는 View를 위한 클래스이기에 자주 변경이 필요하다.   
+  따라서 꼭 Entity Class와 Controller에서 사용할 Dto는 분리해서 따로 사용해야 한다.
+
+* 이제 위 코드를 테스트하기 위해 아래 클래스를 `/test/java/` 하위의 `web` 폴더에 작성하자.
+```java
+package com.sangwoo.board.web;
+
+import com.sangwoo.board.domain.posts.Posts;
+import com.sangwoo.board.domain.posts.PostsRepository;
+import com.sangwoo.board.web.dto.PostsSaveRequestDto;
+import org.junit.After;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.junit4.SpringRunner;
+
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+@RunWith(SpringRunner.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+public class PostsApiControllerTest {
+
+    @LocalServerPort
+    private int port;
+
+    @Autowired
+    private TestRestTemplate restTemplate;
+
+    @Autowired
+    private PostsRepository postsRepository;
+
+    @After
+    public void tearDown() throws Exception {
+        postsRepository.deleteAll();
+    }
+
+    @Test
+    public void posts_is_saved() throws Exception {
+        //given
+        String title = "title";
+        String content = "content";
+        PostsSaveRequestDto requestDto = PostsSaveRequestDto.builder().title(title).content(content).author("author").build();
+
+        String url = "http://localhost:" + port + "/api/v1/posts";
+
+        //when
+        ResponseEntity<Long> responseEntity = restTemplate.postForEntity(url, requestDto, Long.class);
+
+        //then
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(responseEntity.getBody()).isGreaterThan(0L);
+
+        List<Posts> all = postsRepository.findAll();
+        assertThat(all.get(0).getTitle()).isEqualTo(title);
+        assertThat(all.get(0).getContent()).isEqualTo(content);
+    }
+}
+```
+* 위 코드에서는 Api Controller의 테스트 코드에서 __@WebMvcTest__ 어노테이션을 사용하지 않았다.   
+  __@WebMvcTest__ 는 JPA 기능이 동작하지 않기 때문인데, 지금처럼 JPA기능까지 한번에 테스트할 경우에는   
+  __@SpringBootTest__ 어노테이션과 `TestRestTemplate`를 사용하면 된다.
+* `WebEnvironment.RANDOM_PORT`는 랜덤 포트번호로 test를 수행한다는 것이다.
