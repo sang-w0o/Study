@@ -456,3 +456,8 @@ public class PostsApiControllerTest {
   __@WebMvcTest__ 는 JPA 기능이 동작하지 않기 때문인데, 지금처럼 JPA기능까지 한번에 테스트할 경우에는   
   __@SpringBootTest__ 어노테이션과 `TestRestTemplate`를 사용하면 된다.
 * `WebEnvironment.RANDOM_PORT`는 랜덤 포트번호로 test를 수행한다는 것이다.
+* `TestRestTemplate#postForEntity()` 메소드는 인자로 주어진 url로 두번째 인자로 주어진 requestDto를   
+  HTTP Method 중 POST 방식으로 전송하는 메소드이다.
+
+* 다음으로는 수정 및 조회 기능을 구현해보자.
+* p.111
