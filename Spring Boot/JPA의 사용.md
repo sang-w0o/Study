@@ -460,4 +460,186 @@ public class PostsApiControllerTest {
   HTTP Method 중 POST 방식으로 전송하는 메소드이다.
 
 * 다음으로는 수정 및 조회 기능을 구현해보자.
-* p.111
+* `PostsApiController.java`에 아래 메소드를 추가한다.
+```java
+@PutMapping("/api/v1/posts/{id}")
+public Long update(@PathVariable Long id, @RequestBody PostsUpdateRequestDto requestDto) {
+    return postsService.update(id, requestDto);
+}
+    
+@GetMapping("/api/v1/posts/{id}")
+public PostsResponseDto findById(@PathVariable Long id) {
+    return postsService.findById(id);
+}
+```
+
+* 다음은 `PostsResponseDto`를 작성한다.
+```java
+import com.sangwoo.board.domain.posts.Posts;
+import lombok.Getter;
+
+@Getter
+public class PostsResponseDto {
+    
+    private Long id;
+    private String title;
+    private String content;
+    private String author;
+    
+    public PostsResponseDto(Posts entity) {
+        this.id = entity.getId();
+        this.title = entity.getTitle();
+        this.content = entity.getContent();
+        this.author = entity.getAuthor();
+    }
+}
+```
+* 위 클래스는 Entity의 필드 중 일부만 사용하므로 생성자로 Entity 객체를 받아 필드에 값을 넣는다.   
+  굳이 모든 필드를 가진 생성자가 필요하지 않으므로 Dto는 Entity를 생성자의 파라미터로 받아 처리한다.
+
+* 아래 코드는 `PostsUpdateRequestDto.java`의 코드이다.
+```java
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Getter
+@NoArgsConstructor
+public class PostsUpdateRequestDto {
+    
+    private String title;
+    private String content;
+    
+    @Builder
+    public PostsUpdateRequestDto(String title, String content) {
+        this.title = title;
+        this.content = content;
+    }
+}
+```
+
+* 아래는 `Posts.java`에 추가한 메소드이다.
+```java
+public void update(String title, String content) {
+    this.title = title;
+    this.content = content;
+}
+```
+
+* 다음으로는 `PostsService.java`에 `update()`와 `findById()` 메소드를 추가하자.
+```java
+@Transactional
+public Long update(Long id, PostsUpdateRequestDto requestDto) {
+    Posts posts = postsRepository.findById(id).orElseThrow(()-> new IllegalArgumentException("해당 게시글이 존재하지 않습니다. id = " + id));
+    return id;
+}
+    
+public PostsResponseDto findById(Long id) {
+    Posts entity = postsRepository.findById(id).orElseThrow(()->new IllegalArgumentException("해당 게시글이 존재하지 않습니다. id = " + id));
+    return new PostsResponseDto(entity);
+}
+```
+* 위 코드에서 신기한 점은 `update` 기능에서 __DB에 Query를 날리는 부분이 없다__ 는 점이다.   
+  이는 JPA의 __영속성 컨텍스트__ 때문에 가능한 것인데, 영속성 컨텍스트란 __Entity를 영구 저장하는 환경__ 을 의미한다.   
+  JPA의 핵심 내용은 __Entity가 영속성 컨텍스트에 포함되어 있는지의 유무로 갈린다__.
+* JPA의 `EntityManager`가 활성화된 상태로(Spring Data JPA 사용 시 기본 설정) __Transaction 안에서 DB에서 데이터를 가져오면__ ,   
+  이 데이터는 영속성 컨텍스트가 유지된 상태이다. 이 상태에서 해당 데이터의 값을 변경하면 __Transaction이 끝나는 시점에 해당 테이블에__   
+  __변경된 내용을 반영__ 한다. 즉, Entity 객체의 값만 변경하면 __별도로 Update Query를 날릴 필요가 없다__.   
+  이 개념을 __Dirty Checking__ 이라 한다.
+
+* 이제 위에서 작성한 Update를 위한 Controller를 테스트하는 코드를 `PostsApiControllerTest.java`에 작성해보자.
+```java
+@Test
+public void posts_is_updated() throws Exception {
+    //given
+    Posts savedPosts = postsRepository.save(Posts.builder().title("title2").content("content2").author("author").build());
+    Long updateId = savedPosts.getId();
+    String expectedTitle = "title2";
+    String expectedContent = "content2";
+
+    PostsUpdateRequestDto requestDto = PostsUpdateRequestDto.builder().title(expectedTitle).content(expectedContent).build();
+    String url = "http://localhost:" + port + "/api/v1/posts/" + updateId;
+
+    HttpEntity<PostsUpdateRequestDto> requestEntity = new HttpEntity<>(requestDto);
+
+    //when
+    ResponseEntity<Long> responseEntity = restTemplate.exchange(url, HttpMethod.PUT, requestEntity, Long.class);
+
+    //then
+    assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(responseEntity.getBody()).isGreaterThan(0L);
+
+    List<Posts> all = postsRepository.findAll();
+    assertThat(all.get(0).getTitle()).isEqualTo(expectedTitle);
+    assertThat(all.get(0).getContent()).isEqualTo(expectedContent);
+}
+```
+* 조회 기능은 실제로 Tomcat을 실행해서 확인해보자. 로컬 환경에서는 DB로 H2를 사용하는데, 이는 메모리에서 실행하기 때문에   
+  직접 접근하려면 웹 콘솔을 사용해야 한다. 웹 콘솔을 위한 설정은 `application.properties`에 다음 설정을 추가하면 된다.   
+  `spring.h2.console.enabled=true`
+* 이 후 `Application`클래스의 `main()`을 실행하면, `http://localhost:8080/h2-console` 로 접속한 후, JDBC URL 값으로   
+  `jdbc:h2:mem:testdb`로 접속하면 쿼리문을 직접 작성할 수 있다.
+<hr/>
+
+<h2>JPA Auditing으로 생성시간, 수정시간 자동화하기</h2>
+
+* 보통 Entity에는 해당 데이터의 생성시간과 수정시간을 포함한다.   
+  그러다보니 매번 DB에 insert하기 전, update하기 전에 날짜 데이터를 등록, 수정하는 코드가 남발하게 된다.   
+  이 문제를 해결하기 위한 방법이 `JPA Auditing` 이다.
+<hr/>
+
+<h3>LocalDate의 사용</h3>
+
+* `domain` 패키지에 `BaseTimeEntity` 클래스를 생성해보자.
+```java
+import lombok.Getter;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import javax.persistence.EntityListeners;
+import javax.persistence.MappedSuperclass;
+import java.time.LocalDateTime;
+
+@Getter
+@MappedSuperclass
+@EntityListeners(AuditingEntityListener.class)
+public abstract class BaseTimeEntity {
+    
+    @CreatedDate
+    private LocalDateTime createdDate;
+    
+    @LastModifiedDate
+    private LocalDateTime modifiedDate;
+}
+```
+* __@MappedSuperclass__ : JPA Entity 클래스들이 `BaseTimeEntity`를 상속할 경우 필드들(createdDate, modifiedDate)도   
+  컬럼으로 인식하도록 한다.
+* __@EntityListeners__ : `BaseTimeEntity` 클래스에 Auditing 기능을 포함시킨다.
+* __@CreatedDate__ : Entity가 생성되어 저장될 때 시간이 자동 저장된다.
+* __@LastModifiedDate__ : 조회한 Entity의 값을 변경할 때 시간이 자동 저장된다.
+
+* 다음으로 `Posts` 클래스가 `BaseTimeActivity`를 상속받도록 수정하고, JPA Auditing을 활성화할 수 있도록 `Application`   
+  클래스에 첫 번째 어노테이션으로 __@EnableJpaAuditing__ 어노테이션을 추가하자.
+
+* 마지막으로 `PostsRepositoryTest`에 테스트 메소드를 추가하고, 수행해보자.
+```java
+@Test
+public void register_BaseTimeEntity() {
+    //given
+    LocalDateTime now = LocalDateTime.of(2020, 7, 16, 0,0,0);
+    postsRepository.save(Posts.builder().title("title").content("content").author("author").build());
+
+    //when
+    List<Posts> postsList = postsRepository.findAll();
+        
+    //then
+    Posts posts = postsList.get(0);
+
+    System.out.println(">>>>>>Created Date : " + posts.getCreatedDate());
+    System.out.println(">>>>>>Last Modified Date : " + posts.getModifiedDate());
+
+    assertThat(posts.getCreatedDate()).isAfter(now);
+    assertThat(posts.getModifiedDate()).isAfter(now);
+}
+```
