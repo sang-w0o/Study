@@ -56,7 +56,7 @@ dependencies {
     compile('org.springframework.boot:spring-boot-starter-mustache')
 }
 ```
-* 위 코드처럼 Muastche는 Spring Boot에서 공식 지원하는 템플릿 엔진이다.
+* 위 코드처럼 Mustche는 Spring Boot에서 공식 지원하는 템플릿 엔진이다.
 * Muatache 파일 위치는 기본적으로 `src/main/resources/templates` 이다.   
   이 위치에 Muatache 파일을 두면, Spring Boot에서 자동으로 로딩하게 된다.
 
