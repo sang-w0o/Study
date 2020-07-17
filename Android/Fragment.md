@@ -902,7 +902,7 @@ tabs.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
         app:menu="@menu/menu_bottom"/>
 </androidx.constraintlayout.widget.ConstraintLayout>
 ```
-* 위에서 하단 탭을 보여주는 `BottomNavigationView`는 `ConstraintLayout`안에 넣었고, `layout_constraintButtom_toBottomOf`   
+* 위에서 하단 탭을 보여주는 `BottomNavigationView`는 `ConstraintLayout`안에 넣었고, `layout_constraintBottom_toBottomOf`   
   등의 ConstraintLayout의 속성을 지정해서 화면의 아래 부분에 배치했다.
 
 * 하단 탭이 선택됐을 때의 이벤트를 받아 처리하려면 `BottomNavigationView#setOnNavigationItemSelectedListener()`메소드를   
