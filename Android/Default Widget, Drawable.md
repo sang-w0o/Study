@@ -536,7 +536,7 @@ public void onButton2Clicked(View v) {
     text.setText("Changed shape toast");
     toast.setGravity(Gravity.CENTER, 0, -100);
     toast.setDuration(Toast.LENGTH_SHORT);
-    toast.serView(layout);
+    toast.setView(layout);
     toast.show();
 }
 ```
