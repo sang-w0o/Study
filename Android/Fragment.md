@@ -306,7 +306,7 @@ public class MainActivity extends AppCompatActivity {
 
 * 위 표의 메소드들은 Fragment가 처음 화면에 만들어지고 화면에 나타나기 전에 호출되는 메소드들이다.   
   Activity와 마찬가지로 Fragment도 메모리에 올라갈 때(초기화 될 때) `onCreate()` 메소드가 호출된다.   
-  단, __Fragment는 Activity안에 추가되어 사용되면서 동시에 Activity에 종송되어 있어 Fragment와 Activity가 연결되어야 초기화될 수 있다__.   
+  단, __Fragment는 Activity안에 추가되어 사용되면서 동시에 Activity에 종속되어 있어 Fragment와 Activity가 연결되어야 초기화될 수 있다__.   
   즉 Fragment는 Activity위에 올라가야 제대로 동작한다. 이 때문에 new 연산자를 사용해 Fragment 객체를 만드는 시점과 `onCreate()`가   
   호출되는 시점이 달라진다.
 
