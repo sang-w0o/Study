@@ -650,7 +650,7 @@ public class MainActivity extends AppCompatActivity {
   특히 메뉴의 속성을 바꿀 수 있으므로 메뉴를 활성화,비활성화하여 사용자에게 app의 상태에 따라 메뉴를 사용하거나 사용하지 못하게 할 수 있다.
 
 * 메뉴를 선택했을 때 처리하는 방법은 위에서 재정의한 `onOptionsMenuSelected()`를 사용하면 된다. 사용자가 하나의 메뉴 아이템을   
-  선택했을 때 이 메소드는 자동으로 호출되며, item 객체가 인수로 넘어오기에 item객체에 대헤 `getId()`를 수행하여 item의 id를 가져오고,   
+  선택했을 때 이 메소드는 자동으로 호출되며, item 객체가 인수로 넘어오기에 item객체에 대헤 `getItemId()`를 수행하여 item의 id를 가져오고,   
   각 id에 맞게 처리할 수 있다.
 
 * Option Menu를 Activity에 등록하고 사용자가 옵션 메뉴를 선택했을 때 알맞게 처리하기 위해 두 개의 메소드를 재정의한 것 처럼   
