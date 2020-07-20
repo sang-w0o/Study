@@ -143,5 +143,87 @@ compile('org.springframework.boot:spring-boot-starter-oauth2-client')
 
 * 위에서 생성한 패키지에 `SecurityConfig` 클래스를 생성하고, 아래와 같이 작성한다.
 ```java
-FROM p.180 Code
+@RequiredArgsConstructor
+@EnableWebSecurity
+public class SecurityConfig extends WebSecurityConfigurerAdapter {
+    
+    private final CustomOAuth2UserService customOAuth2UserService;
+    
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http.csrf().disable().headers().frameOptions().disable().and()
+                .authorizeRequests()
+                .antMatchers("/", "/css/**", "/images/**", "/js/**", "/h2-console/**")
+                .permitAll().antMatchers("/api/v1/**").hasRole(Role.USER.name())
+                .anyRequest().authenticated().and()
+                .logout().logoutSuccessUrl("/")
+                .and().oauth2Login().userInfoEndpoint().userService(customOAuth2UserService);
+    }
+}
+```
+* __@EnableWebSecurity__ : Spring Security 설정들을 활성화시킨다.
+* `csrf().disable().headers().frameOptions().disable()` : h2-console화면을 사용하기 위해 해당 option들을 disable 한다.
+* `authorizeRequests()`: URL별 권한 관리를 설정하는 option의 시작점이다. 이 메소드가 선언되어야만 뒤에   
+  `antMatchers()` 옵션을 사용할 수 있다.
+* `antMatchers()` : 권한 관리 대상을 지정하는 option이다. URL, HTTP Method별로 관리가 가능하다.   
+  "/" 등 지정된 URL들은 `permitAll()` 옵션을 통해 전체 열람 권한을 부여했다.   
+  "/api/v1/**" 주소를 가진 API는 USER권한을 가진 사람만 가능하도록 설정했다.
+* `anyRequest()` : 설정된 값들 이외 나머지의 URL들을 나타낸다. 위에서는 바로 다음에 `authenticated()` option을 추가하여   
+  나머지 URL들은 모두 인증된 사용자들에게만 허용하게 했다. 인증된 사용자는 로그인한 사용자들을 의미한다.
+* `logout().logoutSuccessUrl("/")` : 로그아웃 기능에 대한 여러 설정의 진입점으로, 로그아웃 성공 시 "/"의 주소로 이동한다.
+* `oauth2Login()` : OAuth2 로그인 기능에 대한 여러 설정의 진입점이다.
+* `userInfoEndpoint()` : OAuth2 로그인 성공 이후 사용자 정보를 가져올 때의 설정들을 담당한다.
+* `userService()` : 소셜 로그인 성공 시 후속 조치를 진행할 `UserService`인터페이스의 구현체를 등록한다.   
+  리소스 서버, 즉 소셜 서비스에서 사용자 정보를 가져온 상태에서 추가로 진행하고자 하는 기능을 명시할 수 있다.
+
+* 이제 `CustomOAuth2UserService` 클래스를 작성하자. 이 클래스는 구글 로그인 이후 가져온 사용자의 정보(email, name, phone)   
+  들을 기반으로 가입 및 정보 수정, 세션 저장 등의 기능을 지원한다.
+```java
+@RequiredArgsConstructor
+@Service
+public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
+    
+    private final UserRepository userRepository;
+    private final HttpSession httpSession;
+    
+    @Override
+    public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+        OAuth2UserService<OAuth2UserRequest, OAuth2User> delegate = new DefaultOAuth2UserService();
+        OAuth2User oAuth2User = delegate.loadUser(userRequest);
+        
+        String registrationId = userRequest.getClientRegistration().getRegistrationId();
+        String userNameAttributeName = userRequest.getClientRegistration().getProviderDetails()
+                .getUserInfoEndpoint().getUserNameAttributeName();
+        
+        OAuthAttributes attributes = OAuthAttributes.of(registrationId, userNameAttributeName, oAuth2User.getAttributes());
+        
+        User user = saveOrUpdate(attributes);
+        
+        httpSession.setAttribute("user", new SessionUser(user));
+        
+        return new DefaultOAuth2User(Collections.singleton(new SimpleGrantedAuthority(user.getRoleKey())),
+                attributes.getAttributes(), attributes.getNameAttributeKey());
+    }
+    
+    private User saveOrUpdate(OAuthAttributes attributes) {
+        User user = userRepository.findByEmail(attributes.getEmail())
+                .map(entity -> entity.update(attributes.getName(), attributes.getPicture()))
+                .orElse(attributes.toEntity());
+        return userRepository.save(user);
+    }
+}
+```
+* `registrationId` : 현재 로그인 진행중인 서비스를 구분하는 코드이다. 현재는 Google만 사용하므로 불필요하지만,   
+  이후 네이버 등 다른 로그인 연동 시에 어떤 서비스에 로그인하는지를 구분하기 위해 사용한다.
+* `userNameAttributeName` : OAuth2 로그인 진행 시 key가 되는 필드값을 의미한다. PK와 같은 의미이다.   
+  Google의 경우 기본적으로 코드를 지원하지만, 네이버, 카카오 등은 지원하지 않는다. Google의 기본 코드는 "sub" 이다.   
+  이 필드는 이후 네이버 로그인과 구글 로그인을 동시에 지원할 때 사용된다.
+* `OAuthAttributes` : `OAuth2UserService`를 통해 가져온 `OAuth2User`의 attribute를 담을 클래스이다.
+* `SessionUser` : 세션에 사용자 정보를 저장하기 위한 Dto 클래스이다.
+* `saveOrUpdate()` 메소드에는 구글 사용자 정보가 업데이트 되었을 때를 대비하여 update 기능도 구현했다.   
+  사용자의 이름이나 picture가 변경되면 User Entity에도 반영된다.
+
+* 다음으로는 `OAuthAttributes` 클래스를 작성하자.
+```java
+p.185 부터
 ```
