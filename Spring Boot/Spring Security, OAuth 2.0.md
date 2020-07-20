@@ -225,5 +225,140 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
 * 다음으로는 `OAuthAttributes` 클래스를 작성하자.
 ```java
-p.185 부터
+@Getter
+public class OAuthAttributes {
+    private Map<String, Object> attributes;
+    private String nameAttributeKey;
+    private String name;
+    private String email;
+    private String picture;
+    
+    @Builder
+    public OAuthAttributes(Map<String, Object> attributes, String nameAttributeKey, String name, String email, String picture) {
+        this.attributes = attributes;
+        this.nameAttributeKey = nameAttributeKey;
+        this.name = name;
+        this.email = email;
+        this.picture = picture;
+    }
+    
+    public static OAuthAttributes of(String registrationId, String userNameAttributeName, Map<String, Object> attributes) {
+        return OAuthAttributes.builder().name((String)attributes.get("name"))
+                .email((String)attributes.get("email")).picture((String)attributes.get("picture"))
+                .attributes(attributes).nameAttributeKey(userNameAttributeName).build();
+    }
+    
+    public User toEntity() {
+        return User.builder().name(name).email(email).picture(picture).role(Role.GUEST).build();
+    }
+}
+```
+* `of()` : `OAuth2User`에서 반환하는 사용자 정보는 `Map`형식이기 때문에 값 하나하나를 반환해야 한다.
+* `toEntity()` : `User` Entity를 생성한다. `OAuthAttributes`에서 Entity를 생성하는 시점은 처음 가입할 때 이다.   
+  가입할 때의 기본 권한을 GUEST로 주기 위해서 `role()` 빌더값에는 Role.GUEST를 지정했다.
+
+* 다음으로는 `SessionUser` 클래스를 생성하자.
+```java
+@Getter
+public class SessionUser implements Serializable {
+    private String name;
+    private String email;
+    private String picture;
+    
+    public SessionUser(User user) {
+        this.name = user.getName();
+        this.email = user.getEmail();
+        this.picture = user.getPicture();
+    }
+}
+```
+* `SessionUser` 클래스는 `HttpSession` 객체에 저장할 정보이므로 __인증된 사용자 정보만 필요__ 하기 때문에 name, email,   
+  picture만 저장하도록 했다.
+* `User`클래스를 `Serializable`을 구현하게 하지 않고, 따로 `SessionUser` 클래스를 작성하여 세션에 저장한 이유는,   
+  `User`클래스는 Entity이기 때문이다. Entity class에는 언제 다른 Entity와 관계가 형성될지 모른다. 만약 직렬화 대상에   
+  자식들까지 포함되면 성능상의 이슈 및 부수 효과가 발생할 확률이 높다. 따라서 직렬화 기능을 가진 Session Dto를 만든 것이다.   
+  이는 이후 운영 및 유지보수 때 많은 도움이 된다.
+<hr/>
+
+<h3>Login Test</h3>
+
+* 이제 Spring-Security가 잘 적용됐는지를 확인하기 위해 화면에 로그인 버튼을 추가해보자.
+* 아래는 수정된 `index.mustache` 의 코드이다.
+```mustache
+{{>layout/header}}
+
+<h1>Web Service using Spring-Boot.</h1>
+<div class="col-md-12">
+    <!-- 로그인 기능 영역-->
+    <div class="row">
+        <div class="col-md-6">
+            <a href="/posts/save" role="button" class="btn btn-primary">글 등록</a>
+            {{#userName}}
+                Logged in as : <span id="user">{{userName}}</span>
+                <a href="/logout" class="btn btn-info active" role="button">Logout</a>
+            {{/userName}}
+            {{^userName}}
+                <a href="/oauth2/authorization/google" class="btn btn-success active" role="button">Google Login</a>
+            {{/userName}}
+        </div>
+    </div>
+    <br/>
+
+    <!-- 목록 출력 영역 -->
+    <table class="table table-horizontal table-bordered">
+        <thead class="thead-strong">
+            <tr>
+                <th>게시글 번호</th>
+                <th>제목</th>
+                <th>작성자</th>
+                <th>최종 수정일</th>
+            </tr>
+        </thead>
+        <tbody id="tbody">
+            {{#posts}}
+                <tr>
+                    <td>{{id}}</td>
+                    <td><a href="/posts/update/{{id}}">{{title}}</a></td>
+                    <td>{{author}}</td>
+                    <td>{{modifiedDate}}</td>
+                </tr>
+            {{/posts}}
+        </tbody>
+    </table>
+</div>
+
+{{>layout/footer}}
+```
+* `{{#userName}}` : Mustache는 다른 언어들에 있는 if문을 제공하지 않는다. 오로지 true/false만 판별할 뿐이다.   
+  따라서 mustache에는 항상 최종값을 넘겨줘야한다. 위 코드에서는 userName이 있다면 userName을 노출시키도록 한 것이다.
+* `a href="/logout"` : 이 URL은 Spring Security에서 기본적으로 제공하는 로그아웃 URL 이다. 즉, 개발자가 별도로   
+  위 URL에 해당하는 컨트롤러를 만들 필요가 없다.
+* `{{^userName}}` : mustache에서 해당 값이 존재하지 않는 경우에는 `^` 기호를 사용한다. 위 코드에서는 userName값이   
+  없다면 로그인 버튼을 노출시켰다.
+* `a href="/oauth2/authorization/google` : Spring Security에서 기본적으로 제공하는 로그인 URL 이다.   
+  로그아웃 URL과 마찬가지로 개발자가 별도의 컨트롤러를 생성할 필요가 없다.
+
+* 위의 `index.mustache`에서 userName을 session에서 가져와 사용하므로, `IndexController`에 userName을 `Model`객체에   
+  추가하는 코드를 작성해보자.
+```java
+@RequiredArgsConstructor
+@Controller
+public class IndexController {
+
+    private final PostsService postsService;
+    private final HttpSession httpSession;
+
+    @GetMapping("/")
+    public String index(Model model) {
+        model.addAttribute("posts", postsService.findAllDesc());
+
+        SessionUser user = (SessionUser)httpSession.getAttribute("user");
+        if(user != null) {
+            model.addAttribute("userName", user.getName());
+        }
+        return "index";
+    }
+
+    // 생략
+}
 ```
