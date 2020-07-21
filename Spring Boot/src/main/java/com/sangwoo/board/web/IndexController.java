@@ -1,5 +1,6 @@
 package com.sangwoo.board.web;
 
+import com.sangwoo.board.config.auth.dto.SessionUser;
 import com.sangwoo.board.service.posts.PostsService;
 import com.sangwoo.board.web.dto.PostsResponseDto;
 import lombok.NoArgsConstructor;
@@ -9,15 +10,26 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import javax.servlet.http.HttpSession;
+
 @RequiredArgsConstructor
 @Controller
 public class IndexController {
 
     private final PostsService postsService;
+    private final HttpSession httpSession;
 
     @GetMapping("/")
     public String index(Model model) {
         model.addAttribute("posts", postsService.findAllDesc());
+
+        SessionUser user = (SessionUser)httpSession.getAttribute("user");
+        if(user != null) {
+            model.addAttribute("loginUserName", user.getName());
+        }
+        else {
+            System.out.println("user is null");
+        }
         return "index";
     }
 

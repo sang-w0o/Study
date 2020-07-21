@@ -2,12 +2,21 @@
 
 <h1>Web Service using Spring-Boot.</h1>
 <div class="col-md-12">
+    <!-- 로그인 기능 영역-->
     <div class="row">
         <div class="col-md-6">
             <a href="/posts/save" role="button" class="btn btn-primary">글 등록</a>
+            {{#loginUserName}}
+                Logged in as : <span id="user">{{loginUserName}}</span>
+                <a href="/logout" class="btn btn-info active" role="button">Logout</a>
+            {{/loginUserName}}
+            {{^loginUserName}}
+                <a href="/oauth2/authorization/google" class="btn btn-success active" role="button">Google Login</a>
+            {{/loginUserName}}
         </div>
     </div>
     <br/>
+
 
     <!-- 목록 출력 영역 -->
     <table class="table table-horizontal table-bordered">
