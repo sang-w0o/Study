@@ -1,0 +1,44 @@
+{{>layout/header}}
+
+<h1>Web Service using Spring-Boot.</h1>
+<div class="col-md-12">
+    <!-- 로그인 기능 영역-->
+    <div class="row">
+        <div class="col-md-6">
+            <a href="/posts/save" role="button" class="btn btn-primary">글 등록</a>
+            {{#loginUserName}}
+                Logged in as : <span id="user">{{loginUserName}}</span>
+                <a href="/logout" class="btn btn-info active" role="button">Logout</a>
+            {{/loginUserName}}
+            {{^loginUserName}}
+                <a href="/oauth2/authorization/google" class="btn btn-success active" role="button">Google Login</a>
+            {{/loginUserName}}
+        </div>
+    </div>
+    <br/>
+
+
+    <!-- 목록 출력 영역 -->
+    <table class="table table-horizontal table-bordered">
+        <thead class="thead-strong">
+            <tr>
+                <th>게시글 번호</th>
+                <th>제목</th>
+                <th>작성자</th>
+                <th>최종 수정일</th>
+            </tr>
+        </thead>
+        <tbody id="tbody">
+            {{#posts}}
+                <tr>
+                    <td>{{id}}</td>
+                    <td><a href="/posts/update/{{id}}">{{title}}</a></td>
+                    <td>{{author}}</td>
+                    <td>{{modifiedDate}}</td>
+                </tr>
+            {{/posts}}
+        </tbody>
+    </table>
+</div>
+
+{{>layout/footer}}
