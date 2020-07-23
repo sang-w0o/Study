@@ -269,3 +269,110 @@ public class MainActivity extends AppCompatActivity implements AutoPermissionsLi
     }
 }
 ```
+<hr/>
+
+<h2>현재 위치의 지도 보여주기</h2>
+
+* 안드로이드는 app 화면 내에 지도를 넣을 수 있도록 `MapFragment`가 제공된다. 이는 새로운 방식의 GoogleMap Service v2 기능을   
+  사용할 수 있도록 추가된 기능으로 Google Play Service 모듈을 사용한다. 다음은 XML Layout에 MapFragment를 추가해서 지도를   
+  보여줄 때 필요한 과정이다.
+  * Google Play Services 라이브러리 사용 설정하기
+  * XML Layout에 MapFragment 추가
+  * 소스코드에서 내 위치로 지도 이동시키기
+  * Manifest에 권한 설정 추가하기
+  * 지도 API Key 발급받기
+<hr/>
+
+<h3>Google Play Services 라이브러리 사용 설정하기</h3>
+
+* 안드로이드 스튜디오의 SDK Manager에서 Android SDK 선택 후 SDK Tools에서 Google Play Services 모듈을 설치한다.
+<hr/>
+
+<h3>XML Layout에 MapFragment 추가하기</h3>
+
+* `File -> Project Structure -> Modules -> app` 에서 `+` 버튼 클릭 후 `Library Dependency`를 선택하고,   
+  `com.google.android.gms:play-services-maps` 항목을 선택한다.
+
+* 이후 `activity_main.xml`에 지도를 보여주기 위한 fragment를 추가하자.
+```xml
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".MainActivity">
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/button"
+        android:textSize="Request my location" />
+    
+    <fragment
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/map"
+        class="com.google.android.gms.maps.SupportMapFragment" />
+
+</LinearLayout>
+```
+
+* Fragment는 View처럼 화면의 일정 영역을 할당받게 되며, `<fragment>` 태그를 사용한다. Fragment에서 할당받은 화면 영역에   
+  보이는 것은 class 속성으로 지정된 클래스인데, 위 코드에서는 `SupportMapFragment` 클래스가 사용된다.
+<hr/>
+
+<h3>소스 코드에서 내 위치로 지도 이동시키기</h3>
+
+* 지도를 보여주기 위해 XML Layout에 추가한 fragment는 class 속성으로 `SupportMapFragment`가 할당되어 있다.   
+  이 객체는 소스 코드에서 참조할 수 있으며, `SupportMapFragment` 안에 있는 `GoogleMap` 객체 위에 지도가 표시된다.   
+  `GoogleMap` 객체는 fragment가 초기화된 이후에 참조할 수 있는데, XML Layout에 정의한 `SupportMapFragment`를 참조한 후   
+  `getMapAsync()` 메소드를 호출하면 `GoogleMap` 객체를 참조할 수 있다. `getMapAsync()` 메소드는 내부적으로 지도를 다루는   
+  `GoogleMap` 객체를 초기화하는데, 이를 비동기 방식으로 처리한다. 따라서 callback 객체를 파라미터로 전달한 후 초기화가 완료될 때   
+  callback 객체 내의 메소드가 자동으로 호출되도록 한다. `MainActivity.java`를 아래와 같이 작성하자.
+```java
+public class MainActivity extends AppCompatActivity {
+
+    SupportMapFragment mapFragment;
+    GoogleMap map;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        // XML Layout에 추가한 fragment 객체를 참조한다.
+        mapFragment = (SupportMapFragment)getSupportFragmentManager().findFragmentById(R.id.map);
+        mapFragment.getMapAsync(new OnMapReadyCallback() {
+            @Override
+            public void onMapReady(GoogleMap googleMap) {
+                Log.d("Map", "map is ready.");
+                map = googleMap;
+            }
+        });
+
+        try {
+            MapsInitializer.initialize(this);
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+
+        Button button = findViewById(R.id.button);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startLocationService();
+            }
+        });
+    }
+}
+```
+* 위 코드에서는 `SupportMapFragment` 객체를 참조한 후 `getMapAsync()` 메소드를 호출했다. 이 메소드는 비동기 방식으로 작동하기 때문에   
+  지도가 사용 가능하게된 후에 `onMapReady()` 메소드가 자동으로 호출된다.
+
+* 지도가 준비되었다면 버튼을 클릭했을 때 `startLocationService()` 메소드를 호출하는데, 이 메소드는 `LocationManager`로부터   
+  현재 위치를 전달받도록 구현한다. 또한 `LocationListener`도 전과 동일하게 구현하는데, `onLocationChanged()`에는   
+  현재 위치를 지도에 보여주는 코드를 추가해야 한다.
+```java
+
+```
