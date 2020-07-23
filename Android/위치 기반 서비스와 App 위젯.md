@@ -536,3 +536,456 @@ dependencies {
 * `console.developers.google.com`에서 키를 발급받고, `AndroidManifest.xml`에 추가한다.
 <hr/>
 
+<h2>지도에 아이콘 추가하기</h2>
+
+* 지도 위에 아이콘을 표시하는 방법을 알아보자.
+<hr/>
+
+<h3>OverLay</h3>
+
+* 지구상의 현실 공간을 지도로 표현할 때는 `Layer`로 분리하고 각각의 layer에는 유사한 속성을 가진 객체들을 넣어둔다.   
+  Google Map에서는 이런 layer들을 `Overlay`라 부르며, 이들이 하나의 지도를 구성하게 된다.
+<hr/>
+
+<h3>내 현재 위치 표시를 위한 overlay 추가하기</h3>
+
+* 아래와 같이 `MainActivity.java`를 수정해보자.
+```java
+public class MainActivity extends AppCompatActivity {
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+
+        //..
+
+        mapFragment.getMapAsync(new OnMapReadyCallback() {
+            @Override
+            public void onMapReady(GoogleMap googleMap) {
+                Log.d("Map", "map is ready.");
+                map = googleMap;
+                try {
+                    map.setMyLocationEnabled(true);
+                }catch(SecurityException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        //..
+
+    }
+
+    //..
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if(map != null) {
+            try {
+                map.setMyLocationEnabled(true);
+            } catch(SecurityException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if(map!= null) {
+            try {
+                map.setMyLocationEnabled(false);
+            } catch(SecurityException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
+```
+* 위 코드에서는 Activity가 중지되거나 다시 시작할 때 `setMyLocationEnabled(true)`를 호출한다. 이 메소드는 지도 초기화가   
+  완료된 후에 호출되는 `onMapReady()` 메소드 안에서 호출한다. 그리고 Activity가 화면에 보이는 시점에서 다시 표시하고,   
+  화면이 사라지기 전에 없애고 싶다면 `onResume()`과 `onPause()`내에서 각각 `setMyLocationEnabled(true)`와   
+  `setMyLocationEnabled(false)`를 호출한다. 이렇게 하면 Google Map에서 내 위치를 알아서 지도에 표시해준다.
+<hr/>
+
+<h3>Marker를 사용하여 내 위치 등을 표시하기</h3>
+
+* 아이콘을 사용해 원하는 위치를 포인트로 쉽게 표시하는 방법은 `Marker`를 만들어 추가하는 것이다.   
+  즉 Marker는 지도 위에 표시되는 아이콘이다. 내 위치를 보여주는 것도 위에서 사용한 `setMyLocationEnabled()`메소드를   
+  호출하는 방법을 사용하지 않는 대신 marker를 사용할 수 있다.
+```java
+public class MainActivity extends AppCompatActivity {
+
+    //..
+
+    MarkerOptions myLocationMarker;
+
+    private void showCurrentPosition(Double latitude, Double longitude) {
+            LatLng curPoint = new LatLng(latitude, longitude);
+            map.animateCamera(CameraUpdateFactory.newLatLngZoom(curPoint, 15));
+            showMyLocationMarker(curPoint);
+        }
+
+    private void showMyLocationMarker(LatLng curPoint) {
+        if(myLocationMarker == null) {
+
+            // Marker 객체 생성
+            myLocationMarker = new MarkerOptions();
+            myLocationMarker.position(curPoint);
+            myLocationMarker.title("내 위치\n");
+            myLocationMarker.snippet("GPS로 확인한 위치");
+            myLocationMarker.icon(BitmapDescriptorFactory.fromResource(R.drawable.mylocationIcon));
+            map.addMarker(myLocationMarker);
+        } else {
+            myLocationMarker.position(curPoint);
+        }
+    }
+}
+```
+* `icon()` 메소드에 전달한 `mylocationIcon`은 `/app/res/drawable`에 있는 이미지 파일이다.
+<hr/>
+
+<h2>App Widget 만들기</h2>
+
+* `AppWidget`은 안드로이드 단말의 홈 화면에서 widget을 바로 보여주고 싶을 때 사용할 수 있다.
+* `AppWidget`은 다른 app 안에 들어갈 수 있도록 만들어졌다. 따라서 홈 화면에 widget이 보이는 과정은 홈 화면 안에 widget으로 구성한   
+  app이 들어가 있다고 생각하면 된다. AppWidget이 홈 화면 내의 일정 영역을 할당받은것 처럼 보이긴 하지만 일반적인 app과는 달리 AppWidget은   
+  결과 화면만을 보여준다. 이런 특징 때문에 일반 app과는 다른 구조를 가지며, AppWidget은 아래의 두 가지로 구성된다.
+
+<table>
+    <tr>
+        <td>App Widget Host</td>
+        <td>Widget을 담고 있는 그릇 역할</td>
+    </tr>
+    <tr>
+        <td>App Widget Provider</td>
+        <td>Widget을 보여주는 제공자</td>
+    </tr>
+</table>
+
+* 이는 곧 App Widget Provider가 App Widget Host 내에서 widget을 보여준다는 의미가 된다. 이러한 AppWidget을 구성하는데의 필수요소는 다음 3가지가 있다.
+
+<table>
+    <tr>
+        <td>Widget의 초기 View Layout</td>
+        <td>AppWidget이 처음 화면에 나타날 때 필요한 Layout을 XML로 정의한다.</td>
+    </tr>
+    <tr>
+        <td>App Widget Provider Info 객체</td>
+        <td>AppWidget을 위한 MetaData(Layout, Update 주기 등)를 가지고 있다. AppWidget Provider 클래스에 대한 정보를 가지며, XML로 정의한다.</td>
+    </tr>
+    <tr>
+        <td>App Widget Provider</td>
+        <td>AppWidget과 정보를 주고받기 위한 기본 클래스이다. Broadcast Receiver로 만들며 AppWidget의 상태변화에 따른 기능을 구현한다.</td>
+    </tr>
+</table>
+
+* AppWidget으로 만든 View는 주기적으로 업데이트될 수 있는데, 업데이트시에는 AppWidget Provider의 `onUpdate()` 메소드가 호출된다.   
+  만약 AppWidget Provider가 Widget을 바꾸고 싶을 경우에는 App Widget Manager를 통해 업데이트할 수 있다.
+
+* 간단하게 단말의 위치를 표시해주는 위젯을 만들어보자.
+* 아래는 `/app/res/layout`하위에 있는 `mylocation.xml` 파일이다.
+```xml
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent">
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:orientation="vertical" 
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/ic_launcher_background"
+        android:padding="10dp">
+    
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/txtInfo"
+            android:gravity="center_horizontal|center_vertical" 
+            android:text="Getting my location.."
+            android:textColor="#FFFFFFFF"
+            android:lineSpacingExtra="4dp" />
+    </LinearLayout>
+</LinearLayout>
+```
+* `AppWidget`으로 나타날 View의 모양은 Activity나 ViewGroup을 위해 만드는 일반적인 XML Layout과 동일하다. 그러나 AppWidget에 모든 View가   
+  들어갈 수 있는 것은 아니며, 아래와 같은 View들을 태그로 추가하여 사용할 수 있다.
+
+<table>
+    <tr>
+        <td>ViewGroup</td>
+        <td>FrameLayout, LinearLayout, RelativeLayout</td>
+    </tr>
+    <tr>
+        <td>View</td>
+        <td>AnalogClock, Button, Chronometer ImageButton, ImageView, ProgressBar, TextView
+    </tr>
+</table>
+
+* AppWidget에 위의 표에 정리한 View들만 들어갈 수 있는 이유는 AppWidget으로 표현되는 View들이 다른 프로세스에 들어가 있고, 이 때문에 다른   
+  프로세스의 View에 접근하기 위해 `RemoteViews` 객체가 사용되기 때문이다.
+
+* `AppWidget`으로 표현된 View의 layout을 결정했다면, 이 정보를 이용해 App Widget Provider 정보를 만들어야 한다.   
+  아래는 `/app/res/xml` 폴더 하위의 `mylocationinfo.xml` 코드이다.
+```xml
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="294dp"
+    android:minHeight="72dp"
+    android:updatePeriodMillis="1800000"
+    android:initialLayout="@layout/mylocation">
+</appwidget-provider>
+```
+* minWidth와 minHeight 속성은 AppWidget으로 표현될 View의 최소 크기를 지정하며, updatePeriodMillis 속성은 주기적으로 업데이트되는 시간 간격을 지정한다.   
+  위 코드에서는 30분마다 위치 정보를 업데이트 하도록 값을 지정했으며, initialLayout은 AppWidget으로 사용될 View의 layout을 지정한 것이다.
+
+* 다음으로는 AppWidget Provider 클래스를 정의해야 한다. 이 클래스는 `AppWidgetProvider` 클래스를 상속하여 정의하며, 주요 역할은 AppWidget이   
+  주기적으로 업데이트될 때 처리할 코드를 정의하는 것이다. 아래는 `com.techtown.location.widget` 폴더내의 `MyLocationProvider.java`이다.
+```java
+public class MyLocationProvider extends AppWidgetProvider {
+
+    public static double ycoord = 0.0D;
+    public static double xcoord = 0.0D;
+
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        super.onReceive(context, intent);
+    }
+
+    @Override
+    public void onDeleted(Context context, int[] appWidgetIds) {
+        super.onDeleted(context, appWidgetIds);
+    }
+
+    @Override
+    public void onEnabled(Context context) {
+        super.onEnabled(context);
+    }
+
+    @Override
+    public void onDisabled(Context context) {
+        super.onDisabled(context);
+    }
+
+    // 업데이트 발생 시 호출되는 onUpdate() 메소드 재정의
+    @Override
+    public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
+        super.onUpdate(context, appWidgetManager, appWidgetIds);
+
+        Log.d("MyLocationProvider", "onUpdate() called : " + ycoord + ", " + xcoord);
+
+        final int size = appWidgetIds.length;
+
+        for(int i = 0; i < size; i++) {
+            int appWidgetId = appWidgetIds[i];
+
+            // 지도를 띄우기 위한 URI 문자열 생성
+            String uriBegin = "geo:" + ycoord + "," + xcoord;
+            String query = ycoord + "," + xcoord + "(" + "내위치" + ")";
+            String encodedQuery = Uri.encode(query);
+            String uriString = uriBegin + "?q=" + encodedQuery + "&z=15";
+            Uri uri = Uri.parse(uriString);
+
+            // 지도를 띄우기 위한 Intent 객체 생성
+            Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+
+            // 지도를 띄우기 위한 PendingIntent 객체 생성
+            PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
+            RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.mylocation);
+
+            // View를 눌렀을 때 실행할 PendingIntent 객체 지정
+            views.setOnClickPendingIntent(R.id.txtInfo, pendingIntent);
+
+            // AppWidget 업데이트
+            appWidgetManager.updateAppWidget(appWidgetId, views);
+        }
+
+        // GPS 위치 확인을 위한 서비스 시작
+        context.startService(new Intent(context, GPSLocationService.class));
+    }
+}
+```
+* `TextView`를 눌렀을 때 내 위치를 이용해 지도를 보여줄 수 있는 가장 간단한 방법은 "geo:"로 시작하는 `URI` 객체를 만들어 `Intent`로   
+  지도를 띄워주는 것이다. 내 위치 정보로 지도를 띄우는데 사용되는 URI문자열의 포맷은 아래와 같다.   
+  `geo:<latitude>,<longitude>?z=<zoomLevel>`   
+  위도와 경도 좌표 뒤에 오는 z 파라미터의 값은 지도가 나타날 때 사용되는 확대/축소 수준을 지정한다. 위에서는 그 값으로 15를 지정했다.
+
+* `TextView`를 눌렀을 때 내 위치 좌표를 이용해 지도에 띄워주기 위해 설정하는 Intent는 미리 설정되어야 하므로 `PendingIntent`객체로   
+  만들어 설정한다. 이 객체는 `RemoteViews#setOnClickPendingIntent()` 메소드를 이용하여 설정할 수 있다. 그런 다음   
+  `AppWidgetManager#updateAppWidget()` 메소드를 호출하여 위젯을 업데이트하면 TextView의 클릭 이벤트를 처리하기 위한 intent가 설정된다.
+
+* 다음으로는 `MyLocationProvider.java`의 내부 클래스인 `GPSLocationService` 클래스를 보자.
+```java
+public static  class GPSLocationService extends Service {
+        public static final String TAG = "GPSLocationService";
+
+        private LocationManager manager = null;
+
+        private LocationListener listener = new LocationListener() {
+
+            @Override
+            public void onStatusChanged(String provider, int status, Bundle extras) { }
+
+            @Override
+            public void onProviderEnabled(String provider) { }
+
+            @Override
+            public void onProviderDisabled(String provider) { }
+
+            @Override
+            public void onLocationChanged(Location location) {
+                Log.d(TAG, "onLocationChanged() called.");
+                
+                // 위치 정보가 확인되면 아래 메소드를 호출한다.
+                updateCoordinates(location.getLatitude(), location.getLongitude());
+
+                stopSelf();
+            }
+        };
+
+        public IBinder onBind(Intent intent) {
+            return null;
+        }
+
+        public void onCreate() {
+            super.onCreate();
+
+            Log.d(TAG, "onCreate() called.");
+            
+            // Service가 생성될 때 LocationManager 객체를 참조한다.
+            manager = (LocationManager) getSystemService(LOCATION_SERVICE);
+
+        }
+
+        public int onStartCommand(Intent intent, int flags, int startId) {
+            // 서비스가 시작될 때 아래 메소드를 호출한다.
+            startListening();
+
+            return super.onStartCommand(intent, flags, startId);
+        }
+
+        public void onDestroy() {
+            stopListening();
+
+            Log.d(TAG, "onDestroy() called.");
+
+            super.onDestroy();
+        }
+
+        private void startListening() {
+            Log.d(TAG, "startListening() called.");
+
+            final Criteria criteria = new Criteria();
+            criteria.setAccuracy(Criteria.ACCURACY_COARSE);
+            criteria.setAltitudeRequired(false);
+            criteria.setBearingRequired(false);
+            criteria.setCostAllowed(true);
+            criteria.setPowerRequirement(Criteria.POWER_LOW);
+
+            final String bestProvider = manager.getBestProvider(criteria, true);
+
+            try {
+                if (bestProvider != null && bestProvider.length() > 0) {
+                    // LocationManager 에 위치 정보를 요청한다.
+                    manager.requestLocationUpdates(bestProvider, 500, 10, listener);
+                } else {
+                    final List<String> providers = manager.getProviders(true);
+
+                    for (final String provider : providers) {
+                        manager.requestLocationUpdates(provider, 500, 10, listener);
+                    }
+                }
+            } catch(SecurityException e) {
+                e.printStackTrace();
+            }
+        }
+
+        private void stopListening() {
+            try {
+                if (manager != null && listener != null) {
+                    manager.removeUpdates(listener);
+                }
+
+                manager = null;
+            } catch (final Exception ex) {
+
+            }
+        }
+
+        private void updateCoordinates(double latitude, double longitude) {
+            Geocoder coder = new Geocoder(this);
+            List<Address> addresses = null;
+            String info = "";
+
+            Log.d(TAG, "updateCoordinates() called.");
+
+            try {
+                addresses = coder.getFromLocation(latitude, longitude, 2);
+
+                if (null != addresses && addresses.size() > 0) {
+                    int addressCount = addresses.get(0).getMaxAddressLineIndex();
+
+                    if (-1 != addressCount) {
+                        for (int index = 0; index <= addressCount; ++index) {
+                            info += addresses.get(0).getAddressLine(index);
+
+                            if (index < addressCount)
+                                info += ", ";
+                        }
+                    } else {
+                        info += addresses.get(0).getFeatureName() + ", "
+                                + addresses.get(0).getSubAdminArea() + ", "
+                                + addresses.get(0).getAdminArea();
+                    }
+                }
+
+                Log.d(TAG, "Address : " + addresses.get(0).toString());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            coder = null;
+            addresses = null;
+            
+            // 위치 좌표와 주소 정보를 포함하는 문자열 생성
+            if (info.length() <= 0) {
+                info = "[내 위치] " + latitude + ", " + longitude
+                        + "\n터치하면 지도로 볼 수 있습니다.";
+            } else {
+                info += ("\n" + "[내 위치] " + latitude + ", " + longitude + ")");
+                info += "\n터치하면 지도로 볼 수 있습니다.";
+            }
+            
+            // RemoteViews 객체 생성 후 TextView의 텍스트 설정
+            RemoteViews views = new RemoteViews(getPackageName(), R.layout.mylocation);
+
+            views.setTextViewText(R.id.txtInfo, info);
+
+            ComponentName thisWidget = new ComponentName(this, MyLocationProvider.class);
+            AppWidgetManager manager = AppWidgetManager.getInstance(this);
+            // 위젯 업데이트
+            manager.updateAppWidget(thisWidget, views);
+
+            xcoord = longitude;
+            ycoord = latitude;
+            Log.d(TAG, "coordinates : " + latitude + ", " + longitude);
+
+        }
+    }
+```
+* 마지막으로 `AndroidManifest.xml`에 AppWidget과 관련된 태그들을 정의하자.
+```xml
+<!-- 중략 -->
+<application android:icon="@drawable/icon" android:label="@string/app_name">
+    <!-- 중략 -->
+    <receiver android:name=".MyLocationProvider">
+        <intent-filter>
+            <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+        </intent-filter>
+        <meta-data android:name="android.appwidget.provider"
+            android:resource="@xml/mylocationinfo" />
+    </receiver>
+
+    <service android:name=".MyLocationProvider$GPSLocationService"></service>
+</application>
+<!-- 중략 -->
+```
