@@ -374,5 +374,165 @@ public class MainActivity extends AppCompatActivity {
   현재 위치를 전달받도록 구현한다. 또한 `LocationListener`도 전과 동일하게 구현하는데, `onLocationChanged()`에는   
   현재 위치를 지도에 보여주는 코드를 추가해야 한다.
 ```java
+public class MainActivity extends AppCompatActivity {
 
+    SupportMapFragment mapFragment;
+    GoogleMap map;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        // XML Layout에 추가한 fragment 객체를 참조한다.
+        mapFragment = (SupportMapFragment)getSupportFragmentManager().findFragmentById(R.id.map);
+        mapFragment.getMapAsync(new OnMapReadyCallback() {
+            @Override
+            public void onMapReady(GoogleMap googleMap) {
+                Log.d("Map", "map is ready.");
+                map = googleMap;
+            }
+        });
+
+        try {
+            MapsInitializer.initialize(this);
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+
+        Button button = findViewById(R.id.button);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startLocationService();
+            }
+        });
+    }
+
+    public void startLocationService() {
+        LocationManager manager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+        try {
+            //Location location = manager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+
+            GPSListener gpsListener = new GPSListener();
+            long minTime = 1000;
+            float minDistance = 0;
+
+            manager.requestLocationUpdates(LocationManager.GPS_PROVIDER, minTime, minDistance, gpsListener);
+            
+        } catch(SecurityException e) {
+            e.printStackTrace();
+        }
+    }
+
+    class GPSListener implements LocationListener {
+        @Override
+        public void onLocationChanged(Location location) {
+            Double latitude = location.getLatitude();
+            Double longitude = location.getLongitude();
+            showCurrentPosition(latitude, longitude);
+        }
+
+        @Override
+        public void onStatusChanged(String s, int i, Bundle bundle) { }
+
+        @Override
+        public void onProviderEnabled(String s) { }
+
+        @Override
+        public void onProviderDisabled(String s) { }
+
+        private void showCurrentPosition(Double latitude, Double longitude) {
+            LatLng curPoint = new LatLng(latitude, longitude);
+            map.animateCamera(CameraUpdateFactory.newLatLngZoom(curPoint, 15));
+        }
+    }
+}
 ```
+* `showCurrentLocation()`메소드로 전달된 위도와 경도값은 `LatLng` 객체로 만들면 지도상에 표시할 수 있다.   
+  `LatLng` 객체는 경위도 좌표로 구성된 위치를 지도에 표시할 수 있도록 정의된 객체이다. 이 객체로 지구상의 특정 위치를   
+  표현할 수 있으며, `GoogleMap#animateCamera()` 메소드를 이용하여 그 위치를 중심으로 지도를 보여줄 수 있다.   
+  `CameraUpdateFactory.newLatLngZoom()`의 두 번째 인자는 지도의 축척(Scale)을 지정한다.
+<hr/>
+
+<h3>Manifest에 정보 등록하기</h3>
+
+* Manifest에는 Google Map 라이브러리를 사용한다는 정보와 함께 GPS, INTERNET 사용 권한과 기타 설정 정보를 등록해야 한다.   
+  아래는 `AndroidManifest.xml` 코드이다.
+```xml
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.techtown.location">
+    <permission android:name="com.techtown.location.permission.MAPS_RECEIVE"
+        android:protectionLevel="signature" />
+    <uses-permission android:name="com.techtown.location.permission.MAPS_RECEIVE" />
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    
+    <uses-feature android:glEsVersion="0x00020000"
+        android:required="true" />
+    
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme"
+        android:usesCleartextTraffic="true">
+        
+        <uses-library android:name="com.google.android.maps" />
+        <uses-library android:name="org.apache.http.legacy"
+            android:required="false" />
+        
+        <!-- API Key 설정 -->
+        <meta-data
+            android:name="com.google.android.maps.v2.API_KEY"
+            android:value="ACQUIRED API KEY"/>
+        
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
+        
+        <activity android:name=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>
+```
+* Google Map은 인터넷을 사용하므로 INTERNET과 같은 일반 권한과 함께 Google Map Service를 위해 필요한 권한을 등록한다.   
+  이 권한 중 `ACCESS_FINE_LOCATION`은 위험 권한이므로 위험 권한을 부여하기 위한 설정과 코드를 추가해야 한다.
+
+* 지도 서비스와 같은 외부 라이브러리를 추가할 때는 기본적으로 사용하는 appcompat의 버전과 맞지 않아 오류가 나는 경우가 있다.   
+  이를 방지하기 위해 아래처럼 `build.gradle(Module:app)`를 아래처럼 수정하자.
+```gradle
+allprojects {
+    repositories {
+        maven {url 'https://jitpack.io'}
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: "libs", include: ["*.jar"])
+    implementation 'androidx.appcompat:appcompat:1.1.0'
+    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+    implementation 'com.google.android.gms:play-services-maps:17.0.0'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+    implementation 'com.github.pedroSG94:AutoPermissions:1.0.3'
+
+}
+```
+<hr/>
+
+<h3>GoogleMap API Key 발급받기</h3>
+
+* `console.developers.google.com`에서 키를 발급받고, `AndroidManifest.xml`에 추가한다.
+<hr/>
+
