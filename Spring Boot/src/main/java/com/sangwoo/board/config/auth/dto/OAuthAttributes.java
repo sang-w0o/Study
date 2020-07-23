@@ -28,10 +28,14 @@ public class OAuthAttributes {
         return ofGoogle(userNameAttributeName, attributes);
     }
 
-    public static OAuthAttributes ofGoogle(String userNameAttributeName, Map<String, Object> attributes) {
-        return OAuthAttributes.builder().name((String)attributes.get("name"))
-                .email((String)attributes.get("email")).picture((String)attributes.get("picture"))
-                .attributes(attributes).nameAttributeKey(userNameAttributeName).build();
+    private static OAuthAttributes ofGoogle(String userNameAttributeName, Map<String, Object> attributes) {
+        return OAuthAttributes.builder()
+                .name((String) attributes.get("name"))
+                .email((String) attributes.get("email"))
+                .picture((String) attributes.get("picture"))
+                .attributes(attributes)
+                .nameAttributeKey(userNameAttributeName)
+                .build();
     }
 
     public User toEntity() {
