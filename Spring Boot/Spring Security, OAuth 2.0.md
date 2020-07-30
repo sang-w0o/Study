@@ -366,3 +366,148 @@ public class IndexController {
     // 생략
 }
 ```
+<hr/>
+
+<h2>어노테이션 기반으로 개선</h2>
+
+* 위 코드는 문제점이 있는데, 바로 코드가 반복된다는 점이다. 아래 코드가 반복된다.
+```java
+SessionUser user = (SessionUser)httpSession.getAttribute("user");
+```
+
+* 따라서 위 부분을 __메소드의 인자로 세션값을 받을 수 있도록 변경__ 해보자.
+```java
+package com.sangwoo.issuemanager.config.auth;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@Target(ElementType.PARAMETER)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface LoginUser {
+}
+```
+* `@Target(ElementType.PARAMETER)`는 이 어노테이션이 생성될 수 있는 위치를 지정한다. 위 코드에서는 `PARAMETER`로   
+  지정했으니 메소드의 파라미터로 선언된 객체에서만 사용할 수 있게 된다. 이 외에도 클래스 선언문에 사용할 수 있는 `TYPE` 등이 있다.
+* `@interface` : 이 파일을 어노테이션 클래스로 지정한다. 즉, 위 코드에서는 `@LoginUser` 어노테이션이 생성된 것이다.
+  
+* 다음으로는 `HandlerMethodAgrumentResolver` 인터페이스를 구현하는 `LoginUserAgrumentResolver`클래스를 작성하자.   
+  `HandlerMethodAgrumentResolver`는 한가지 기능을 지원하는데, 바로 조건에 맞는 경우에 메소드가 있다면   
+  이 인터페이스의 구현체가 지정한 값으로 해당 메소드의 파라미터로 넘길 수 있다는 것이다.
+```java
+import com.sangwoo.issuemanager.web.dto.SessionUser;
+import lombok.RequiredArgsConstructor;
+import org.springframework.core.MethodParameter;
+import org.springframework.stereotype.Component;
+import org.springframework.web.bind.support.WebDataBinderFactory;
+import org.springframework.web.context.request.NativeWebRequest;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.method.support.ModelAndViewContainer;
+
+import javax.servlet.http.HttpSession;
+
+@RequiredArgsConstructor
+@Component
+public class LoginUserArgumentResolver implements HandlerMethodArgumentResolver {
+    
+    private final HttpSession httpSession;
+    
+    @Override
+    public boolean supportsParameter(MethodParameter parameter) {
+        boolean isLoginUserAnnotation = parameter.getParameterAnnotation(LoginUser.class) != null;
+        boolean isUserClass = SessionUser.class.equals(parameter.getParameterType());
+        return isLoginUserAnnotation && isUserClass;
+    }
+    
+    @Override
+    public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest,
+                                  WebDataBinderFactory binderFactory) throws Exception {
+        return httpSession.getAttribute("memberInfo");
+    }
+}
+```
+
+* `supportsParameter()` : 컨트롤러 메소드의 특정 파라미터를 지원하는지 판단한다. 위 코드에서는 파라미터에   
+  `@LoginUser` 어노테이션이 붙어 있고, 파라미터 클래스 타입이 `SessionUser.class`인 경우에 true를 반환한다.
+* `resolveArgument()` : 파라미터에 전달된 객체를 생성한다. 위 코드에서는 session에서 객체를 가져온다.
+
+* 다음으로는 위에서 생성한 `@LoginUser` 어노테이션과 `LoginUserArgumentResolver`클래스가 스프링에서 인식될 수 있도록   
+  `WebMvcConfigurer`에 추가하자.
+```java
+@RequiredArgsConstructor
+@Configuration
+public class WebConfig implements WebMvcConfigurer {
+
+    private final LoginUserArgumentResolver loginUserArgumentResolver;
+
+    @Override
+    public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
+        argumentResolvers.add(loginUserArgumentResolver);
+    }
+}
+```
+<hr/>
+
+<h2>Naver Login</h2>
+
+* 네이버도 마찬가지로 clientID와 clientSecret를 발급받은 후, 아래와 같이 `application-oauth.properties`에 등록한다.
+```properties
+#registration
+
+spring.security.oauth2.client.registration.naver.client-id=clientID값
+spring.security.oauth2.client.registration.naver.client-secret=clientSecret값
+spring.security.oauth2.client.registration.naver.redirect-uri={baseUrl}/{action}/oauth2/code/{registrationId}
+spring.security.oauth2.client.registration.naver.authorization-grant-type=authorization_code
+spring.security.oauth2.client.registration.naver.scope=name,email,profile_image
+spring.security.oauth2.client.registration.naver.client-name=Naver
+
+#provider
+spring.security.oauth2.client.provider.naver.authorization-uri=https://nid.naver.com/oauth2.0/authorize
+spring.security.oauth2.client.provider.naver.token-uri=https://nid.naver.com/oauth2.0/token
+spring.security.oauth2.client.provider.naver.user-info-uri=https://openapi.naver.com/v1/nid/me
+spring.security.oauth2.client.provider.naver.user-name-attribute=response
+```
+
+* 위의 `#provider`와 `#registration` 아래의 코드들은 네이버가 SpringSecurity를 공식 지원하지 않기 때문에   
+  그동안 `CommonOAuth2Provider`가 처리해주던 값들을 수동으로 입력한 것이다.
+
+* Spring-Security에서는 __하위 필드를 명시할 수 없다__. 최상위 필드들만 `user_name`으로 지정 가능하지만, 네이버의   
+  응답값 최상위 필드는 `resultCode`, `message`, `response`이다. 이러한 이유로 Spring-security에서 인식 가능한 필드는   
+  3개중에 골라야 하는데, 위 코드는 본문에서 담고 있는 `response`를 `user_name`으로 지정하고, 이후 Java 코드에서   
+  `response`의 id를 `user_name`으로 지정한다.
+
+* 다음으로는 `OAuthAttributes` 클래스에 로그인하는 OAuth2가 네이버인지를 판별하는 코드를 추가한다.
+```java
+// OAuthAttributes.java
+
+@Getter
+public class OAuthAttributes {
+
+  //..
+
+  public static OAuthAttributes of(String registrationId, String userNameAttributeName, Map<String, Object> attributes) {
+        if("naver".equals(registrationId)) {
+            return ofNaver("id", attributes);
+        }
+        return ofGoogle(userNameAttributeName, attributes);
+    }
+  
+  private static OAuthAttributes ofNaver(String userNameAttributeName, Map<String, Object> attributes) {
+        Map<String, Object> response = (Map<String, Object>)attributes.get("response");
+        return OAuthAttributes.builder()
+                .name((String)response.get("name"))
+                .email((String)response.get("email"))
+                .picture((String)response.get("profile_image"))
+                .attributes(response)
+                .nameAttributeKey(userNameAttributeName)
+                .build();
+    }
+}
+```
+<hr/>
+
+<h2>기존 테스트 코드에 Spring-security 적용하기</h2>
+
+* 
