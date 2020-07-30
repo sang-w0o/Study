@@ -510,4 +510,185 @@ public class OAuthAttributes {
 
 <h2>기존 테스트 코드에 Spring-security 적용하기</h2>
 
-* 
+* `src/main` 환경과 `src/test`의 환경은 각자의 환경 구성을 가진다. 다만, 테스트 시 `src/main/resources/application.properties`   
+  가 적용되는 이유는 `test` 폴더 하위에 `application.properties`가 없기에 `main` 하위의 파일을 가져오기 때문이다.   
+  단, 자동으로 가져오는 옵션의 범위는 `application.properties` 파일 까지이다. 즉, `application-oauth.properties`는   
+  __test에 파일이 없다고 main에서 가져오지 않는다__. 이를 해결하기 위해 테스트 환경을 위한 `application.properties`를 만들자.   
+  실제로 google 연동까지 진행할것이 아니므로 __가짜 설정값__ 을 등록한다.
+
+```properties
+server.address=localhost
+server.port=8080
+spring.jpa.show-sql=true
+
+spring.jpa.database=mysql
+spring.jpa.database-platform=org.hibernate.dialect.MySql5InnoDBDialect
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.datasource.url=jdbc:mysql://localhost:3306/DBName?useSSL=false&characterEncoding=UTF-8&serverTimezone=UTC
+spring.datasource.username=MySQLAccount
+spring.datasource.password=MySQLPassword
+spring.jpa.hibernate.ddl-auto=none
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL5InnoDBDialect
+
+# Test OAuth
+spring.security.oauth2.client.registration.google.client-id=test
+spring.security.oauth2.client.registration.google.client-secret=test
+spring.security.oauth2.client.registration.google.scope=profile,email
+```
+
+* 다음으로는 Spring-security 설정 때문에 __인증되지 않은 사용자의 요청은 이동__ 시키는 문제를 해결하자.   
+  이러한 API 요청은 임의로 인증된 사용자를 추가하여 API만 테스트해볼 수 있게 한다.
+
+* `build.gradle`에 `Spring-Security test`를 위한 여러 도구를 지원하는 모듈을 추가하자.
+```gradle
+testCompile('org.springframework.security:spring-security-test')
+```
+
+* 다음으로는 `IssuesApiControllerTest`의 테스트 코드에 아래와 같이 __임의 사용자 인증__ 을 추가하자.
+```java
+@RunWith(SpringRunner.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+public class IssuesApiControllerTest {
+
+  //..
+
+  @Test
+  @WithMockUser(roles = "USER")
+  public void issue_is_uploaded() throws Exception {
+
+    //..
+
+  }
+
+  @Test
+  @WithMockUser(roles = "USER")
+  public void issue_is_edited() throws Exception {
+
+    //..
+  }
+}
+```
+
+* `@WithMockUser(roles="USER")` : 인증된 모의 사용자를 만들어 사용한다. roles에 권한을 설정할 수 있으며, 이 어노테이션으로   
+  인해 `ROLE_USER` 권한을 가진 사용자가 API를 요청하는 것과 동일한 효과를 가지게 된다.
+
+* __@WithMockUser__ 는 `MockMvc`상에서만 작동하기 때문에 위 테스트 코드는 수정이 필요하다. 현재 위 코드는 __@SpringBootTest__ 로만   
+  되어 있으며, `MockMvc`를 사용하지 않는다. 따라서 __@SpringBootTest__ 에서 다음과 같이 하여 `MockMvc`를 사용하도록 하자.
+```java
+package com.sangwoo.issuemanager.web;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sangwoo.issuemanager.domain.issues.Issues;
+import com.sangwoo.issuemanager.domain.issues.IssuesRepository;
+import com.sangwoo.issuemanager.domain.issues.Status;
+import com.sangwoo.issuemanager.web.dto.IssuesSaveRequestDto;
+import com.sangwoo.issuemanager.web.dto.IssuesUpdateRequestDto;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.http.*;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
+
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@RunWith(SpringRunner.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+public class IssuesApiControllerTest {
+
+    @LocalServerPort
+    private int port;
+
+    @Autowired
+    private TestRestTemplate restTemplate;
+
+    @Autowired
+    private IssuesRepository issuesRepository;
+
+    @Autowired
+    private WebApplicationContext context;
+
+    private MockMvc mvc;
+
+    @Before
+    public void setup() {
+        mvc = MockMvcBuilders.webAppContextSetup(context).apply(springSecurity()).build();
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        issuesRepository.deleteAll();
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    public void issue_is_uploaded() throws Exception {
+
+        // given
+        String email = "test@test.com";
+        String title = "test title";
+        String content = "test content";
+        Status status = Status.OPEN;
+
+        IssuesSaveRequestDto requestDto = IssuesSaveRequestDto.builder().email(email).title(title).content(content).status(status).build();
+
+        String url = "http://localhost:" + port + "/issues";
+
+        // when
+        mvc.perform(post(url).contentType(MediaType.APPLICATION_JSON_UTF8).content(new ObjectMapper().writeValueAsString(requestDto)))
+                .andExpect(status().isOk());
+
+        // then
+        List<Issues> all = issuesRepository.findAll();
+        assertThat(all.get(0).getEmail()).isEqualTo(email);
+        assertThat(all.get(0).getTitle()).isEqualTo(title);
+        assertThat(all.get(0).getContent()).isEqualTo(content);
+        assertThat(all.get(0).getStatus()).isEqualTo(Status.OPEN);
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    public void issues_is_edited() throws Exception {
+
+        // given
+        Issues savedIssues = issuesRepository.save(Issues.builder().title("Test title").email("test@test.com").content("test content.").status(Status.CLOSED).build());
+
+        Long updateId = savedIssues.getId();
+        String expectedTitle = "Test title";
+        String expectedContent = "test content.";
+        Status expectedStatus = Status.CLOSED;
+
+        IssuesUpdateRequestDto requestDto = IssuesUpdateRequestDto.builder().title(expectedTitle).content(expectedContent).status(expectedStatus).build();
+
+        String url = "http://localhost:" + port + "/issues/" + updateId;
+        HttpEntity<IssuesUpdateRequestDto> requestEntity = new HttpEntity<>(requestDto);
+
+        // when
+        mvc.perform(put(url).contentType(MediaType.APPLICATION_JSON_UTF8).content(new ObjectMapper().writeValueAsString(requestDto)))
+                .andExpect(status().isOk());
+
+        // then
+        List<Issues> all = issuesRepository.findAll();
+        assertThat(all.get(0).getTitle()).isEqualTo(expectedTitle);
+        assertThat(all.get(0).getContent()).isEqualTo(expectedContent);
+        assertThat(all.get(0).getStatus()).isEqualTo(expectedStatus);
+    }
+}
+```
+* __@Before__ : 매번 테스트가 시작되기 전에 `MockMvc` 인스턴스를 생성한다.
+* `mvc.perform()` : 생성된 `MockMvc`를 통해 API를 테스트한다. 본문(Body) 영역은 문자열로 표현하기 위해   
+  `ObjectMapper`를 통해 JSON문자열로 변환한다.
