@@ -51,6 +51,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface TodosRepository extends JpaRepository<Todos, Integer> {}
 ```
+<hr/>
 
 <h2>findOne() 메소드의 사용</h2>
 
@@ -73,3 +74,69 @@ public interface JpaRepository<T, ID extends Serializable> extends PagingAndSort
     T getOne(ID id);
 }
 ```
+<hr/>
+
+<h2>정렬 메소드 명명 규칙</h2>
+
+* `Todos` Entity의 목록을 content 속성별로 DESC(내림차순)으로 가져오고 싶어서 처음에는 아래와 같이 메소드를 작성했다.
+```java
+public interface TodosRepository extends JpaRepository<Todos, Integer> {
+    List<Todos> findAllOrderByContentDesc();
+}
+```
+
+* 그랬더니 아래와 같은 오류가 출력되었다.
+```
+java.lang.IllegalArgumentException: Failed to create query for method public abstract java.util.List com.yourssu.domain.TodosRepository.findAllOrderByContentDesc()! No property desc found for type String! Traversed path: Todos.content`
+```
+
+* 명명 규칙을 잘 지켰다고 생각해서 stackoverflow를 뒤져보니 아래와 같은 해결방법이 있었다.
+```
+I know it's a bit late but this may help others.
+
+Just put BY before ORDER, like this: findAllByOrderByIdDesc
+
+It should work.
+```
+
+* 그래서 아래와 같이 메소드명을 바꾸었더니 해결되었다.;;
+```java
+public interface TodosRepository extends JpaRepository<Todos, Integer> {
+    List<Todos> findAllByOrderByContentDesc();
+}
+```
+<hr/>
+
+<h2>Sort 생성자의 Deprecated 처리</h2>
+
+* 위와 같은 방식(content 속성별로 DESC 정렬)으로 정렬하여 데이터를 가져오고 싶어, 이번에는 `Sort`를 사용해보도록 했다.
+* 우선, `TodosRepository`에 아래 메소드를 선언했다.
+```java
+List<Todos> findAll(Sort sort);
+```
+
+* 앞서 정리한 `Sort`의 사용법을 보면, 아래와 같이 사용하면 된다.
+```java
+@Service
+public class TodosService {
+
+    //..
+
+    Sort sort = new Sort(new Sort.Order(Sort.Direction.DESC, "content"));
+    List<Todos> todosList = todosRepository.findAll(sort);
+}
+```
+
+* 하지만 __`Sort`객체를 `new Sort()` 방식으로 생성하는 방식, 즉 `Sort`의 생성자는 Deprecated 되었으며__, 대신 `Sort.by()`를 사용한다.   
+  아래는 위의 방식대로 정렬하는 코드이다.
+```java
+@Service
+public class TodosService {
+
+    //..
+
+    List<Todos> todosList = todosRepository.findAll(Sort.by(new Sort.Order(Sort.Direction.DESC, "content")));
+}
+```
+<hr/>
+
