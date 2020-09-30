@@ -140,3 +140,28 @@ public class TodosService {
 ```
 <hr/>
 
+<h2>PageRequest 생성자의 Deprecated 처리</h2>
+
+* 데이터를 2개씩 가져오면서 첫 번째 페이지를 가져오려면 아래와 같이 `PageRequest`객체를 생성해야 한다.
+```java
+PageRequest pageRequest = new PageRequest(0, 2);
+List<Todos> todosList = todosRepository.findAll(pageRequest);
+```
+
+* 하지만 `PageRequest` 객체의 생성자는 Deprecated 처리 되었고, 대신 아래와 같이 `PageRequest.of()`를 사용한다.   
+  아래는 위의 방식대로 페이징 처리하는 코드이다.
+```java
+Page<Todos> todos = todosRepository.findAll(PageRequest.of(0, 2));
+```
+
+* 만약 `PageRequest`객체에 `Sort`까지 추가하고 싶다면, 아래와 같이 하면 된다. 아래 예시는 페이징 처리와 content 속성별 DESC 정렬하여   
+  가져오는 코드이다.
+```java
+Page<Todos> todos = todosRepository.findAll(PageRequest.of(page, itemCount, Sort.by(new Sort.Order(Sort.Direction.DESC, "content"))));
+```
+
+* 즉, 아래와 같은 기본 구조를 띈다.
+```java
+PageRequest.of(page, itemCount, Sort.by(/*..*/));
+```
+<hr/>
