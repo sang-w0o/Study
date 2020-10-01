@@ -169,3 +169,4 @@ PageRequest.of(page, itemCount, Sort.by(/*..*/));
 <h2>Specifications의 Deprecated 처리</h2>
 
 * `Specifications` 객체는 Deprecated 처리 되었다. 대신, `Specification` 객체를 사용하도록 한다.
+<hr/>
