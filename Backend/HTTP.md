@@ -21,10 +21,11 @@
   3. An HTTP Method
   4. HTTP Request Headers
   5. Optional HTTP Body
+<hr/>
 
-<h3>About HTTP Method</h3>
+<h2>About HTTP Method</h2>
 
-* `REST-API`를 기준으로 작성했습니다.
+* `REST-API` 및 `HTTP/1.1`를 기준으로 작성했습니다.
 
 * `POST` : The `POST` verb is most-often utilized to __CREATE__ new resources. In particular, it's used to create subordinate resources.   
   That is, subordinate to some other(e.g. parent) resource. In other words, when creating a new resource, `POST` to the parent and the   
@@ -180,3 +181,30 @@
         <td>METHOD NOT ALLOWED(Unless client wants to delete the whole collection - not often desirable.)</td>
     </tr>
 </table>
+
+<hr/>
+
+<h2>HTTP Request Header란?</h2>
+
+* HTTP Headers contain text information stored in key-value pairs, and they are included in every HTTP request(and response, more..).   
+  These headers communicate core information, such as what browser the client is using and what data is being requested.
+```
+Example of Request Headers
+
+:authority : www.google.com
+:method : GET
+: path : /
+: scheme : https
+accept : text/html
+accept-encoding : gzip, deflate, br
+accept-language : en-US, en;q=0.9
+upgrade-insecure-requests : 1
+user-agent : Mozilla/5.0
+```
+
+<h2>HTTP Request Body란?</h2>
+
+* The body of a request is the part that contains the 'body' of information the request is transferring. The body of an HTTP request   
+  contains any information being submitted to the web server, such as a username and password, or any other data entered into a form.
+<hr/>
+
