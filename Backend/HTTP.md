@@ -111,7 +111,7 @@
     </tr>
     <tr>
         <td>405</td>
-        <td>METHOD NOT ALLOWED.(Unless client wants to update/replace every resource in the entire collection.</td>
+        <td>METHOD NOT ALLOWED.(Unless client wants to update/replace every resource in the entire collection.)</td>
     </tr>
 </table>
 
