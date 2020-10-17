@@ -69,4 +69,70 @@
     </tr>
 </table>
 
-* `POST` : 
+* `PUT` : `PUT` is most-often utilized for __UPDATE__ capabilities. PUT-ing to a known resource URI with the request body containing the newly-updated representation of the original resource.
+
+  * However, `PUT` can also be used to create a resource in the case where the resource ID is chosen by the client instead of by the server. In other words, if the `PUT` is to a URI that contains the value of the non-existent resource ID.
+
+  * Alternatively, use `POST` to create new resources and provide the client-defined ID in the body representation - presumably to a URI that doesn't include the ID of the resource.
+
+  * `PUT` is not a safe operation, in that it modifies(or creates) state on the server, but it is idempotent. In other words, if a client creates or updates a resource using `PUT` and then make that same call again, the resource is still there and still has the same state as it did with the first call.
+
+  * 아래는 `PUT` 요청에 대한 관례적인 응답 형식이다.
+<table>
+    <tr>
+        <td>Response Code</td>
+        <td>Meanings</td>
+    </tr>
+    <tr>
+        <td>200</td>
+        <td>OK</td>
+    </tr>
+    <tr>
+        <td>204</td>
+        <td>NO CONTENT</td>
+    </tr>
+    <tr>
+        <td>404</td>
+        <td>NOT FOUND(If ID is not found or invalid.)</td>
+    </tr>
+    <tr>
+        <td>405</td>
+        <td>METHOD NOT ALLOWED.(Unless client wants to update/replace every resource in the entire collection.</td>
+    </tr>
+</table>
+
+* `PATCH` : `PATCH` is used for __MODIFYING__ capabilities. The `PATCH` request only needs to contain the changes to the resource, __not the complete resource__.
+  * Request body of `PUT` contains a set of instructions describing how a resource currently residing on the server should be modified to produce a new version. This means that the `PATCH` body should not just be a modified part of the resource, but in some kind of patch language like JSON Patch or XML Patch.
+  * `PATCH` is neither safe or idempotent. However, a `PATCH` request can be issued in such a way as to be idempotent, which also helps prevent bad outcomes from collitions between two `PATCH` requests on the same resource in a similar time frame. Collisions from multiple `PATCH` requests may be more dangerous than `PUT` collisions because some patch formats need to operate from a known base-point or else they will corrup the resource.
+
+  * 아래는 `PATCH` 요청에 대한 관례적인 응답 형식이다.
+<table>
+    <tr>
+        <td>Response Code</td>
+        <td>Meanings</td>
+    </tr>
+    <tr>
+        <td>200</td>
+        <td>OK</td>
+    </tr>
+    <tr>
+        <td>204</td>
+        <td>NO CONTENT</td>
+    </tr>
+    <tr>
+        <td>404</td>
+        <td>NOT FOUND</td>
+    </tr>
+    <tr>
+        <td>405</td>
+        <td>METHOD NOT ALLOWED(Unless client wants to modify the collection itself.)</td>
+    </tr>
+</table>
+
+* `DELETE` : `DELETE` is used to __DELETE__ a resource identified by a URI.
+
+  * On successful deletion, return HTTP status 200(OK) along with a response body, perhaps the representation of the deleted item, or a wrapped response. 
+
+  * HTTP-spec-wise, `DELETE` operations are idempotent. If client `DELETE`s a resource, it's removed. Repeatedly calling `DELETE` on that resource ends up the same: the resource is gone. If calling `DELETE` say, decrements a counter(within the resource), the `DELETE` call is no longer idempotent. Usage statistics and measurements may be updated while still considering the service idempotent as long as no resource data is changed. Using `POST` for non-idempotent resource requests is recommended.
+
+  * Calling `DELETE` onn a resource a second time will often return a 404(NOT FOUND), since it was already removed and therefore is no longer findable. This, by some opinions, makes `DELETE` operations no longer idempotent, however, the end-state of the resource is the same. Returning a 404 is acceptable and communicates accurately the status of the call.
