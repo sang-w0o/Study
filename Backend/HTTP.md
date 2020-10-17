@@ -217,3 +217,19 @@ user-agent : Mozilla/5.0
   2. HTTP Response Headers
   3. Optional HTTP Body
 <hr/>
+
+<h2>HTTP Status Code란?</h2>
+
+* HTTP Status Codes are 3-digit codes most often used to indicate whether an HTTP request has been successfully completed. Status codes are broken into the following 5 blocks:
+  * `1xx` : Informational
+  * `2xx` : Success
+  * `3xx` : Redirection
+  * `4xx` : Client Error
+  * `5xx` : Server Error
+
+* The `xx` refers to different numbers between 00 and 99. 
+* Status codes starting with the number `2` indicate a success. For example, `200` stands for OK, indicating the request was properly completed.
+* If the response starts with a `4` or `5`, that means there was an error and the desired work will not be done.   
+  A status code that begins with a `4` indicated a client-side error. A status code that begins with a `5` means something went wrong on the    server side. Status codes can also begin with a `1` or `3`, which indicate an informational response and a redirect, respectively.
+<hr/>
+
