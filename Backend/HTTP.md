@@ -250,4 +250,8 @@ x-frame-options: SAMEORIGIN
 ```
 <hr/>
 
+<h2>HTTP Response Body란?</h2>
 
+* Successful HTTP Response to `GET` requests generally have a body which contains the requested information.   
+  In most web requests, this is HTML data which a web browser will translate into a web page.
+<hr/>  
