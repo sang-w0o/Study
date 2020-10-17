@@ -233,3 +233,21 @@ user-agent : Mozilla/5.0
   A status code that begins with a `4` indicated a client-side error. A status code that begins with a `5` means something went wrong on the    server side. Status codes can also begin with a `1` or `3`, which indicate an informational response and a redirect, respectively.
 <hr/>
 
+<h2>HTTP Response Header란?</h2>
+
+* Much like an HTTP request, an HTTP response comes with headers that convey important information such as the language and format   
+  of the data being send in the response body.
+```
+Example of Response Header
+
+cache-control: private, max-age=0
+content-encoding: br
+content-type: text/html; charset=UTF-8
+date: Sun, 18 Oct 2020 01:36:23 GMT
+status: 200
+strict-transport-security: max-age=86400
+x-frame-options: SAMEORIGIN
+```
+<hr/>
+
+
