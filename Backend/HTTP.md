@@ -208,3 +208,12 @@ user-agent : Mozilla/5.0
   contains any information being submitted to the web server, such as a username and password, or any other data entered into a form.
 <hr/>
 
+<h2>HTTP Response란?</h2>
+
+* An HTTP Response is what web clients receive from an internet server in answer to an HTTP request.   
+  These responses communicate valuable information based on what was asked for in the HTTP request.   
+  A typical HTTP response contains:
+  1. An HTTP Status Cod
+  2. HTTP Response Headers
+  3. Optional HTTP Body
+<hr/>
