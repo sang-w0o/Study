@@ -512,3 +512,100 @@ public class PasswordStrengthMeter {
 
 <h3>일곱 번째 테스트 : 숫자 포함 조건만 충족하는 경우</h3>
 
+* 다음 테스트는 숫자 포함 조건만 충족하는 경우이다. 이를 검증하기 위한 테스트 메소드를 추가해보자.
+```java
+package chap02;
+
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+public class PasswordStrengthMeterTest {
+
+    // 생략
+    
+    @Test
+    void meetsOnlyNumberCriteria_Then_Weak() {
+        assertStrength("1234", PasswordStrength.WEAK);
+    }
+}
+```
+
+* 테스트를 실행하면 실패하며, 아래 처럼 코드를 수정해서 통과하도록 해보자.
+```java
+package chap02;
+
+public class PasswordStrengthMeter {
+
+    public PasswordStrength meter(String s) {
+        if(s == null || s.isEmpty()) return PasswordStrength.INVALID;
+        boolean lengthEnough = s.length() >= 8;
+        boolean containsNumber = meetsContainingNumberCriteria(s);
+        boolean containsUpper = meetsContainingUppdercaseCriteria(s);
+        if(lengthEnough && !containsNumber && !containsUpper) {
+            return PasswordStrength.WEAK;
+        }
+        if(!lengthEnough && containsNumber && !containsUpper) {
+            return PasswordStrength.WEAK;
+        }
+        if(!lengthEnough) return PasswordStrength.NORMAL;
+        if(!containsNumber) return PasswordStrength.NORMAL;
+        if(!containsUpper) return PasswordStrength.NORMAL;
+        return PasswordStrength.STRONG;
+    }
+}
+```
+
+<h3>여덟 번째 테스트 : 대문자 포함 조건만 충족하는 경우</h3>
+
+* 이번에는 대문자 포함 조건만 충족하는 경우를 검증하는 테스트를 추가할 차례이다.
+```java
+package chap02;
+
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+public class PasswordStrengthMeterTest {
+
+    // 생략
+    
+    @Test
+    void meetsOnlyUpperCriteria_Then_Weak() {
+        assertStrength("ABZEF", PasswordStrength.WEAK);
+    }
+}
+```
+
+* 테스트는 실패하며, 아래와 같이 코드를 수정해서 통과하도록 하자.
+```java
+package chap02;
+
+public class PasswordStrengthMeter {
+
+    public PasswordStrength meter(String s) {
+        if(s == null || s.isEmpty()) return PasswordStrength.INVALID;
+        boolean lengthEnough = s.length() >= 8;
+        boolean containsNumber = meetsContainingNumberCriteria(s);
+        boolean containsUpper = meetsContainingUppdercaseCriteria(s);
+        if(lengthEnough && !containsNumber && !containsUpper) {
+            return PasswordStrength.WEAK;
+        }
+        if(!lengthEnough && containsNumber && !containsUpper) {
+            return PasswordStrength.WEAK;
+        }
+        if(!lengthEnough && !containsNumber && containsUpper) {
+            return PasswordStrength.WEAK;
+        }
+        if(!lengthEnough) return PasswordStrength.NORMAL;
+        if(!containsNumber) return PasswordStrength.NORMAL;
+        if(!containsUpper) return PasswordStrength.NORMAL;
+        return PasswordStrength.STRONG;
+    }
+
+    // 생략
+}
+```
+
+<h3>코드 정리 : meter() 메소드 리팩토링</h3>
+
