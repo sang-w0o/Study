@@ -304,3 +304,211 @@ public class PasswordStrengthMeterTest {
 }
 ```
 
+<h3>네 번째 테스트 : 값이 없는 경우</h3>
+
+* 테스트 코드를 작성하는 과정에서 아주 중요한 테스트를 놓진 것을 발견했는데, 바로 값이 없는 경우를 테스트하지 않은 것이다. 이러한 예외 상황을 고려하지   
+  않으면 소프트웨어는 비정상적으로 동작하게 된다. 예를 들어, `meter()` 메소드에 null을 전달하면 `NPE(NullPointerException)`이 발생하게 된다.   
+  `NPE`가 발생하는 것은 원하는 상황이 아니므로 암호 강도 측정기는 null에 대해서도 알맞게 동작해야 한다. 만약 null이 암호로 들어오면   
+  `PasswordStrength.INVALID`를 반환하도록 해보자.
+```java
+package chap02;
+
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+public class PasswordStrengthMeterTest {
+
+    // 생략
+    
+    @Test
+    void nullInput_then_Invalid() {
+        assertStrength(null, PasswordStrength.INVALID);
+    }
+}
+```
+
+* 컴파일 에러를 없애기 위해 `PasswordStrength`에 INVALID를 추가해야 하며, `meter()` 메소드에 null을 검사하는 부분을 추가하자.
+```java
+package chap02;
+
+public class PasswordStrengthMeter {
+
+    public PasswordStrength meter(String s) {
+        if(s == null) return PasswordStrength.INVALID;
+        if(s.length() < 8) {
+            return PasswordStrength.NORMAL;
+        }
+        boolean containsNumber = meetsContainingNumberCriteria(s);
+        if(!containsNumber) return PasswordStrength.NORMAL;
+        return PasswordStrength.STRONG;
+    }
+
+    private boolean meetsContainingNumberCriteria(String s) {
+        for(char ch : s.toCharArray()) {
+            if(ch >= '0' && ch <= '9') {
+                return true;
+            }
+        }
+        return false;
+    }
+}
+```
+
+* 위와 같이하면 테스트에 통과할 것이다.
+
+* 예외 상황이 null만 있는 것은 아니다. 빈 문자열도 예외 상황이다.
+```java
+package chap02;
+
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+public class PasswordStrengthMeterTest {
+
+    // 생략
+    
+    @Test
+    void emptyInput_then_Invalid() {
+        assertStrength("", PasswordStrength.INVALID);
+    }
+}
+```
+
+* 테스트를 추가했으니 테스트를 수행하면 테스트에 실패한다. Expected는 INVALID인데 Actual은 NORMAL이기 때문이다. 이 테스트를 통과시키기 위해   
+  `meter()` 메소드를 아래와 같이 변경해보자.
+```java
+package chap02;
+
+public class PasswordStrengthMeter {
+
+    public PasswordStrength meter(String s) {
+        if(s == null || s.isEmpty()) return PasswordStrength.INVALID;
+        if(s.length() < 8) {
+            return PasswordStrength.NORMAL;
+        }
+        boolean containsNumber = meetsContainingNumberCriteria(s);
+        if(!containsNumber) return PasswordStrength.NORMAL;
+        return PasswordStrength.STRONG;
+    }
+
+    private boolean meetsContainingNumberCriteria(String s) {
+        for(char ch : s.toCharArray()) {
+            if(ch >= '0' && ch <= '9') {
+                return true;
+            }
+        }
+        return false;
+    }
+}
+```
+
+<h3>다섯 번째 테스트 : 대문자를 포함하지 않고 나머지 조건을 충족하는 경우</h3>
+
+* 다음 추가할 테스트는 대문자를 포함하지 않고 나머지 조건은 충족하는 경우이다.
+```java
+package chap02;
+
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+public class PasswordStrengthMeterTest {
+
+    // 생략
+    
+    @Test
+    void meetsOtherCriteria_except_for_Uppercase_Then_Normal() {
+        assertStrength("ab12!@df", PasswordStrength.NORMAL);
+    }
+}
+```
+
+* 테스트를 수행하면 새로 추가한 검증 코드에서 실패할 것이다. 실패한 코드를 통과시키도록 해보자.
+```java
+package chap02;
+
+public class PasswordStrengthMeter {
+
+    public PasswordStrength meter(String s) {
+        if(s == null || s.isEmpty()) return PasswordStrength.INVALID;
+        if(s.length() < 8) {
+            return PasswordStrength.NORMAL;
+        }
+        boolean containsNumber = meetsContainingNumberCriteria(s);
+        if(!containsNumber) return PasswordStrength.NORMAL;
+        boolean containsUpper = meetsContainingUppdercaseCriteria(s);
+        if(!containsUpper) return PasswordStrength.NORMAL;
+        return PasswordStrength.STRONG;
+    }
+
+    private boolean meetsContainingNumberCriteria(String s) {
+        for(char ch : s.toCharArray()) {
+            if(ch >= '0' && ch <= '9') {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    private boolean meetsContainingUppdercaseCriteria(String s) {
+        for(char ch : s.toCharArray()) {
+            if(Character.isUpperCase(ch)) {
+                return true;
+            }
+        }
+        return false;
+    }
+}
+```
+
+<h3>여섯 번째 테스트 : 길이가 8글자 이상인 조건만 충족하는 경우</h3>
+
+* 이제 남은 것은 한 가지 조건만 충족하거나 모든 조건을 충족하지 않는 경우이다. 이 중에서 먼저 길이가 8글자 이상인 조건만 충족하는 경우를 진행해보자.   
+  이 경우 암호 강도는 '약함'에 해당한다.
+```java
+package chap02;
+
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+public class PasswordStrengthMeterTest {
+
+    // 생략
+    
+    @Test
+    void meetsOnlyLengthCriteria_Then_Weak() {
+        assertStrength("abdefghi", PasswordStrength.WEAK);
+    }
+}
+```
+
+* 컴파일 에러를 없애기 위해 `PasswordStrength`에 WEAK를 추가해주고, 테스트를 수행하면 Expected는 WEAK지만 Actual은 NORMAL이기에 실패한다.   
+  따라서 `meter()` 메소드를 아래와 같이 수정하자.
+```java
+package chap02;
+
+public class PasswordStrengthMeter {
+
+    public PasswordStrength meter(String s) {
+        if(s == null || s.isEmpty()) return PasswordStrength.INVALID;
+        boolean lengthEnough = s.length() >= 8;
+        boolean containsNumber = meetsContainingNumberCriteria(s);
+        boolean containsUpper = meetsContainingUppdercaseCriteria(s);
+        if(lengthEnough && !containsNumber && !containsUpper) {
+            return PasswordStrength.WEAK;
+        }
+        if(!lengthEnough) return PasswordStrength.NORMAL;
+        if(!containsNumber) return PasswordStrength.NORMAL;
+        if(!containsUpper) return PasswordStrength.NORMAL;
+        return PasswordStrength.STRONG;
+    }
+
+    // 생략
+}
+```
+
+<h3>일곱 번째 테스트 : 숫자 포함 조건만 충족하는 경우</h3>
+
