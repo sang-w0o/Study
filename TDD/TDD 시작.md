@@ -609,3 +609,122 @@ public class PasswordStrengthMeter {
 
 <h3>코드 정리 : meter() 메소드 리팩토링</h3>
 
+* 위에서 작성한 코드는 `meetsContainingNumberCriteria()`, `meetsContainingUppercaseCriteria()`를 메소드로 추출해서 `meter()` 메소드의 길이를   
+  줄이긴 했지만, 여전히 if절이 복잡하게 느껴진다. 3 개의 if절은 세 조건 중에서 한 조건만 충족하는 경우 암호 강도가 WEAK라는 것을 판단하기 위해   
+  작성된 코드이다. 결국 3개의 if절은 각각 3개의 조건 중 한 조건만 충족한다는 것을 확인하는 것이다. 그렇다면 충족하는 조건 개수를 담는 변수 하나를   
+  두고, 그 변수를 활용하면 어떨까?
+```java
+package chap02;
+
+public class PasswordStrengthMeter {
+
+    public PasswordStrength meter(String s) {
+        if(s == null || s.isEmpty()) return PasswordStrength.INVALID;
+        int metCounts = 0;
+        boolean lengthEnough = s.length() >= 8;
+        if(lengthEnough) metCounts++;
+        boolean containsNumber = meetsContainingNumberCriteria(s);
+        if(containsNumber) metCounts++;
+        boolean containsUpper = meetsContainingUppdercaseCriteria(s);
+        if(containsUpper) metCounts++;
+        
+        if(metCounts == 1) return PasswordStrength.WEAK;
+        
+        if(!lengthEnough) return PasswordStrength.NORMAL;
+        if(!containsNumber) return PasswordStrength.NORMAL;
+        if(!containsUpper) return PasswordStrength.NORMAL;
+        return PasswordStrength.STRONG;
+    }
+
+    // 생략
+}
+```
+
+* 이제 아래의 코드를 리팩토링 해보자.
+```java
+if(!lengthEnough) return PasswordStrength.NORMAL;
+if(!containsNumber) return PasswordStrength.NORMAL;
+if(!containsUpper) return PasswordStrength.NORMAL;
+```
+
+* 위 코드의 의도는 충족하는 조건이 두 개인 경우, 암호 강도가 NORMAL이라는 규칙을 표현한 것이다. 이도 WEAK의 경우와 마찬가지로 metCounts 변수를   
+  활용하여 리팩토링할 수 있다.
+```java
+package chap02;
+
+public class PasswordStrengthMeter {
+
+    public PasswordStrength meter(String s) {
+        if(s == null || s.isEmpty()) return PasswordStrength.INVALID;
+        int metCounts = 0;
+        boolean lengthEnough = s.length() >= 8;
+        if(lengthEnough) metCounts++;
+        boolean containsNumber = meetsContainingNumberCriteria(s);
+        if(containsNumber) metCounts++;
+        boolean containsUpper = meetsContainingUppdercaseCriteria(s);
+        if(containsUpper) metCounts++;
+
+        if(metCounts == 1) return PasswordStrength.WEAK;
+        if(metCounts == 2) return PasswordStrength.NORMAL;
+        
+        return PasswordStrength.STRONG;
+    }
+
+    // 생략
+}
+```
+
+* 이로써 `meter()` 메소드는 훨씬 간결해지고 가독성도 높아졌으며, 테스트도 알맞게 수행할 수 있다.
+
+<h3>아홉 번째 테스트 : 아무 조건도 충족하지 않은 경우</h3>
+
+* 아직 테스트하지 않은 상황은 바로 아무 조건도 충족하지 않는 암호이다. 이를 위한 테스트 메소드를 추가해보자.
+```java
+package chap02;
+
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+public class PasswordStrengthMeterTest {
+
+    // 생략
+    
+    @Test
+    void meetsNoCriteria_Then_Weak() {
+        assertStrength("abc", PasswordStrength.WEAK);
+    }
+}
+```
+
+* 이 테스트 코드를 수정하는 방법은 여러 가지가 있지만, 아래와 같이 수정하도록 하자.
+```java
+package chap02;
+
+public class PasswordStrengthMeter {
+
+    public PasswordStrength meter(String s) {
+        if(s == null || s.isEmpty()) return PasswordStrength.INVALID;
+        int metCounts = 0;
+        boolean lengthEnough = s.length() >= 8;
+        if(lengthEnough) metCounts++;
+        boolean containsNumber = meetsContainingNumberCriteria(s);
+        if(containsNumber) metCounts++;
+        boolean containsUpper = meetsContainingUppdercaseCriteria(s);
+        if(containsUpper) metCounts++;
+
+        if(metCounts <= 1) return PasswordStrength.WEAK;
+        if(metCounts == 2) return PasswordStrength.NORMAL;
+
+        return PasswordStrength.STRONG;
+    }
+
+    // 생략
+}
+```
+
+* 지금까지 새로운 테스트를 추가하거나 기존 코드를 수정하면 습관처럼 테스트를 실행했다. 그리고 실패한 테스트가 있다면 그 테스트를 통과시키기 위한   
+  코드를 추가했다.
+
+<h3>코드 정리 : 코드 가독성 개선</h3>
+s
