@@ -727,4 +727,47 @@ public class PasswordStrengthMeter {
   코드를 추가했다.
 
 <h3>코드 정리 : 코드 가독성 개선</h3>
-s
+
+* 코드 정리를 좀 더 하자. 이번 변경 대상은 metCounts 변수를 계산하는 부분이다. 이 부분을 별도의 메소드로 추출하면 `meter()` 메소드의 가독성을 좀 더   
+  높일 수 있을 것 같다.
+```java
+package chap02;
+
+public class PasswordStrengthMeter {
+
+    public PasswordStrength meter(String s) {
+        if(s == null || s.isEmpty()) return PasswordStrength.INVALID;
+        int metCounts = getMetCriteriaCounts(s);
+        boolean lengthEnough = s.length() >= 8;
+        if(lengthEnough) metCounts++;
+        boolean containsNumber = meetsContainingNumberCriteria(s);
+        if(containsNumber) metCounts++;
+        boolean containsUpper = meetsContainingUppdercaseCriteria(s);
+        if(containsUpper) metCounts++;
+
+        if(metCounts <= 1) return PasswordStrength.WEAK;
+        if(metCounts == 2) return PasswordStrength.NORMAL;
+
+        return PasswordStrength.STRONG;
+    }
+    
+    private int getMetCriteriaCounts(String s) {
+        int metCounts = 0;
+        if(s.length() >= 8) metCounts++;
+        if(meetsContainingNumberCriteria(s)) metCounts++;
+        if(meetsContainingUppdercaseCriteria(s)) metCounts++;
+        return metCounts;
+    }
+    
+    // 생략
+}
+```
+
+* 이제 `meter()` 메소드의 가독성이 더 좋아졌으며, 이 메소드를 처음 보는 개발자도 전반적인 로직이 보이기에 더 쉽게 해석할 수 있을 것이다.
+
+<h3>테스트에서 메인으로 코드 이동</h3>
+
+* 마지막 남은 한 가지는 `PasswordStrength`와 `PasswordStrengthMeter`를 `src/test/java`에서 `src/main/java`로 이동시키는 것이다. 즉, 배포 대상인   
+  폴더로 이동시키는 것이다.
+<hr/>
+
