@@ -99,3 +99,208 @@ public class Calculator {
 
 <h2>TDD 예시 : 암호 검사기</h2>
 
+* 조금 더 현실적인 기능을 TDD로 구현해보자. 이번에 TDD로 구현할 기능은 암호 검사기이다. 암호 검사기는 문자열을 검사해서 규칙을 준수하는지에 따라   
+  암호를 '약함', '보통', '강함'으로 구분한다. 살펴볼 예제는 아래의 규칙을 이용해서 암호를 검사한다.
+  * 검사할 규칙은 다음 세 가지 이다.
+    * 길이가 8 글자 이상.
+    * 0부터 9 사이의 숫자 포함.
+    * 영어 대문자 포함.
+  * 위 3 개 규칙을 모두 충족하면 '강함', 2개를 충족하면 '보통', 1개 이하를 충족하면 암호는 '약함'에 해당한다.
+
+* 네이밍을 고려하여 아래와 같은 테스트 코드 기반을 작성해보자.
+```java
+package chap02;
+
+import org.junit.jupiter.api.Test;
+
+public class PasswordStrengthMeterTest {
+    
+    @Test
+    void name() {
+        
+    }
+}
+```
+
+<h3>첫 번째 테스트 : 모든 규칙을 충족하는 경우</h3>
+
+* 첫 번째 테스트를 잘 선택하지 않으면 이후 진행 과정이 순탄하게 흘러가지 않을 수 있다. 첫 번째 테스트를 선택할 때는 __가장 쉽거나 가장 예외적인 상황__   
+  을 선택해야 한다. 암호 검사 기능에서 가장 쉽거나 가장 예외적인 것은 아래의 두 가지 상황이라 할 수 있다. 
+  * 모든 규칙을 충족하는 경우
+  * 모든 조건을 충족하지 않는 경우
+
+* 위 중에서 어떤 경우가 시작하기에 좋을까? 먼저 모든 조건을 충족하지 않는 경우를 생각해보자. 모든 조건을 충족하지 않는 테스트를 통과시키려면 각   
+  조건을 검사하는 코드를 모두 구현해야 한다. 한 번에 만들어야 할 코드가 많아지므로 첫 번째 테스트 코드를 통과시키는 시간도 길어진다. 이는 사실상   
+  구현을 다 하고 테스트를 하는 방식과 다르지 않다.
+
+* 모든 규칙을 충족하는 경우는 어떨까? 테스트를 쉽게 통과시킬 수 있다. 각 조건을 검사하는 코드를 만들지 않고 '강함'에 해당하는 값을 반환하면 테스트에   
+  통과할 수 있다. 그래서 모든 조건을 충족하는 경우를 먼저 테스트 코드로 작성해보자.
+
+```java
+package chap02;
+
+import org.junit.jupiter.api.Test;
+
+public class PasswordStrengthMeterTest {
+
+    @Test
+    void meetsAllCriteria_Then_Strong() {
+        PasswordStrenghMeter meter = new PasswordStrenghMeter();
+        PasswordStrength result = meter.meter("ab12!@AB");
+        assertEquals(PasswordStrength.STRONG, result);
+    }
+}
+```
+
+* 다음으로는 `PasswordStrengthMeter` 타입과 `PasswordStrength` 타입을 작성하여 컴파일 에러를 해결해보자.
+```java
+package chap02;
+
+public enum PasswordStrength {
+    STRONG
+}
+```
+
+```java
+package chap02;
+
+public class PasswordStrengthMeter {
+    
+    public PasswordStrength meter(String s) {
+        return null;
+    }
+}
+```
+
+* 컴파일 에러를 없앴으니 테스트 메소드를 수행해보면, `Expected`가 STRONG이지만 `Actual`이 null이므로 테스트에 실패한다. 이 테스트를 통과시키는   
+  방법은 간단한데, `PasswordStrengthMeter#meter()`가 STRONG을 반환하도록 수정하면 된다.
+
+<h3>두 번째 테스트 : 길이만 8글자 미만이고 나머지 조건은 충족하는 경우</h3>
+
+* 두 번째 테스트 메소드를 추가하자. 이번에 테스트할 대상은 패스워드 문자열의 길이가 8글자 미만이고, 나머지 조건은 충족하는 암호이다. 규칙에 따르면   
+  이 암호의 강도는 '보통' 이어야 한다.
+```java
+package chap02;
+
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+public class PasswordStrengthMeterTest {
+
+    // 생략
+    
+    @Test
+    void meetsOtherCriteria_except_for_Length_Then_Normal() {
+        PasswordStrengthMeter meter = new PasswordStrengthMeter();
+        PasswordStrength result = meter.meter("ab12!@A");
+        assertEquals(PasswordStrength.NORMAL, result);
+    }
+}
+```
+
+* 위 테스트의 컴파일 에러를 없애기 위해 `PasswordStrength`에 NORMAL을 추가하고, 테스트를 수행해보면 Expected는 NORMAL이지만 Actual은 STORNG이므로   
+  테스트에 실패한다. 마찬가지로 새로 추가한 테스트를 통과시키는 가장 간단한 방법은 `meter()`가 NORMAL을 반환하도록 수정하는 것이다. 하지만 이렇게   
+  수정하면 앞서 만든 테스트는 통과하지 못한다. 두 테스트를 모두 통과시킬 수 있는 방법은 길이가 8보다 작으면 NORMAL을 반환하는 코드를 추가하는 것이다.
+```java
+package chap02;
+
+public class PasswordStrengthMeter {
+
+    public PasswordStrength meter(String s) {
+        if(s.length() < 8) {
+            return PasswordStrength.NORMAL;
+        }
+        return PasswordStrength.STRONG;
+    }
+}
+```
+
+<h3>세 번째 테스트 : 숫자를 포함하지 않고 나머지 조건은 충족하는 경우</h3>
+
+* 세 번째 테스트 메소드를 추가해보자. 이번 테스트 대상은 숫자를 포함하지 않고 나머지 조건은 충족하는 암호이다. 이 암호도 '보통'의 강도를 가져야 한다.
+```java
+package chap02;
+
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+public class PasswordStrengthMeterTest {
+
+    // 생략
+
+    @Test
+    void meetsOtherCriteria_except_for_number_Then_Normal() {
+        PasswordStrengthMeter meter = new PasswordStrengthMeter();
+        PasswordStrength result = meter.meter("ab!@ABqwer");
+        assertEquals(PasswordStrength.NORMAL, result);
+    }
+}
+```
+
+* 새로 추가한 테스트를 수행해보면 Expected는 NORMAL이지만 Actual은 STRONG이므로 테스트에 실패했음을 알 수 있다. 이 테스트를 통과하는 방법도 어렵지   
+  않은데, 암호가 숫자를 포함했는지를 판단해서 포함하지 않는 경우 NORMAL을 반환하도록 구현하면 된다.
+```java
+package chap02;
+
+public class PasswordStrengthMeter {
+
+    public PasswordStrength meter(String s) {
+        if(s.length() < 8) {
+            return PasswordStrength.NORMAL;
+        }
+        boolean containsNumber = meetsContainingNumberCriteria(s);
+        if(!containsNumber) return PasswordStrength.NORMAL;
+        return PasswordStrength.STRONG;
+    }
+
+    private boolean meetsContainingNumberCriteria(String s) {
+        for(char ch : s.toCharArray()) {
+            if(ch >= '0' && ch <= '9') {
+                return true;
+            }
+        }
+        return false;
+    }
+}
+```
+
+<h3>코드 정리 : 테스트 코드 정리</h3>
+
+* 테스트 코드도 코드이기에 유지 보수 대상이다. 즉 테스트 메소드에서 발생하는 중복을 알맞게 제거하거나 의미가 잘 드러나게 코드를 수정할 필요가 있다.   
+  먼저 `PasswordStrengthMeter` 객체를 생성하는 코드의 중복을 없앨 수 있다. 또한 `assertEquals()`로 암호 강도 측정 기능을 수행하고 이를 확인하는   
+  코드를 중복 제거할 수 있다. 정리하면 아래와 같다.
+```java
+package chap02;
+
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+public class PasswordStrengthMeterTest {
+
+    private PasswordStrengthMeter meter = new PasswordStrengthMeter();
+    
+    private void assertStrength(String password, PasswordStrength expStr) {
+        PasswordStrength result = meter.meter(password);
+        assertEquals(expStr, result);
+    }
+    
+    @Test
+    void meetsAllCriteria_Then_Strong() {
+        assertStrength("ab12!@AB", PasswordStrength.STRONG);
+    }
+
+    @Test
+    void meetsOtherCriteria_except_for_Length_Then_Normal() {
+        assertStrength("ab12!@A", PasswordStrength.NORMAL);
+    }
+
+    @Test
+    void meetsOtherCriteria_except_for_number_Then_Normal() {
+        assertStrength("ab!@ABqwer", PasswordStrength.NORMAL);
+    }
+}
+```
+
