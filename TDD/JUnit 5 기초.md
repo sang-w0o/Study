@@ -204,3 +204,146 @@ assertAll(
   실행 결과로 검증에 실패한 코드가 있으면 그 목록을 모아서 에러 메시지로 띄워준다.
 <hr/>
 
+<h2>테스트 Lifecycle</h2>
+
+<h3>@BeforeEach와 @AfterEach 어노테이션</h3>
+
+* JUnit은 각 테스트 메소드마다 다음 순서대로 코드를 실행한다.
+  1. 테스트 메소드를 포함한 객체 생성
+  2. (존재하면)`@BeforeEach` 어노테이션이 붙은 메소드 실행
+  3. `@Test` 어노테이션이 붙은 메소드 실행
+  4. (존재하면)`@AfterEach` 어노테이션이 붙은 메소드 실행
+
+* 아래 코드는 동작 방식을 이해하기 위한 간단한 코드이다.
+```java
+public class LifecycleTest {
+
+    public LifecycleTest() {
+        System.out.println("New LifecycleTest");
+    }
+
+    @BeforeEach
+    void setUp() {
+        System.out.println("setUp()")
+    }
+
+    @Test
+    void a() {
+        System.out.println("a()");
+    }
+
+    @Test
+    void b() {
+        System.out.println("b()");
+    }
+
+    @AfterEach
+    void tearDown() {
+        System.out.println("tearDown()");
+    }
+}
+```
+
+* 위 코드의 실행결과는 아래와 같다.
+```
+new LifecycleTest
+setUp()
+a()
+tearDown()
+new LifecycleTest
+b()
+tearDown()
+```
+
+* 이 결과를 보면 `@Test` 메소드를 실행할 때마다 객체를 새로 생성하고, 테스트 메소드를 실행하기 전과 후에 `@BeforeEach`와   
+  `@AfterEach` 어노테이션을 붙인 메소드를 실행한다는 것을 알 수 있다.
+
+* `@BeforeEach` 어노테이션은 테스틀르 실행하는데에 필요한 준비 작업을 할 때 사용한다. 이 어노테이션을 이용해서   
+  테스트에서 사용할 임시 파일을 생성한다거나 테스트 메소드에서 사용할 객체를 생성한다.
+
+* `@AfterEach`어노테이션은 테스트를 실행한 후에 정리할 것이 있을 때 사용한다. 테스트에서 사용한 임시 파일을   
+  삭제해야 할 때 이 어노테이션을 적용하면 된다.
+
+* `@BeforeEach`와 `@AfterEach` 어노테이션을 붙인 메소드는 `@Test`와 마찬가지로 private이면 안된다.
+
+<h3>@BeforeAll와 @AfterAll 어노테이션</h3>
+
+* 한 클래스의 모든 테스트 메소드가 실행되기 전에 특정 작업을 수행해야 한다면 `@BeforeAll`을 사용한다.   
+  이 어노테이션은 정적 메소드에 붙이는데, 이 메소드는 클래스의 모든 테스트 메소드를 실행하기 전에 한번 실행된다.
+
+* `@AfterAll` 어노테이션은 반대로 클래스의 모든 테스트 메소드를 실행한 뒤에 실행된다.   
+  이 역시 정적 메소드에 적용해야 한다.
+<hr/>
+
+<h2>테스트 메소드 간 실행 순서 의존과 필드 공유하지 않기</h2>
+
+* 아래 코드를 보자.
+```java
+public class BadTest {
+
+    private FileOperator operator = new FileOperator();
+    private static File file;  // 두 테스트가 데이터를 공유할 목적으로 필드 사용
+
+    @Test
+    void fileCreateTest() {
+        File createFile = operator.createFile();
+        assertTrue(createdFile.length() > 0);
+        this.file = createFile;
+    }
+
+    @Test
+    void fileReadTest() {
+        long data = operator.readData(file);
+        assertTrue(data > 0);
+    }
+}
+```
+
+* 위 코드는 file 필드를 사용해서 `fileCreateTest()`에서 생성한 `File`객체를 보관하고, 그 file 필드를   
+  `readFileTest()`에서 사용한다. 테스트 메소드를 실행할 때마다 객체를 새로 생성하므로 file을 정적 필드로 정의했다.   
+  이 테스트는 `fileCreateTest()`가 `readFileTest()`보다 먼저 실행된다는 것을 가정한다.
+
+* 실제로 원하는 순서대로 테스트 메소드가 실행될 수도 있지만, 이러한 가정 하에 테스트 메소드를 작성하면 안된다.   
+  JUnit이 테스트 순서를 결정하긴 하지만 그 순서는 버전에 따라 달라질 수 있다. 순서가 달라지면 테스트도 실패한다.   
+  예를 들어 `readFileTest()`가 먼저 실행되면 file이 null이므로 테스트가 실패하게 된다.
+
+* 각 테스트 메소드는 서로 __독립적__ 으로 동작해야 한다. 한 테스트 메소드의 결과에 따라 다른 테스트 메소드의 실행 결과가   
+  달라지면 안된다. 그런 의미에서 테스트 메소드가 서로 필드를 공유한다거나 실행 순서를 가정하고 테스트를 작성하면 안된다.
+<hr/>
+
+<h2>추가 어노테이션 : @DisplayName, @Disabled</h2>
+
+* 테스트 실행 결과를 보면, 테스트 메소드명을 이용해서 테스트 결과를 콘솔에 보여준다.
+
+* Java는 메소드명에 공백이나 특수문자를 사용할 수 없기에 메소드명만으로 테스트 내용을 설명하기 부족할 수 있다.   
+  이럴 때는 `@DisplayName` 어노테이션을 사용해서 테스트에 표시될 이름을 붙일 수 있다.
+```java
+@DisplayName("@DisplayName 테스트")
+public class DisplayNameTest {
+
+    @DisplayName("값 같은지 비교")
+    @Test
+    void assertEqualsMethod() {
+
+        //..
+    }
+
+    @DisplayName("예외 발생 여부 테스트")
+    @Test
+    void assertThrowsTest {
+
+        //..
+    }
+}
+```
+
+* 특정 테스트를 실행하고 싶지 않을때에는 `@Disabled` 어노테이션을 사용한다.   
+  JUnit은 `@Disabled` 어노테이션이 붙은 클래스나 메소드는 테스트 실행 대상에서 제외한다.
+<hr/>
+
+<h2>모든 테스트 한번에 실행하기</h2>
+
+* 모든 테스트를 실행하는 방법은 간단하다.
+  * Maven : `mvn test`(래퍼 사용 시 `mvnw test`)
+  * Gradle : `gradle test`(래퍼 사용 시 `gradlew test`)
+<hr/>
