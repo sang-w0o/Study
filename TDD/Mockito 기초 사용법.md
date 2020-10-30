@@ -166,3 +166,29 @@ public class AnyMatchersTest {
   * `matches(String)`, `matches(Pattern)` : 정규표현식을 이용한 String값 일치 여부
   * `eq(값)` : 특정 값과의 일치 여부
   
+* stub을 설정할 메소드의 인자가 두 개 이상인 경우 주의할 점이 있다. 아래 코드를 보자.
+```java
+List<String> mockList = mock(List.class);
+given(mockList.set(anyInt(), "123")).willReturn("456");
+String old = mockList.set(5, "123");
+```
+
+* `mockList.set()` 메소드의 stub을 설정할 때 첫 번째 인자는 `anyInt()`를 주어 임의의 int 값에 일치하도록 했고,   
+  두 번째 인자는 "123"을 사용해서 정확한 값에 일치하도록 했다. 그리고 `mockList.set(5, "123")`을 실행하고 있다.   
+  이 코드는 문제가 없어보이지만 실제로 실행하면 예외가 발생한다.
+
+* `ArgumentMatchers`의 `anyInt()`나 `any()`등의 메소드는 내부적으로 인자의 일치 여부를 판단하기 위해 `ArgumentMatcher`를 등록한다.   
+  `Mockito`는 한 인자라도 `ArgumentMatcher`를 사용해서 설정한 경우 __모든 인자를 `ArgumentMatcher`를 이용해서 설정하도록 한다__.
+
+* 임의의 값과 일치하는 인자와 정확하게 일치하는 인자를 함께 사용하고 싶다면 아래와 같이 `ArgumentMatcher.eq()`를 사용해야 한다.
+```java
+@Test
+void mixAnyAndEq() {
+    List<String> mockList = mock(List.class);
+    given(mockList.set(anyInt(), eq("123"))).willReturn("456");
+    String old = mockList.set(5, "123");
+    assertEquals("456", old);
+}
+```
+<hr/>
+
