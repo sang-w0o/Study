@@ -192,3 +192,43 @@ void mixAnyAndEq() {
 ```
 <hr/>
 
+<h2>행위 검증</h2>
+
+* 모의 객체의 역할 중 하나는 실제로 모의 객체가 호출되었는지를 검증하는 것이다. 이 예시는 아래와 같다.
+```java
+public class GameTest {
+
+    @Test
+    void init() {
+        GameNumGen genMock = mock(GameNumGen.class);
+        Game game = new Game(genMock);
+        game.init(GameLevel.EASY);
+
+        then(genMock).should().generate(GameLevel.EASY);
+    }
+}
+```
+
+* `BBDMockito.then()`은 메소드 호출 여부를 검증할 모의 객체를 전달받는다.   
+  `should()` 메소드는 모의 객체의 메소드가 불려야 한다는 것을 설정하고, `should()` 다음에 실제로 호출되어야할 메소드를 지정한다.   
+  위 코드는 `genMock` 객체의 `generate()`가 `GameLevel.EASY` 인자를 사용해서 호출되었는지를 검증한다.
+
+* 정확한 값이 아니라 메소드의 호출 여부가 중요하다면 `any()`, `anyInt()`등을 사용해서 인자를 지정하면 된다.
+```java
+then(genMock).should().generate(any());
+```
+
+* 정확하게 한 번만 호출된 것을 검증하고 싶다면 `should()` 메소드의 인자로 `Mockito.only()`를 전달하면 된다.
+```java
+then(genMock).should(only()).generate(any());
+```
+
+* 메소드 호출 횟수를 검증하기 위해 `Mockito`가 제공하는 메소드는 아래와 같다. (`should()`의 인자로 들어간다.)
+  * `only()` : 한 번만 호출
+  * `times(int)` : 지정한 횟수만큼 호출
+  * `never()` : 호출하지 않음
+  * `atLeast(int)` : 적어도 지정한 횟수만큼 호출
+  * `atLeastOnce()` : `atLeast(1)`과 동일
+  * `atMost(int)` : 최대 지정한 횟수만큼 호출
+<hr/>
+
