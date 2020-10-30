@@ -232,3 +232,39 @@ then(genMock).should(only()).generate(any());
   * `atMost(int)` : 최대 지정한 횟수만큼 호출
 <hr/>
 
+<h2>인자 캡쳐</h2>
+
+* 단위 테스트를 실행하다보면 모의 객체를 호출할 때 사용한 인자를 검증해야할 때가 있다.   
+  String이나 int와 같은 타입은 쉽게 검증할 수 있지만 많은 속성을 가진 객체는 쉽게 검증하기 어렵다.   
+  이럴 때 사용할 수 있는 것이 `인자 캡쳐` 이다.
+
+* `Mockito`의 `ArgumentCaptor`를 사용하면 메소드 호출 여부를 검증하는 과정에서 실제 호출할 때 전달한 인자를 보관할 수 있다.
+```java
+public class UserRegisterMockTest {
+
+    private UserRegister userRegister;
+    private EmailNotifier mockEmailNotifier = mock(EmailNotifier.class);
+
+    //..
+
+    @Test
+    void whenRegisterThenSendEmail() {
+        userRegister.register("id", "pw", "email@email.com");
+
+        ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+        then(mockEmailNotifier)
+            .should().sendRegisterEmail(captor.capture());
+        
+        String realEmail = captor.getValue();
+        assertEquals("email@email.com", realEmail);
+    }
+}
+```
+
+* `ArgumentCaptor.forClass(String.class)`는 String 타입의 인자를 보관할 수 있는 `ArgumentCaptor`를 생성한다.   
+  이렇게 생성된 객체를 모의 객체 호출 여부를 검증하는 코드에서 인자로 전달한다.   
+  인자로 전달할 때에는 `ArgumentCaptor#capture()`를 전달한다.
+
+* 모의 객체를 실행할 때 사용한 인자값은 `ArgumentCaptor#getValue()`로 구할 수 있다.
+<hr/>
+
