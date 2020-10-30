@@ -268,3 +268,28 @@ public class UserRegisterMockTest {
 * 모의 객체를 실행할 때 사용한 인자값은 `ArgumentCaptor#getValue()`로 구할 수 있다.
 <hr/>
 
+<h2>JUnit5 확장 설정</h2>
+
+* `Mockito`의 JUnit 5 확장 기능을 사용하면 어노테이션을 이용해서 모의 객체를 생성할 수 있다. 아래 의존을 추가해보자.
+```xml
+<dependency>
+    <groupId>org.mockito</groupId>
+    <artifactId>mockito-junit-jupiter</artifactId>
+    <version>2.26.0</version>
+    <scope>test</scope>
+</dependency>
+```
+
+* 의존을 추가하면 `MockitoExtension` 확장을 사용할 수 있다. 이 확장 기능을 사용하면   
+  `@Mock` 어노테이션을 붙인 필드에 대해 자동으로 모의 객체를 생성해준다. 아래는 예시이다.
+```java
+@ExtendWith(MockitoExtension.class)
+public class JUnit5ExtensionTest {
+
+    @Mock
+    private GameNumGen genMock;
+
+    //..
+}
+```
+<hr/>
