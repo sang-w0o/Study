@@ -74,6 +74,9 @@ public class GameGenMockTest {
   `given()` 메소드에 이어 `willReturn()` 메소드는 stub을 정의한 메소드가 반환할 값을 지정한다.   
   즉 위 코드는 `genMock.generate(GameLevel.EASY)`가 호출되면 "1234"을 반환하라고 설정한다.
 
+* 정리 : `given(genMock.generate(GameLEvel.EASY))` --> `genMock.generate(GameLevel.EASY)`가 __호출되는 상황이 주어지면__   
+  `willReturn("123")` --> "123"이라는 값을 반환할 것이다.
+
 * 위 코드에서 모의 객체인 genMock에 대해 `generate()`를 호출하는데, 인자 값이 `GameLeve.EASY`이므로 "123"을 반환한다.
 
 * 지정한 값 대신에 예외를 발생시키도록 설정할 수도 있다. 아래 코드를 보자.
