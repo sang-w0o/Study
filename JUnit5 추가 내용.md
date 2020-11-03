@@ -306,3 +306,34 @@ public class TempDirTest {
 
 <hr/>
 
+<h2>@Timeout 어노테이션을 이용한 테스트 실행 시간 검증</h2>
+
+* `@Timeout` 어노테이션은 JUnit 5.5 버전부터 지원하는 어노테이션으로, `@Timeout` 어노테이션을 사용하면 테스트가 일정 시간 내에   
+  실행되는지 검증할 수 있다. 아래는 `@Timeout` 어노테이션을 이용해서 테스트 메소드가 1초 내에 실행되는지를 검증하는 예시이다.
+```java
+public class TimeoutTest{ 
+
+    @Test
+    @Timeout(1)
+    void sleep2Seconds() throws InterruptedException {
+        Thread.sleep(2000);
+    }
+}
+```
+
+* 테스트 메소드 내에서 2초 동안 실행을 멈추므로 이 테스트의 실행 시간은 1초를 초과해서 실패하게 된다.   
+  테스트 실패 메시지는 다음과 같다.
+```
+java.util.concurrent.TimeoutException : sleep2Seconds() timed out after 1 second.
+```
+
+* 초가 아닌 다른 시간 단위를 사용하고 싶다면 unit 속성에 `TimeUnit` 값을 지정하면 된다.   
+  아래는 밀리초 단위로 설정하는 예시이다.
+```java
+@Test
+@Timeout(value = 500, unit = TimeUnit.MILLISECONDS)
+void sleep40mills() throws InterruptedException {
+    Thread.sleep(40);
+}
+```
+<hr/>
