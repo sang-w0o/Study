@@ -241,3 +241,68 @@ Actual :6
   이렇게 한 테스트 메소드에 구분이 쉽지 않은 단언을 여러 번 하는 경우, 메시지를 사용해서 각 단언을 쉽게 구분할 수 있다.
 <hr/>
 
+<h2>@TempDir 어노테이션을 이용한 임시 폴더 생성</h2>
+
+* 파일과 관련된 테스트 코드를 만들다 보면 임시로 사용할 폴더가 필요할 때가 있다.   
+  테스트를 시작하기 전에 임시 폴더를 만들고, 테스트가 끝나면 삭제하는 코드를 직접 작성할 수도 있지만, 꽤나 번거로운 작업이다.
+
+* JUnit 5.4에 추가된 `@TempDir` 어노테이션을 사용하면 임시 폴더 관련 작업을 테스트 코드에서 쉽게 처리할 수 있다.   
+  `@TempDir`을 필드 또는 생명주기 관련 메소드나 테스트 메소드의 파라미터로 사용하면, JUnit은 임시 폴더를 생성하고,   
+  `@TempDir` 어노테이션을 붙인 필드나 파라미터에 임시 폴더 경로를 전달한다.
+
+* `@TempDir` 어노테이션은 `File` 타입이나 `Path` 타입에 적용할 수 있다.
+```java
+public class TempDirTest {
+
+    @TempDir
+    File tempFolder;
+
+    @Test
+    void fileTest() {
+        // tempFolder에 파일 생성 등의 작업
+    }
+}
+```
+
+* 위 코드는 `File` 타입의 tempFolder 필드에 `@TempDir` 어노테이션을 적용했다.   
+  이 경우 테스트 메소드를 실행하기 전에 임시 폴더를 생성하고, 그 폴더 정보를 tempFolder 필드에 할당한다.
+
+* 필드에 적용하면 각 테스트 메소드를 실행할 때마다 임시 폴더를 생성한다. 만약 특정 메소드에서만 임시 폴더를 생성해서   
+  사용하고 싶다면 테스트 메소드의 파라미터에 `@TempDir`를 적용하면 된다.
+```java
+@Test
+void fileTest(@TempDir Path tempFolder) {
+    //..
+}
+```
+
+* 테스트를 실행한 뒤에는 생성된 임시 폴더가 삭제된다. 물론 이 과정에서 임시 폴더 내에 작성한 파일도 함께 삭제된다.
+
+* 특정 테스트 클래스 단위로 임시 폴더를 생성하고 싶다면 정적 필드에 `@TempDir` 어노테이션을 붙인다. 정적 필드에 `@TempDir`을   
+  적용하면 각 테스트 메소드마다 임시 폴더를 생성하지 않는다. 대신 테스트 클래스의 모든 테스트 메소드를 실행하기 전에 임시 폴더를   
+  한번 생성하고 모든 테스트 메소드의 실행이 끝난 뒤에 임시 폴더를 삭제한다.
+```java
+public class TempDirTest {
+
+    @TempDir
+    static File tempFolderPerClass;
+
+    //..
+}
+```
+
+* 정적 필드 대신에 `@BeforeAll` 메소드의 파라미터에 `@TempDir`를 적용해도 된다.
+```java
+public class TempDirTest {
+
+    @BeforeAll
+    static void setUp(@TempDir File tempFolder) {
+        //..
+    }
+
+    //..
+}
+```
+
+<hr/>
+
