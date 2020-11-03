@@ -65,3 +65,64 @@ void openJdk() {
   차이점은 named 속성에 환경 변수 이름을 사용한다는 것이다.
 <hr/>
 
+<h2>태깅과 필터링</h2>
+
+* `@Tag` 어노테이션은 테스트에 태그를 달 때 사용한다. `@Tag` 어노테이션은 클래스와 테스트 메소드에 적용할 수 있다.
+```java
+import org.junit.jupiter.api.Tag;
+
+@Tag("integration")
+public class TagTest {
+
+    @Tag("very-slow")
+    @Test
+    void verySlow() {
+        int result = someVerySlowOperation();
+        assertEquals(result, 0);
+    }
+}
+```
+
+* 위 코드는 `verySlow()` 테스트 메소드에 이름이 "very-slow"인 태그를 붙였다.   
+  여러 태그를 붙이고 싶다면 각 이름마다 `@Tag` 어노테이션을 사용하면 된다.
+
+* 태그의 이름은 아래 규칙을 따라야 한다.
+  * null이거나 공백이면 안된다.
+  * 좌우 공백을 제거한 뒤에 공백을 포함하면 안된다.
+  * ISO 제어 문자를 포함하면 안된다.
+  * 다음 글자를 포기하면 안된다. --> `,` , `()`, `&`, `|`, `!`
+
+* `@Tag` 어노테이션을 이용하면 maven이나 gradle에서 실행할 테스트를 선택할 수 있다.   
+  다음은 태그명을 사용해서 실행할 테스트를 선택하는 maven 설정 예시이다.
+```xml
+<plugin>
+    <artifactId>maven-surefire-plugin</artifactId>
+    <version>2.22.1</version>
+    <configuration>
+        <groups>integration</groups>
+        <excludedGroups>slow | very-slow</excludedGroups>
+    </configuration>
+</plugin>
+```
+
+* `<groups>` 요소는 실행에 포함할 태그를 지정하고, `<excludedGroups>` 태그는 실행에서 제외할 태그를 지정한다.   
+  위 코드는 integration 태그를 테스트 대상에 포함하고, slow 태그나 very-slow 태그는 테스트 대상에서 제외한다.   
+  제외 대상이 우선한다.
+
+* 아래는 위 코드와 동일한 태그를 테스트 대상으로 선택하는 gradle 예시이다.
+```gradle
+test {
+    useJUnitPlatform {
+        includeTags 'integration'
+        excludeTags 'slow | very-slow'
+    }
+}
+```
+
+* 테스트 포함 대상이나 제외 대상을 지정할 때 태그식을 사용하는데, 태그 식에서는 다음 연산을 이용해서 식을 조합할 수 있다.
+  * `!` : NOT 연산
+  * `&` : AND 연산
+  * `|` : OR 연산
+* 이 연산을 사용하면 다양한 태그 조합을 사용해서 테스트 대상을 구분할 수 있다.
+<hr/>
+
