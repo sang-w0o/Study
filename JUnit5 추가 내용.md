@@ -126,3 +126,77 @@ test {
 * 이 연산을 사용하면 다양한 태그 조합을 사용해서 테스트 대상을 구분할 수 있다.
 <hr/>
 
+<h2>중첩 구성</h2>
+
+* `@Nested` 어노테이션을 사용하면 중첩 클래스에 테스트 메소드를 추가할 수 있다.   
+  아래는 `@Nested`를 사용한 코드의 전형적인 구조이다.
+```java
+import org.junit.jupiter.api.Nested;
+
+public class Outer {
+
+    @BeforeEach void outerBefore() {}
+
+    @Test void outer() {}
+
+    @AfterEach void outerAfter() {}
+
+    @Nested
+    class NestedA {
+
+        @BeforeEach void nestedBefore() {}
+
+        @Test void nested1() {}
+
+        @AfterEach void nestedAfter() {}
+    }
+}
+```
+
+* 위 코드를 기준으로 중첩 클래스의 테스트 메소드인 `nested1()`을 실행하는 순서는 다음과 같다.
+  1. `Outer` 객체 생성
+  2. `NestedA` 객체 생성
+  3. `outerBefore()` 수행
+  4. `nestedBefore()` 수행
+  5. `nested1()` 수행
+  6. `nestedAfter()` 수행
+  7. `outerAfter()` 수행
+
+* 중첩된 클래스는 내부 클래스이므로 외부 클래스의 멤버에 접근할 수 있다.   
+  이 특징을 활용하면 상황별로 중첩 테스트 클래스를 분리해서 테스트 코드를 구성할 수 있다.
+```java
+public class UserServiceTest {
+
+    private MemoryUserRepository repository;
+    private UserService service;
+
+    @BeforeEach
+    void setUp() {
+        repository = new MemoryUserRepository();
+        service = new UserService(repository);
+    }
+
+    @Nested
+    class GivenUser {
+
+        @BeforeEach
+        void givenUser() {
+            repository.save(new User("id", "pw", "email"));
+        }
+
+        @Test
+        void dupId() {
+            //..
+        }
+
+        @Nested
+        class GivenNoDupId {
+            //..
+        }
+    }
+}
+```
+<hr/>
+
+<h2>테스트 메시지</h2>
+
