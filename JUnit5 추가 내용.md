@@ -200,3 +200,44 @@ public class UserServiceTest {
 
 <h2>테스트 메시지</h2>
 
+* 아래 코드를 보자.
+```java
+List<Integer> ret = getResults();
+List<Integer> expected = Arrays.asList(1, 2, 3);
+for(int i = 0; i < expected.size(); i++) {
+    assertEquals(expected.get(i), ret.get(i));
+}
+```
+
+* 위 테스트 코드는 for 구문을 이용해서 `List`에 대한 검증을 수행하고 있다.   
+  루프를 도는 과정에서 값 검증에 실패하면 아래와 같이 메시지가 출력된다.
+```
+org.opentest4j.AssertionFailedError:
+Expected :2
+Actual :6
+```
+
+* 위 에러 메시지만으로는 `List`의 몇 번째 요소를 검증하다가 실패했는지 알 수 없다.   
+  expected에서 기대값이 2인 요소가 몇 번째인지 코드를 뒤져야 한다. 또한 만약 2인 요소가 두 개 이상이면   
+  찾기는 더욱 힘들어진다.
+
+* 설명 문자열을 사용하면 이런 문제를 쉽게 해결할 수 있다. 아래는 위의 코드에 설명 문자열을 추가한 것이다.
+```java
+List<Integer> ret = getResults();
+List<Integer> expected = Arrays.asList(1, 2, 3);
+for(int i = 0; i < expected.size(); i++) {
+    assertEquals(expected.get(i), ret.get(i)), "ret[" + i + "]");
+}
+```
+
+* 이제 오류가 발생하면 메시지가 아래와 같이 출력된다.
+```
+org.opentest4j.AssertionFailedError: ret[1] ==>
+Expected :2
+Actual :6
+```
+
+* 실패 문구를 보면 ret의 1번 인덱스 값을 검증하다 실패했다는 것을 쉽게 알 수 있다.   
+  이렇게 한 테스트 메소드에 구분이 쉽지 않은 단언을 여러 번 하는 경우, 메시지를 사용해서 각 단언을 쉽게 구분할 수 있다.
+<hr/>
+
