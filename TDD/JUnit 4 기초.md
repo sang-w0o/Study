@@ -64,3 +64,73 @@ public class AppTest {
   `@Before`과 `@After`도 public 메소드에 붙여야 한다.
 <hr/>
 
+<h2>단언 메소드</h2>
+
+* `org.junit.Assert` 클래스는 `assertEquals()`를 포함한 기본적인 검증 메소드를 제공하며, 아래는 메소드들의 목록이다.
+
+<table>
+    <tr>
+        <td>메소드</td>
+        <td>설명</td>
+    </tr>
+    <tr>
+        <td>assertEquals(expected, actual)</td>
+        <td>actual과 expected가 동일한지 검사한다.</td>
+    </tr>
+    <tr>
+        <td>assertNotEquals(unexpected, actual)</td>
+        <td>unexpected와 actual이 다른지 검사한다.</td>
+    </tr>
+    <tr>
+        <td>assertSame(Object expected, Object actual)</td>
+        <td>두 객체가 동일한 객체인지 검사한다.</td>
+    </tr>
+    <tr>
+        <td>assertNotSame(Object expected, Object actual)</td>
+        <td>두 객체가 동일하지 않은 객체인지 검사한다.</td>
+    </tr>
+    <tr>
+        <td>assertTrue(boolean condition)</td>
+        <td>condition이 true인지 검사한다.</td>
+    </tr>
+    <tr>
+        <td>assertFalse(boolean condition)</td>
+        <td>condition이 false인지 검사한다.</td>
+    </tr>
+    <tr>
+        <td>assertNull(Object actual)</td>
+        <td>actual객체가 null인지 검사한다.</td>
+    </tr>
+    <tr>
+        <td>assertNotNull(Object actual)</td>
+        <td>actual객체가 null이 아닌지 검사한다.</td>
+    </tr>
+    <tr>
+        <td>fail()</td>
+        <td>테스트를 실패 처리한다.</td>
+    </tr>
+</table>
+
+* JUnit 4는 `assertAll()`이나 `assertThrows()`는 제공하지 않는다.   
+  JUnit 4에서 예외 발생 여부를 테스트할 때에는 `@Test` 어노테이션의 expected 속성을 이용한다. 아래는 예시이다.
+```java
+@Test(expected = ArithmeticException.class)
+public void throwEx() {
+    divide(1, 0);
+}
+```
+
+* 발생한 예외 객체를 사용해서 추가 검증을 해야할 때는 expected 속성을 사용할 수 없다.   
+  대신 아래와 같이 try-catch를 이용해서 직접 검증 처리를 해야 한다.
+```java
+ArithmeticException thrown = null;
+try {
+    divide(1, 0);
+} catch(ArithmeticException exception) {
+    thrown = exception;
+}
+
+assertNotNull(thrown);
+assertTrue(thrown.getMessage().contains("zero"));
+```
+<hr/>
