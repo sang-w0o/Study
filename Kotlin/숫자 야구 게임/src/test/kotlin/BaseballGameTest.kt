@@ -1,5 +1,4 @@
-
-import org.junit.Assert.assertNotEquals
+import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Test
 
 class BaseballGameTest {
@@ -9,8 +8,8 @@ class BaseballGameTest {
     @Test
     fun makeRandomNumbers() {
         val computerNumber = baseballGame.getComputerNumber()
-        assertNotEquals(computerNumber[0], computerNumber[1])
-        assertNotEquals(computerNumber[0], computerNumber[2])
-        assertNotEquals(computerNumber[1], computerNumber[2])
+        assertNotEquals(computerNumber.toArray()[0], computerNumber.toArray()[1])
+        assertNotEquals(computerNumber.toArray()[0], computerNumber.toArray()[2])
+        assertNotEquals(computerNumber.toArray()[1], computerNumber.toArray()[2])
     }
 }
