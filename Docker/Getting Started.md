@@ -161,3 +161,23 @@ docker run -dp 3000:3000 getting-started
 * Docker hub에 올려져있는 image file은 `docker pull`로 받아올 수 있다.
 <hr/>
 
+<h2>Persisting our DB</h2>
+
+* Container에서 실행중인 애플리케이션의 정보를 저장해야할 DB를 만들어야 한다고 해보자.  
+
+<h3>The Container's Filesystem</h3>
+
+* When a container runs, it uses various layers from an image for its filesystem.   
+  Each container also gets its own "scratch space" to create/update/remove files.   
+  __Any changes won't be seen in another container, even if they are using the same image.__
+
+<h3>Container Volumes</h3>
+
+* Each containers start from the image definition each time it starts.   
+  While containers can create, update, and delete files, those __changes are lost when the container__   
+  __is removed and all changes are isolated to that container.__   
+  With volumes, we can change all of this.
+
+* `Volumes` provide the ability to connect specific filesystem paths of the container back to the   
+  host machine. If a directory in the container is mounted, changes in that directory are also   
+  seen on the host machine. If we mount the same directory across container restarts, we'd see same files.
