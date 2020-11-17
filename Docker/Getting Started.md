@@ -135,3 +135,29 @@ docker run -dp 3000:3000 getting-started
 
 <hr/>
 
+<h2>Sharing our App</h2>
+
+* Docker Hub에는 Docker Image를 공유할 수 있다.   
+  `Docker Hub`에서 Repository를 만들고, visibility를 public으로 해보자.
+
+* Local CLI에서 Docker Hub로 이미지 파일을 올리는 방법은 `docker push` 명령을 사용하는 것이다.   
+
+  1. 우선 아래 명령으로 Docker Hub에 로그인하자.
+  ```
+  docker login -u YOUR_USER_NAME
+  ```
+  
+  2. 그 후 `docker tag` 명령을 사용하여 기존 image에 새로운 이름을 추가하자.
+  ```
+  docker tag getting-started YOUR_USER_NAME/getting-started
+  ```
+    * 이후 `docker images`로 확인해보면, "YOUR_USER_NAME/getting_started"로 image가 복제된 것을 알 수 있다.   
+
+  3. 이제 해당 image를 Docker Hub로 push 해보자.
+  ```
+  docker push YOUR_USER_NAME/getting-started
+  ```
+
+* Docker hub에 올려져있는 image file은 `docker pull`로 받아올 수 있다.
+<hr/>
+
