@@ -228,7 +228,7 @@ export function HooksMessage(props) {
 <h3>불필요한 컴포넌트 업데이트의 방지</h3>
 
 * React는 기본적으로 상태 데이터가 변경될 때마다 컴포넌트를 __진부함__ 으로   
-  표히사고 그 컨텐츠를 rendering 한다.
+  표시하고 그 컨텐츠를 rendering 한다.
 * 컴포넌트는 __shouldComponentUpdate__ 메소드를 구현함으로써 위와 같은   
   React의 기본 동작 대신 새로운 동작을 정의할 수 있다. 이는 rendering이   
   필요하지 않은 상황에서도 render메소드를 호출하는 일을 방지함으로써   
