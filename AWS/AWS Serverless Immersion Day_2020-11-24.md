@@ -133,9 +133,97 @@
 
 <h2>Application in Serverless Architecture</h2>
 
+<h3>Serverless Databases</h3>
+
+* Amazon Aurora Serverless
+  * App의 필요에 따라 관계형 데이터베이스 Capacity를 제공하는 서비스
+  * DB 운영 및 관리의 부담 없이 필요에 따라 용량 조절이 가능하다.
+  * Aurora의 고가용 스토리지를 똑같이 이용한다.
+  * 가변성이 높고 예측 불가능한 워크로드에 효율적이다.
+  * 사용한 DB 리소스에 대해서만 요금이 청구된다.
+
+* Amazon RDS Proxy
+  * 관계형 DB의 연결을 효과적으로 관리하는 Database Proxy
+  * RDS 및 Aurora에 적합한 완전 관리형의 고가용 DB Proxy
+  * Connection Pool을 활용한 데이터베이스 연결 관리
+  * 장애 조치 시간을 최대 79%까지 단축 가능(Aurora)
+  * Serverless 환경에서의 RDB 연결을 효과적으로 관리
+
+* Amazon DynamoDB
+  * 어떤 규모에서도 10ms 미만의 성능을 제공하는 Key-Value 데이터베이스
+  * 서버리스 완전관리형 NoSQL DB를 제공
+  * 자체적으로 뛰어난 가용성과 내결함성 제공
+  * 글로벌 테이블을 통한 데이터 Replication 제공
+<hr/>
+
+<h2>Serverless Orchestration</h2>
+
+* Lambda 함수가 실제 서비스를 구성하게 되면 굉장히 많아질 수 있다. 즉, 관리가 어려워질 수도 있다.
+
+* AWS Step Functions
+  * 자동화된 Serverless Workflow 구축을 지원하는 Serverless Orchestrator
+  * 그래픽 콘솔을 통한 application 구성 요소 시각화
+  * 상태 머신을 시각적으로 확인하고 실행의 모니터링이 가능하다.
+  * 여러 AWS 서비스와 연동하여 자동화된 Workflow 구축이 가능하다.
+  * 여러 Serverless 함수들과 혼합하여 Serverless Workflow 생성이 가능하다.
+
+  * 시각화된 서비스 Workflow 구성
+    1. Define in JSON
+    2. Visualize in the Console
+    3. Monitor Executions
+
+* Amazon SQS
+  * Application Integration에 뛰어난 버퍼 기반의 완전 관리형 Message Queue
+  * 뛰어난 확장성과 QoS를 제공하는 완전 관리형 Message 서비스
+  * 메시지를 안정적으로 전달하며, 데이터의 암호화를 제공한다.
+  * 분산형 시스템에서 데이터 전달을 위한 Queue로 활용이 가능하다.
+  * 사용한 만큼만 요금을 지불하는 Serverless 기반의 비용 모델
+  * 비동기 요청에 많이 사용된다.
+
+<hr/>
+
+<h2>Serverless Event Driven</h2>
+
+* Amazon EventBridge
+  * 자체 App, SaaS, AWS 서비스의 데이터를 연결하는 Serverless Event Bus
+  * 코드 작성 없이 데이터 변경 사항에 대해 실시간 Access를 제공하는 Serverless Event Bus
+  * 다양한 이벤트 소스에 대해 중앙집중식 이벤트 라우팅을 제공할 수 있다.
+  * 상태에 대해 지속적으로 체크하는 대신 이벤트 기반의 아키텍쳐 구성이 가능하다.
+  * 이벤트 개수에 대해 자동으로 확장하며, 내결함성 및 가용성 제공
+
 <hr/>
 
 <h2>Starting with Serverless</h2>
+
+* Serverless Application Model
+  * Serverless Application Build를 위한 오픈소스 프레임워크
+  * Serverless Infra 생성 자동화를 위한 템플릿
+  * 기존 CloudFormation Template와 연동
+  * 단일 스택 상에서 연관된 컴포넌트 및 리소스 구성을 쉽게 제공할 수 있다.
+  * YAML 또는 JSON 포맷으로 쉽게 생성할 수 있다.
+
+* AWS Cloud9
+  * 브라우저 만으로 코드를 작성, 실행 및 디버깅할 수 있는 클라우드 기반의 IDE
+  * AWS 서비스 연동과 현업을 손쉽게 구성할 수 있다.
+  * Local IDE 구성 없이도 풍부한 개발 환경 구축이 가능하다.
+  * 손쉽게 Serverless Application 구성이 가능하다.
+  * 빠르게 일관된 형태의 개발 환경 구축이 가능하다.
+  * Serverless 황경의 간편한 디버깅 및 AWS 서비스들과의 연동이 가능하다.
+
+* Serverless Application Repository
+  * Serverless Application을 빠르게 찾고 게시할 수 있는 저장소
+  * 미리 만들어진 다양한 Serverless Application을 찾고 배포할 수 있다.
+  * 공개/비공개로 Serverless Application의 공유가 가능하다.
+  * 쉽게 Serverless Application을 시작하고, 생태계를 확장시킬 수 있다.
+  * 찾거나 배포하고 게시하는데에 비용이 들지 않는다.
+
+
+* Serverless Architecture Summary
+  * 운영 : 운영 및 유지 관리에 대한 비용 최소화
+  * 안정성 : 안정적인 관리형 Serverless 기반 서비스들의 사용
+  * 보안 : 관리형 서비스의 보안 제공
+  * 성능 : 인프라의 효과적인 사용을 통한 성능 최적화 가능
+  * 비용 : 비용 효율적인 리소스 구성을 통한 아키텍쳐 개선
 
 <hr/>
 
