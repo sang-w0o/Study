@@ -37,7 +37,89 @@
 
 <h2>Why Serverless</h2>
 
-* 
+* 서버 관리의 필요성이 없다.
+* 사용한 만큼만 비용을 지불하면 된다. ==> Request에 비례하여 비용 발생
+* 유연하고 자동화된 스케일링이 가능하다.
+* 고가용성!
+
+* __비즈니스 로직에 좀 더 집중하고 마이크로서비스 아키텍쳐에 최적화할 수 있다.__
+
+<h3>AWS Lambda</h3>
+
+* Amazon EC2 : 사이즈 조절이 가능한 Cloud 상의 가상 서버
+* Amazon ECS : EC2에서 실행하는 Docker를 실행하는 Container 관리 서비스
+* AWS Lambda : Serverless Computing, event에 대한 응답으로 code 실행
+
+* AWS Lambda - Overview
+  * 서버 인프라가 아닌 코드 기반으로 쉽게 비즈니스 로직을 처리할 수 있는 서비스를 생성
+  * 대부분의 Use-Case를 Serverless 기반으로 Modernize한다.
+  * Lambda 하나가 서비스 하나라고 생각해도 무방하다.
+
+* Lambda 사용 시의 이점
+
+  1. 관리 대상 서버가 없다 : Lambda는 서버를 별도로 프로비저닝하거나 관리할 필요 없이, 코드를 자동으로 실행한다.   
+     단지 코드를 작성하고 Lambda에 업로드하면 된다.
+    
+  2. 연속적인 확장성 : Lambda는 각 trigger에 대한 응답으로 코드를 실행하며, app을 자동으로 확장한다.   
+     코드는 병렬로 실행되며 각 trigger를 개별적으로 처리하여 작업 부하의 크기를 정확하게 조정한다.
+
+  3. 비용 효율적인 컴퓨팅 : Lambda 코드가 실행되는 단위 시간(100ms) 및 Lambda 코드가 실행된 횟수에 대해 과금된다.   
+     코드가 실행되지 않을 때에는 비용을 지불하지 않아도 된다.
+
+* AWS Lambda의 동작 방식
+
+  1. Bring your own code and libraries.
+
+  2. Simple resource model
+    * 128MB ~ 3008MB까지 64MB 단위로 메모리 선택
+    * RAM에 비례하여 CPU 및 네트워크 할당
+    * 효율적으로 리소스 사용 가능
+
+  3. 유연한 호출 경로
+    * Request-Response 또는 Event 호출 옵션
+    * 예를 들어, 10개의 request가 한번에 들어오면, thread 단위가 아니라, 각 request를 위한 lambda 함수가 호출된다.
+    * 다양한 AWS 서비스와 통합
+
+  4. 세분화된 권한
+    * IAM 역할을 이용한 Lambda 실행 권한 제어
+    * AWS 이벤트 소스에 대한 리소스 정책 사용
+
+* Lambda 함수 호출 방식
+
+  * 비동기(Event) : Amazon API Gateway ==> Client의 호출 ==> Lambda Function 실행
+  * 동기(Push) : Amazon SNS & S3 ==> 호출 ==> Lambda Function 실행
+  * 스트림(Poll-based) : Amazon DynamoDB & Amazon Kinesis ==> 변경 발생 ==> AWS Lambda Service ==> Lambda Function 실행
+
+* 비용 효율적인 리소스 사용
+  * Free Tier : 월별 100만건의 무료 요청 및 400,000GB 초의 컴퓨팅 시간 포함
+  * 유휴 시간에 대한 비용이 청구되지 않는다.
+  * 사용한 만큼만 비용이 청구된다.
+  * 함수 요청 수와 함수 시간 당 사용한 메모리에 대해 요금이 청구된다.
+
+* Use cases
+  * Data Processing : 데이터 변경, 시스템 상태 변경 또는 사용자 작업에 대한 응답으로 코드 실행
+  * Backends : 백엔드 로직을 실행하여 웹, 모바일, IoT 및 3rd API에 대한 요청 처리
+  * Control Systems : AWS 내으 상태 및 데이터 변경에 대한 응답 및 Workflow 처리
+
+<h3>Amazon API Gateway</h3>
+
+* "API는 MSA를 위한 효과적인 진입점" 이다.
+* MSA의 decoupling된 모듈(서비스)들 사이의 통신을 위해 사용한다.
+
+* API Gateway 사용에 있어서의 Pain Point
+  * API의 여러 버전 및 stage 관리가 어렵다.
+  * 3rd party 개발자의 액세스 모니터링에는 많은 시간이 필요하다.
+  * 액세스 권한 부여는 어렵다.
+  * 트래픽 급증으로 운영 부담이 발생한다.
+  * 관리할 서버가 없어진다면?
+
+* Amazon API Gateway 사용 이점
+  1. 자동으로 스케일링 되고, 사용한만큼 비용을 지불하는 완전 관리형 서비스이다.
+  2. Restful API와 WebSocket API를 지원한다.
+  3. HTTP Endpoint 및 Lambda 함수와 연결 구성이 가능하다.
+  4. VPC에서만 접근 가능한 Private 연결이 가능하다.
+  5. 보안 요건에 따른 규정 준수 및 Security Features 제공
+  6. Swagger 지원 및 Canary 배포 지원
 
 <hr/>
 
