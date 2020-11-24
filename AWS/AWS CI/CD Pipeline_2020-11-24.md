@@ -59,3 +59,4 @@
 * 하나의 Repository는 하나의 application만 만든다.
 * 살아있는 branch는 현재 작업이 진행중인 branch이다.
 * Merge를 최소화하라.(Rebase)
+<hr/>
