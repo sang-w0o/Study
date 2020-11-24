@@ -121,6 +121,14 @@
   5. 보안 요건에 따른 규정 준수 및 Security Features 제공
   6. Swagger 지원 및 Canary 배포 지원
 
+* Amazon API Gateway Features
+  * API의 여러 버전 및 단계를 호스팅할 수 있다.
+  * 3rd party 개발자에게 API Key 생성 및 배포 기능 지원
+  * 백엔드 보호를 위한 요청 조절(Throttle) 및 모니터링 지원
+  * 백엔드로 Lambda 호출 가능
+  * AWS WAF와 연동하여 악성 웹 트래픽에 대한 보호 가능
+  * Caching도 가능
+
 <hr/>
 
 <h2>Application in Serverless Architecture</h2>
