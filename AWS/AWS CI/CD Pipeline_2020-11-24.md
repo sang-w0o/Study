@@ -60,3 +60,13 @@
 * 살아있는 branch는 현재 작업이 진행중인 branch이다.
 * Merge를 최소화하라.(Rebase)
 <hr/>
+
+<h2>HoL 사용 서비스</h2>
+
+* Amazon Cloud9
+* Amazon CloudFormation
+* Amazon CodeCommit
+* Amazon CodeDeploy
+* Amazon CodeBuild
+* Amazon CodeGuru (us-west-2 Region)
+<hr/>
