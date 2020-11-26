@@ -61,3 +61,18 @@ button.addEventListener("click", event => console.log(event));
 
 <hr/>
 
+<h2>Template Literals</h2>
+
+```js
+const helloName = (name = "Human") => "Hello " + name;
+```
+
+* 위 코드는 반환값을 `+` 기호로 이어줘야 한다. 대신 아래와 같이 할 수 있다.
+```js
+const helloName = (name = "Human") => `Hello ${name}`;
+```
+
+<hr/>
+
+<h2>Object Destructuring</h2>
+
