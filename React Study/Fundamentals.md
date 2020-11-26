@@ -224,3 +224,40 @@ const numberDays = days.map((item, index) => `${item}${index}`);
 ```
 <hr/>
 
+<h2>Array filter</h2>
+
+* `Array.filter()` 메소드는 지정한 조건을 만족하는 원소들로 이루어진 새로운 배열을 반환한다.
+
+```js
+const numbers = [1, 2, 3, 4, 5, 6];
+const numbersFiltered = numbers.filter(number => number % 2 === 0);
+console.log(numbersFiltered);  // [2, 4, 6]
+```
+<hr/>
+
+<h2>Array forEach, push, etc</h2>
+
+* `Array.forEach()`는 배열의 각 원소들에 대해 작업을 실행한다. (__새로운 배열 반환 X, 애초에 return할 것이 없다.__)
+```js
+let posts = ["Hi", "Hello", "Bye"];
+posts.forEach(post => console.log(post));  // Hi Hello Bye
+```
+
+* `Array.push()`는 배열에 새로운 원소를 추가할 때 사용한다.
+```js
+let posts = ["hi"];
+posts.push("hello");
+console.log(posts);  // ["hi", "hello"]
+```
+
+* `Array.includes()`는 배열에 특정 원소가 있는지를 확인한다.
+```js
+let greetings = ["Hi", "Hello"];
+if(greetings.includes("Hello")) {
+    greetings.push("bye");
+}
+console.log(greetings);  // ["Hi", "Hello", "bye"]
+```
+
+* 그 외에도 다양한 `Array`의 메소드들이 있다.
+<hr/>
