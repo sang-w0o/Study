@@ -196,6 +196,31 @@ console.log(baby);  // Baby {name: "Babyname", lastName: "Babylastname"}
 console.log(baby.cry());  // WAAA
 console.log(baby.sayName());  // My name is Babyname.
 ```
+<hr/>
 
+<h2>Array map</h2>
+
+* 배열에 대한 기본적인 것들
+```js
+const days = ["Mon", "Tue", "Wed"];
+```
+
+* 만약 이 배열의 모든 원소에 숫자를 추가하고 싶다면 아래와 같이 해보자.
+```js
+const numberDays = days.map(item => item + 1);
+console.log(numberDays);  // ["Mon1", "Tue1", "Wed1"]
+```
+
+* `Array.map()` 메소드는 각 원소에 특정 작업을 수행하고, 작업이 수행된 원소들로 이루어진 새로운 배열을 반환한다.
+
+* `map()` 메소드의 첫 번째 인자는 각 item이고, 두 번째 인자는 index 값이다.   
+  인자를 하나만 전달할 수도 있다.
+```js
+const numberDays = days.map((item, index) => item = item + index);
+console.log(numberDays);  // ["Mon0", "Tue1", "Wed2"]
+
+// 위와 동일한 기능을 ` `로 구성해보자.
+const numberDays = days.map((item, index) => `${item}${index}`);
+```
 <hr/>
 
