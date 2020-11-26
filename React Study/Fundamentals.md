@@ -130,3 +130,34 @@ const {favFood: {breakfast, lunch, dinner}} = human;
 ```
 <hr/>
 
+<h2>Spread Operator</h2>
+
+```js
+const days = ["Mon", "Tue", "Wed"];
+const otherDays = ["Thu", "Fri", "Sat"];
+```
+
+* Spread Operator는 배열의 원소들을 unpack 한다.
+* 위 두 배열의 원소들을 합치고 싶을 때 스프레드 연산자를 활용할 수 있다.
+```js
+const realDays = [...days, ...otherDays, "Sun"];
+console.log(realDays);  // ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+```
+
+* Spread Operator는 객체에 대해서도 동일하게 동작한다.
+```js
+const ob1 = {
+    first: "hi",
+    second: "hello"
+};
+
+const ob2 = {
+    third: "I am",
+    fourth: "sangwoo"
+};
+
+const objectUnited = {...ob1, ...ob2};
+console.log(objectUnited);  // Object {first: "hi", second: "hello", third: "I am", fourth: "sangwoo"}
+```
+<hr/>
+
