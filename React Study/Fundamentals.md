@@ -161,3 +161,41 @@ console.log(objectUnited);  // Object {first: "hi", second: "hello", third: "I a
 ```
 <hr/>
 
+<h2>Classes</h2>
+
+* JS의 Class 개념은 ES6에서 등장했다.
+
+```js
+// Defining Class
+class Human {
+    constructor(name, lastName) {
+        this.name = name;
+        this.lastName = lastName;
+    }
+}
+
+// Using class
+const sangwoo = new Human("sangwoo", "Ra");
+console.log(sangwoo);  // Human {name: "sangwoo", lastName: "Ra"}
+console.log(sangwoo.name);  // sangwoo
+```
+
+* Class는 다른 언어와 마찬가지로 확장 가능하다(상속).
+```js
+class Baby extends Human {
+    cry() {
+        console.log("WAAA");
+    }
+    sayName() {
+        console.log(`My name is ${this.name}`)
+    }
+}
+
+const baby = new Baby("Babyname", "Babylastname");
+console.log(baby);  // Baby {name: "Babyname", lastName: "Babylastname"}
+console.log(baby.cry());  // WAAA
+console.log(baby.sayName());  // My name is Babyname.
+```
+
+<hr/>
+
