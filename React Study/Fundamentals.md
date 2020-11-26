@@ -76,3 +76,57 @@ const helloName = (name = "Human") => `Hello ${name}`;
 
 <h2>Object Destructuring</h2>
 
+* Structuring
+
+```js
+const human = {
+    name: "Sangwoo",
+    lastName: "Ra",
+    nationality: "KR"
+}
+```
+
+* 위 human 객체의 값에 일일히 접근하기 보다는 아래와 같이 객체 비구조화를 사용하자.
+```js
+// 객체 비구조화 전
+const name = human.name;
+const lastName = human.lastName;
+
+// 객체 비구조화 후
+const { name, lastName} = human;
+console.log(name);  // Sangwoo
+console.log(lastName);  // Ra
+```
+
+* 만약 특정 객체의 멤버 변수의 값을 사용하고 싶지만, 멤버 변수명은 바꾸고 싶다면 아래와 같다.
+```js
+// 객체 비구조화 전
+const name = human.name;
+const lastName = human.lastName;
+const nationality1 = human.nationality;
+
+// 객체 비구조화 후
+const {name, lastName, nationality: nationality1} = human;
+console.log(nationality1);  // KR
+```
+
+* 아래 객체를 보자.
+```js
+const human: {
+    name: "Sangwoo",
+    lastName: "Ra",
+    nationality: "KR",
+    favFood: {
+        breakfast: "FOOD_A",
+        lunch: "FOOD_B",
+        dinner: "FOOD_C"
+    }
+}
+```
+
+* 위 객체에서 breakfast, lunch, dinner에 접근하려면 아래와 같이 할 수 있다.
+```js
+const {favFood: {breakfast, lunch, dinner}} = human;
+```
+<hr/>
+
