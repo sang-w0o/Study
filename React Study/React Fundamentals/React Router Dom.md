@@ -38,3 +38,28 @@ export default () => (
 * 위 코드에서의 문제점은 모든 URI (`Redirect`의 from 속성이 "*" 이다.)를 "/"로 redirect 시킨다는 점이다.   
   이를 해결하기 위한, 즉 특정 경우에만 redirect 시키려고 한다면 `Switch`를 사용한다.
 
+* `Switch` 컴포넌트는 한 번에 오직 하나의 `Route`만 렌더링 하게 해준다.   
+  아래와 같이 해보자.
+```js
+import React from 'react';
+import {BrowserRouter as Router, Route, Redirect, Switch} from 'react-router-dom';
+import Home from '../Routes/Home';
+import Search from '../Routes/Search';
+import TV from '../Routes/TV';
+
+export default () => (
+    <Router>
+        <Switch>
+            <Route path="/" exact component={Home} />
+            <Route path="/tv" exact component={TV} />
+            <Route path="/tv/popular" exact render={() => <h1>Popular TV!</h1>}/>
+            <Route path="/search" exact component={Search} />
+            <Redirect from="*" to="/"/>
+        </Switch>
+    </Router>
+)
+```
+
+* 이제 `Route` 컴포넌트들을 `Switch`로 감싸줬기 때문에, 한 번에 오직 하나의 `Route`만 렌더링 된다.   
+  또한 `Redirect` 컴포넌트 덕분에 "/", "/tv", "/tv/popular", "/search"가 아닌 pathname에 대해서는   
+  "/"로 redirect 되게 된다.
