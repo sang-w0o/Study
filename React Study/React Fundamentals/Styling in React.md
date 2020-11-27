@@ -147,3 +147,65 @@ class App extends Component {
 
 export default App;
 ```
+<hr/>
+
+<h2>특정 위치에 스타일링 주기</h2>
+
+* Styled component에는 props를 줄 수도 있다.   
+  아래는 예시이다.
+```js
+const Item = styled.li`
+    width: 80px;
+    height: 50px;
+    text-align: center;
+    border-bottom: 5px solid ${props => props.current ? "#3498db" : "transparent"};
+`;
+```
+
+* react-router-dom에 속해있는 `withRouter`는 다른 컴포넌트를 감싸는 컴포넌트이고,   
+  `Router`에 대한 정보를 줄 수 있다.
+
+* 아래는 예시이다.
+```js
+export default withRouter(() => (
+    <Header>
+        <List>
+            <Item current={false}>
+                <SLink to="/">Movies</SLink>
+            </Item>
+            <Item current={true}>
+                <SLink to="/tv">TVs</SLink>
+            </Item>
+            <Item current={false}>
+                <SLink to="/search">Search</SLink>
+            </Item>
+        </List>
+    </Header>
+))
+```
+
+* 위와 같이 `withRouter()`로 컴포넌트들을 감쌌기 때문에 props에 접근이 가능하다.
+
+* `withRouter`의 props에는 `Router`에서 전달된 history, location, match가 있다.   
+  location에는 pathname이라는 속성이 있어서 이를 비교해 특정 경우에만 컴포넌트에   
+  속성을 줄 수 있다.
+
+```js
+const HeaderComponent = ({location: {pathname}}) => (
+    <Header>
+        <List>
+            <Item current={pathname === "/"}>
+                <SLink to="/">Movies</SLink>
+            </Item>
+            <Item current={pathname === "/tv"}>
+                <SLink to="/tv">TVs</SLink>
+            </Item>
+            <Item current={pathname === "/search"}>
+                <SLink to="/search">Search</SLink>
+            </Item>
+        </List>
+    </Header>
+);
+
+export default withRouter(HeaderComponent);
+```
