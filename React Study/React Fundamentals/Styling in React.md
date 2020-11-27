@@ -47,4 +47,42 @@
     있게 되었기 때문이다. 즉, navList는 local 클래스명이 된 것이다.   
     하지만 여전히 className을 기억해야 한다는 문제점이 있다.
 
-3. 
+3. Styled Components
+  * Styled-components 라이브러리를 활용하면, style이 내부적으로 정의된   
+    컴포넌트를 생성할 수 있다.
+  * 예시는 아래와 같다.
+  ```js
+  import React from 'react';
+  import styled from 'styled-components';
+
+  const List = styled.ul`
+      display: flex;
+      &:hover {
+          background-color: blue;
+      }
+  `;
+
+  export default () => (
+      <header>
+          <List>
+              <ul>
+                  <li>
+                      <a href="/">Movies</a>
+                  </li>
+                  <li>
+                      <a href="/tv">TVs</a>
+                  </li>
+                  <li>
+                      <a href="/search">Search</a>
+                  </li>
+              </ul>
+          </List>
+        </header>
+  )
+  ```
+
+  * 즉, `styled.요소`를 const 변수에 할당한 후, 그 변수로 스타일을 적용할   
+    컴포넌트를 감싸주면 된다.
+
+<h2>Styled Components</h2>
+
