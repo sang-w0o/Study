@@ -50,6 +50,9 @@
 3. Styled Components
   * Styled-components 라이브러리를 활용하면, style이 내부적으로 정의된   
     컴포넌트를 생성할 수 있다.
+
+  * `yarn add styled-components`
+
   * 예시는 아래와 같다.
   ```js
   import React from 'react';
@@ -86,3 +89,61 @@
 
 <h2>Styled Components</h2>
 
+* 위에서 만든 Styled-component는 local하다.   
+  하지만 Styled-component는 전역(Global)으로 만들 수도 있다.   
+  전역 style component를 만드는 이유는 예를 들어 해당 web application의   
+  폰트와 같은 스타일은 어디서든 동일하기 때문이다.
+
+* 전역 styled components를 사용하기 위해서는 아래의 패키지를 설치해준다.
+* `yarn add styled-reset`
+* styled-reset의 reset은 CSS를 초기화한다.
+
+* 우선 전역 스타일을 지정하기 위한 컴포넌트를 만든다.
+```js
+import {createGlobalStyle} from 'styled-components';
+import reset from 'styled-reset';
+
+const globalStyles = createGlobalStyle`
+    ${reset};
+    a {
+        text-decoration: none;
+        color: inherit;
+    }
+    * {
+        box-sizing: border-box;
+    }
+    body {
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 14px;
+        background-color: rgba(20, 20, 20, 1);
+    }
+`;
+
+export default globalStyles;
+```
+
+* 위 코드의 `${reset}`이 바로 전역 스타일을 초기화하는 것이다.
+
+* 위의 컴포넌트 사용 예시는 아래와 같다.
+```js
+import React, {Component} from 'react';
+import Router from './Router';
+import Header from "./Header";
+import GlobalStyles from './GlobalStyles';
+
+class App extends Component {
+
+  render() {
+    return(
+      <>
+        <GlobalStyles/>
+        <Header/>
+        <Router/>
+      </>
+    )
+  }
+}
+
+
+export default App;
+```
