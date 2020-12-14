@@ -51,3 +51,86 @@
   Blocking I/O를 이용하여 프로그래밍을 한다면 Event Loop가 빨리 빨리 Event Queue에 있는 Event를   
   처리할 수 없다. Runnable 상태의 Thread들이 CPU를 점유하고 있기 때문이다. 그래서 전반적인 성능 하락이 발생한다.
 <hr/>
+
+<h2>MVC와 WebFlux의 성능 측정</h2>
+
+* 기본 아키텍쳐 : Client <==> API Server <==> Redis
+
+* 성능 측정은 비교대상이 되는 Spring MVC Application과 여러가지 상황별로 코딩된 WebFlux Application들을 서로 비교한다.
+
+* 중간에 있는 API 서버가 성능 부하 클라이언트의 부하를 받고 Redis에서 데이터를 가지고 와서, 응답하는 시나리오로 구성되어 있다.
+
+* 코드는 아래와 같다.
+```java
+public class AdHandler {
+    public Mono<ServerResponse> fetchByAdRequest(ServerRequest serverRequest) {
+        return serverRequest.bodyToMono(AdRequest.class)
+            .log()
+            .map(AdRequest::getCode)
+            .map(AdCodeId::of)
+            .map(adCodeId -> {
+                log.warn("Request AdCodeId = {}", adCodeId.toKeyString());
+                return adCodeId;
+            })
+            .map(adCodeId -> cacheStorageAdapter.getAdValue(adCodeId))
+            .flatMap(adValue -> 
+                ServerResponse.ok().contentType(MediaType.APPLICATIION_JSON)
+                    .body(adValue, adValue.class)
+            );
+    }
+}
+```
+* `cacheStoreAdapter` 객체는 Redis의 데이터를 가지고 오는 기능을 담당한다.
+
+* 위 코드대로 작성하여 Spring MVC와의 성능 차이를 분석한 결과, WebFlux가 대략 2-3배 더 느렸다.
+
+<h3>개선 1</h3>
+
+* 문제를 찾아보는 도중, `log()` 메소드에 문제가 있다는 것을 알게 되었다.   
+  `log()` 메소드는 로그를 남기는 역할을 하지만, 실제로 Blocking I/O를 일으키기 때문에, 성능 저하가 쉽게 발생한다.
+
+* `log()` 메소드를 제거하니, tps가 잘 나오긴 했지만, 여전히 하위 95%의 응답속도가 MVC보다 더 느리게 나왔다.
+
+<h3>개선 2</h3>
+
+* 문제는 `map()` 메소드에 있었다.
+
+* 아래는 Monoflux에서 제공하는 `flatMap()`과 `map()`에 대한 설명이다.
+```
+map() - Transform the item emitted by this Mono by applying synchronous function to it.
+flatMap() - Transform the item emitted by this Mono asynchronously, returning the value emitted by another Mono.
+            (Possible changing the value type.)
+```
+
+* 추가적으로, `map()` 메소드는 연산마다 객체를 생성하기 때문에 성능 이슈가 발생할 수 밖에 없다.   
+  즉, 비동기 처리 부분은 `flatMap()`으로, 동기 처리 부분은 `map()` 함수를 사용해야 한다.
+
+* `cacheStoreAdapter`는 Redis의 데이터를 가져오는 역할을 한다.   
+  Reactive Redis는 Non-blocking I/O에 비동기로 동작해야 한다.   
+  Non-blocking I/O는 Netty가 처리해주지만, 비동기로 동작해야 하는 부분은   
+  `map()` 메소드에 의해서 동기식으로 동작해 버리게 된다.
+
+* 수정된 코드느 아래와 같다.
+```java
+public class AdHandler {
+    public Mono<ServerResponse> fetchByAdRquest(ServerRequest serverRequest) {
+        Mono<AdValue> adValueMono = serverRequest.bodyToMono(AdRequest.class)
+            .map(adRequest -> {
+                AdCodeId adCodeId = AdCodeId.of(AdRequest.getCode());
+                log.warn("Request AdCodeID = {}", adCodeId.toKeyString());
+                return adCodeId;
+            })
+            .flatMap(adCodeId -> cacheStorageAdapter.getValue(adCodeId));
+        return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON)
+            .body(adValueMono, AdValue.class);
+    }
+}
+```
+
+* 위 코드는 기존 코드에 비해 불필요한 `map()` 메소드 체인도 줄이고, 비동기로 동작한 부분은   
+  `flatMap()` 메소드를 사용했다.
+<hr/>
+
+<h2>결론</h2>
+
+* WebFlux 사용 시 가능하다면 Non-Blocking I/O, 비동기 처리 방식을 사용해야 한다.
