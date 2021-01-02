@@ -98,8 +98,7 @@ public @interface ResponseStatus {
 * `HttpServletResponse#sendError()`를 사용한다는 것은 클라이언트에게 HTML Error Page를 전달함을 의미한다.   
   따라서 REST Controller 메소드에 `@ResponseStatus`를 적용하는 경우, __reason__ 을 전달하지 않아야 한다.
 
-* 나는 기존 코드에 대한 예외 처리를 아래와 같이 바꿀 수 있었다.   
-  <a href="https://github.com/sangwoo-98/Study/blob/master/Backend/Java%20%26%20Spring%20Boot/RuntimeException%20vs%20Exception.md">기존 예외처리 코드</a>
+* 이제 기존 코드에 대한 예외처리와 response status를 처리하는 부분을 다시 작성해보자.   
 <hr/>
 
 <h2>@ResponseStatus 적용하기</h2>
