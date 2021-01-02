@@ -57,3 +57,5 @@ public class UserIdNotFoundException extends Exception {
   예외 발생 가능성이 있는 코드에서 명시적으로 throws를 사용하지 않아도 되며,   
   해당 코드를 호출하는 부분에서 예외를 처리하지 않아도 된다.(물론 무조건 처리하는것이 좋다.)
 <hr/>
+
+<a href="https://stackoverflow.com/questions/2190161/difference-between-java-lang-runtimeexception-and-java-lang-exception">참고 링크</a>
