@@ -165,3 +165,5 @@ public class UsersApiController {
 
 * 위와 같이 코드 구조가 기존에 비해 말도 안되게 간결해졌음을 알 수 있다.
 <hr/>
+
+<a href="https://www.javacodegeeks.com/2019/05/using-responsestatus-http-status-spring.html#:~:text=We%20can%20use%20%40ResponseStatus%20to,one%20defined%20using%20%40ResponseStatus%20annotation.">참고 링크</a>
