@@ -40,3 +40,94 @@ public void saveUser(UserRegisterDto dto) {
 
 <h2>@Valid, @NotBlank</h2>
 
+* 먼저, `@NotBlank` 어노테이션은 아래와 같이 작성되어 있다.
+```java
+package javax.validation.constraints;
+
+@Documented
+@Constraint(validatedBy = { })
+@Target({ METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE })
+@Retention(RUNTIME)
+@Repeatable(List.class)
+public @interface NotBlank {
+
+	String message() default "{javax.validation.constraints.NotBlank.message}";
+
+	Class<?>[] groups() default { };
+
+	Class<? extends Payload>[] payload() default { };
+
+	@Target({ METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE })
+	@Retention(RUNTIME)
+	@Documented
+	public @interface List {
+		NotBlank[] value();
+	}
+}
+```
+
+* 위 어노테이션이 적용된 클래스, 필드, 메소드 등에 대해 Spring은 Bean Validation을 수행한다.   
+  Bean Validation을 수행하게 하도록 하기 위한 어노테이션은 여러 개가 있으며, `@NotBlank`는 그 중 하나이다.
+
+* `@NotBlank`는 어노테이션이 적용된 것이 __null이 아니며 trimmed value의 길이가 0 이상__ 이어야 한다는 제약을 건다.
+
+* 다음으로  `@Valid` 어노테이션은 아래와 같이 작성되어 있다.
+```java
+package javax.validation;
+
+@Target({ METHOD, FIELD, CONSTRUCTOR, PARAMETER, TYPE_USE })
+@Retention(RUNTIME)
+@Documented
+public @interface Valid {
+}
+```
+
+* Spring이 `@Valid`가 적용된 인자를 보게 되면 자동으로 `Default JSR 380`을 구현한 객체와 매핑하며,   
+  이는 곧 `Hibernate Validator`로 이어지고, 인자값을 주어진 제약에 맞게 검증한다.
+<hr/>
+
+<h2>@Valid, @NotBlank의 도입 이후 코드</h2>
+
+* 위와 같은 상황에 이 두 어노테이션을 적용하면, 아래와 같이 코드가 간결해진다.
+```java
+// 사용자 정보 등록을 위한 DTO 클래스
+@NoArgsConsturctor
+@Getter
+@Setter
+public class UserRegisterDto {
+
+    @NotBlank(message = "name must not be null and length must be greater than zero.")
+    private String name;
+
+    @NotBlank(message = "email must not be null and length must be greater than zero.")
+    private String email;
+
+    public User toEntity() {
+        return User.builder().name(name).email(email).build();
+    }
+}
+
+// 사용자 정보를 등록하는 서비스 코드
+public class UsersService {
+
+    public void saveUser(UserRegisterDto dto) {
+        usersRepository.save(dto.toEntity());
+    }
+}
+
+// 서비스 코드를 호출하는 부분
+public class UsersApiController {
+
+    @PostMapping("/users/save")
+    public void saveUser(@Valid @RequestBody UserRegisterDto dto) {
+        usersService.saveUser(dto);
+    }
+}
+```
+
+* 위와 같이 코드가 매우 간결해졌음을 알 수 있다.
+
+* 추가로, 만약 Request body가 validation의 제약에 걸린다면, 해당 request는 400(BAD REQUEST)를 응답받는다.
+<hr/>
+
+<a href="https://www.baeldung.com/spring-boot-bean-validation">참고 링크</a>
