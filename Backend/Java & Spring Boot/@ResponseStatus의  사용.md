@@ -39,25 +39,15 @@ public class WriteToClient {
 
 public class UsersApiController {
 
-    // 시용자 정보를 수정하는 URL
-    @PatchMapping("/v2/users/{userId}")
-    public void updateUserInfo(@RequestBody UserSignupRequestDto requestDto, @PathVariable Integer userId, @RequestHeader(name = "Authorization") String bearerToken, HttpServletResponse response) {
+    // 시용자 정보를 조회하는 API
+    @GetMapping("/v2/users/{userId}")
+    public void getUserInfo(@PathVariable Integer userId) {
+
         try {
-            if(bearerToken == null) throw new AuthenticateException();
             if(userId == null) throw new Exception();
-            WriteToClient.send(response, usersService.updateUserInfo(userId, requestDto, bearerToken), HttpServletResponse.SC_OK);
-        } catch(UserException exception) {
-            if(exception instanceof UserIdNotFoundException) {
-                WriteToClient.send(response, ObjectMaker.getJSONObjectWithException(exception), HttpServletResponse.SC_NOT_FOUND);
-            } else if(exception instanceof UserEmailInUseException) {
-                WriteToClient.send(response, ObjectMaker.getJSONObjectWithException(exception), HttpServletResponse.SC_CONFLICT);
-            } else if(exception instanceof UserNotFoundException) {
-                WriteToClient.send(response, ObjectMaker.getJSONObjectWithException(exception), HttpServletResponse.SC_NOT_FOUND);
-            } else if(exception instanceof UserInvalidAccessException) {
-                WriteToClient.send(response, ObjectMaker.getJSONObjectWithException(exception), HttpServletResponse.SC_FORBIDDEN);
-            }
-        } catch(AuthenticateException exception) {
-            WriteToClient.send(response, ObjectMaker.getJSONObjectWithException(exception), HttpServletResponse.SC_UNAUTHORIZED);
+            WriteToClient.send(response, usersService.viewUserInfo(userId, bearerToken), HttpServletResponse.SC_OK);
+        } catch(UserIdNotFoundException exception) {
+            WriteToClient.send(response, ObjectMaker.getJSONObjectWithException(exception), HttpServletResponse.SC_NOT_FOUND);
         } catch(Exception exception) {
             WriteToClient.send(response, ObjectMaker.getJSONObjectOfBadRequest(), HttpServletResponse.SC_BAD_REQUEST);
         }
@@ -155,3 +145,23 @@ public class UserService {
     }
 }
 ```
+
+* 마지막으로 아래는 위의 서비스 코드를 호출하는 부분이다.
+```java
+@RequiredArgsConstructor
+@RestController
+public class UsersApiController {
+
+    private final UsersService usersService;
+
+    @ValidateRequired
+    @GetMapping("/v3/users/{userId}")
+    @ResponseStatus(HttpStatus.OK)
+    public UserInfoResponseDto getUserInfo(@PathVariable Integer userId, @RequestAttribute(name = "accessToken") String token) {
+        return usersService.getUserInfo(userId, token);
+    }
+}
+```
+
+* 위와 같이 코드 구조가 기존에 비해 말도 안되게 간결해졌음을 알 수 있다.
+<hr/>
