@@ -486,5 +486,34 @@ LinkedList<Product> linkedListOfProducts = productList.stream().collect(toLinked
 * 위 코드는 `Collector`의 인스턴스를 `LinkedList<Person>`으로 reduce 했다.
 <hr/>
 
+<h2>Parallel Stream</h2>
+
+* Java 8의 Stream API는 작업을 병렬적으로 수행하게 하는 것을 지원한다.   
+  만약 `Stream`의 source가 `Collection`이거나 배열일 경우에, 이는 `parallelStream()`으로 수행될 수 있다.
+```java
+Stream<Product> streamOfCollection = productList.parallelStream();
+boolean isParallel = streamOfCollection.isParallel();
+boolean bigPrice = streamOfCollection.map(product -> product.getPrice() * 12)
+    .anyMatch(price -> price > 200);
+```
+
+* 만약 `Stream`의 source가 `Collection` 또는 배열이 아닐 경우, `parallel()` 메소드를 사용하면 된다.
+```java
+IntStream intStreamParallel = IntStream.range(1, 150).parallel();
+boolean isParallel = intStreamParallel.isParallel();
+```
+
+* Stream API는 작업을 병렬로 수행하기 위해 내부적으로 `ForkJoin` 프레임워크를 사용한다.   
+  기본적으로 공통 thread pool이 사용되며, 작업에 custom thread pool을 적용하는 방법은 아직까지는 없다.
+
+* Stream을 병렬로 사용할 때, 스레드를 block할만한 작업을 수행하면 좋지 않다.
+
+* Parallel mode에 있는 `Stream`은 `sequential()` 메소드를 호출함으로써 sequential mode로 변환될 수 있다.
+```java
+IntStream intStreamSequential = intStreamParallel.sequential();
+boolean isParallel = intStreamSequential.isParallel();
+```
+<hr/>
+
 <a href="https://www.baeldung.com/java-8-streams-introduction">참고 링크1</a>
 <a href="https://www.baeldung.com/java-8-streams">참고 링크2</a>
