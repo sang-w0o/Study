@@ -341,5 +341,34 @@ Optional<String> stream = list.stream().filter(element -> {
   위 코드에서는 Lazy Invocation이 동작하여 2번의 메소드 호출을 피한 것이다. (`filter()`, `map()`).
 <hr/>
 
+<h2>작업 수행의 순서</h2>
+
+* 성능의 관점에서 본다면 최적의 순서는 method chaining 중 필요한 작업만 수행되는 것이다.
+
+```java
+long size = list.stream().map(element -> {
+    wasCalled();
+    return element.substring(0, 3);
+}).skip(2).count();
+```
+
+* 위 코드의 수행 결과, `wasCalled()`는 3번 호출되지만, size는 1이 된다.   
+  결국 결론적으로 `Stream`은 1개의 원소를 가지지만, 3번의 `map()` 메소드가 호출된 것이다.
+
+* 이 때, `skip()`과 `map()` 메소드의 호출 순서를 바꾼다면, `wasCalled()`는 한 번 호출되며,   
+  마찬가지로 `map()` 메소드도 1번만 호출될 것이다.
+```java
+long size = list.stream().skip(2).map(element -> {
+    wasCalled();
+    return element.substring(0, 3);
+}).count();
+```
+
+* 이는 규칙을 도출하는데, __`Intermediate Operation` 중 `Stream`의 크기를 조절하는 함수들은 모든 원소 각각에 대해 호출되는__   
+  __메소드의 호출보다 앞서 호출되어야 한다__ 는 것을 알 수 있다.
+
+* 즉, `skip()`, `filter()`, `distinct()`와 같은 메소드들을 Stream Pipeline의 최상위에 놓는 것이 효율적이다.
+<hr/>
+
 <a href="https://www.baeldung.com/java-8-streams-introduction">참고 링크1</a>
 <a href="https://www.baeldung.com/java-8-streams">참고 링크2</a>
