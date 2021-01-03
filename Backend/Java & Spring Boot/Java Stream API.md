@@ -233,6 +233,37 @@ LongStream longStream = LongStream.rangeClosed(1, 2);
   endInclusive 까지 작업을 수행한다.
 
 * 즉, 위의 intStream과 longStream의 원소들은 같다. (1, 2)
+<hr/>
+
+<h2>Stream 참조하기</h2>
+
+* `Stream` 객체를 생성하고 참조하는 것은 `Intermedia Operation`만 수행한다면 가능하다.   
+  만약 `Terminal Operation`을 수행한다면, 해당 `Stream` 객체를 참조할 수 없다.
+
+* 이를 이해하기 위해, `Stream`을 다루는 최선의 방법이 chaining이라는 것을 배제해보자.   
+  우선, 아래 코드는 적절한 코드이다.
+```java
+Stream<String> stream = Stream.of("a", "b", "c").filter(element -> element.contains("b"));
+Optional<String> anyElement = stream.findAny();
+```
+
+* 하지만 같은 객체에 대해 `Terminal Operation`을 수행하고 참조하는 것은 `IllegalStateException`을 발생시킨다.
+```java
+Optional<String> firstElement = stream.findFirst();
+```
+
+* `IllegalStateException`은 `RuntimeException`을 상속하므로, 컴파일러는 해당 예외에 대한 처리를 강요하지 않는다.   
+  따라서 __Java 8 Stream은 재사용이 불가하다는 것__ 을 숙지해야 한다.
+
+* 위의 코드를 정상적으로 작동하게 하려면 아래와 같이 작성해야 한다.
+```java
+List<String> elements = Stream.of("a", "b", "c").filter(element -> element.contains("b"))
+    .collect(Collectors.toList());
+
+Optional<String> anyElement = elements.stream().findAny();
+Optional<String> firstElement = elements.stream().findFirst();
+```
+<hr/>
 
 
 <a href="https://www.baeldung.com/java-8-streams-introduction">참고 링크1</a>
