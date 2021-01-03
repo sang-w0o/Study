@@ -186,6 +186,53 @@ Stream<String> streamOfArrayPart = Arrays.stream(arr, 1, 3);
 
 <h3>Stream.builder()</h3>
 
+* 만약 `Stream`의 타입으로 들어가는 원소가 Builder Pattern을 사용한다면,   
+  __원하는 타입을 무조건 명시해야 한다__. 만약 명시를 안한다면 `Stream<Object>`를 반환한다.
+```java
+Stream<String> streamBuilder = Stream.<String>builder().add("a").add("b").build();
+```
+
+<h3>Stream.generate()</h3>
+
+* `generate()` 메소드는 `Stream`의 생성을 위해 `Supplier<T>` 타입을 원소로 받는다.   
+  결과적으로 나오는 `Stream`은 무한정일 수 있으므로, 개발자는 원하는 size를 지정해야 한다.   
+  그렇지 않을 경우 `generate()` 메소드는 메모리 초과가 날 때 까지 작동할 것이다.
+
+* 아래 코드는 "element"를 원소로 가지고, 원소의 개수가 10개인 `Stream`을 반환한다.
+```java
+Stream<String> streamGenerated = Stream.generate(() -> "element").limit(10);
+```
+
+<h3>Stream.iterate()</h3>
+
+* 무제한 길이의 `Stream`을 생성하는 또다른 방법은 `iterate()` 메소드를 사용하는 것이다.   
+  `iterate()`의 첫 번째 파라미터의 타입에 맞게 `Stream`이 생성된다.   
+  `iterate()`의 두 번째 파라미터는 이전 원소에 대해 특정 작업을 수행할 함수가 들어간다
+```java
+Stream<Integer> streamIterated = Stream.iterate(40, n -> n + 2).limit(20);
+```
+
+* 위의 예시로는, `Stream`에 있는 두 번째 원소는 42가 된다.
+
+<h3>Primitive Type으로 이루어진 Stream</h3>
+
+* Java 8은 int, double, long에 대해서 `Stream`을 생성할 수 있게 해준다.   
+  `Stream<T>`가 Generic Interface이고, Generic은 Primitive Type을 타입 파라미터로 지정할 수 없기 때문에   
+  `IntStream`, `DoubleStream`, `LongStream`의 세 가지 특별한 인터페이스들이 제공된다.
+
+* 이 3개의 인터페이스를 사용하면 불필요한 auto-boxing 작업 등이 불필요하다.
+```java
+IntStream intStream = IntStream.range(1, 3);
+LongStream longStream = LongStream.rangeClosed(1, 2);
+```
+
+* `range(int startInclusive, int endExclusive)`는 순서가 정해진 `Stream`을 생성한다.   
+  즉, startInclusive 부터 endExclusive 전까지 1씩 증가하는 원소들로 이루어진 `Stream`을 반환한다.
+
+* `rangeClosed(int startInclusive, int endInclusive)`는 `range()`와 마찬가지의 작업을 수행하지만,   
+  endInclusive 까지 작업을 수행한다.
+
+* 즉, 위의 intStream과 longStream의 원소들은 같다. (1, 2)
 
 
 <a href="https://www.baeldung.com/java-8-streams-introduction">참고 링크1</a>
