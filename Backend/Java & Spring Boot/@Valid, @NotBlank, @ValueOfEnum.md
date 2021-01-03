@@ -316,6 +316,10 @@ public @interface Constraint {
 }
 ```
 
+* 위의 JavaDoc을 보면, `Constraint#message()`는 default 에러 메시지를 지정할 수 있도록 한다.   
+  `Contstraint#groups()`는 사용자가 어노테이션이 적용될 target group을 수정할 수 있도록 해주며,   
+  `Constraint#payload()`는 확장성을 위한 메소드라고 쓰여져 있다.
+
 * 이제 `@ValueOfEnum`을 적용해보자.
 ```java
 // 사용자 정보 등록을 위한 Dto
