@@ -370,5 +370,121 @@ long size = list.stream().skip(2).map(element -> {
 * 즉, `skip()`, `filter()`, `distinct()`와 같은 메소드들을 Stream Pipeline의 최상위에 놓는 것이 효율적이다.
 <hr/>
 
+<h2>Stream Reduction</h2>
+
+* Stream API는 `Stream`을 Primitive Type으로 변환해주는 `count()`, `max()`, `min()`, `sum()`등의   
+  메소드를 제공한다. 하지만 이 메소드들은 미리 정의된 동작에 맞추어 작동한다.   
+  만약 개발자가 직접 Stream의 reduction 메커니즘을 작성해야 한다면 어떨까?   
+  이를 가능하게 해주는 메소드는 2개가 있는데, 바로 `reduce()`와 `collect()` 메소드이다.
+
+<h3>reduce() 메소드</h3>
+
+* `reduce()`는 총 3가지로 오버로딩 되어 있는데, 시그니처와 리턴 타입으로 구분된다. 아래는 파라미터 목록이다.
+  * identity : 초기값
+  * accumulator : 원소들에 대해 작업할 함수, reducing의 단계별로 accumulator는 새로운 값을 반환하므로,   
+    새로운 값들의 개수는 stream의 size와 동일하며, 마지막 value 값만 유용하다.
+  * combiner : accumulator의 결과에 대해 적용되는 함수, combiner는 __병렬로만 호출__ 되며, accumulator의   
+    결과를 다른 스레드에서 처리하도록 해준다.
+
+* 아래는 위의 3가지를 모두 하나씩 다룬 코드이다.
+```java
+// 1, 2, 3을 reduce하여 6 반환
+OptionalInt reduced = IntStream.range(1, 4).reduce((a, b) -> a + b);
+
+// 1, 2 ,3에 대하여 accumulator의 초기값으로 10 지정.
+// 즉 결과는 16이 된다.
+int reducedTwoParams = IntStream.range(1, 4).reduce(10, (a, b) -> a + b);
+```
+
+```java
+// Stream이 parallel이 아니기에 combiner가 호출되지 않으므로
+// 결과값은 16이 된다.
+int reducedParams = Stream.of(1, 2, 3)
+    .reduce(10, (a, b) -> a + b, (a, b) -> {
+        log.info("combiner was called.");
+        return a + b;
+    });
+```
+
+* 위 코드를 수행하면, 로그가 찍히지 않는다. 즉, combiner가 호출되지 않은 것이다.   
+  combiner가 호출되게 하려면, stream은 병렬이어야 한다.
+```java
+int reducedParallel = Arrays.asList(1, 2, 3).parallelStream()
+    .reduce(10, (a + b) -> a + b, (a + b) -> {
+        log.info("combiner was called.");
+        return a + b;
+    });
+```
+
+* 위 코드의 결과 도출 순서는 아래와 같다.
+  * (1) accumulator가 병렬적으로 호출되기에 Stream의 원소는 11(10+1), 12(10+2), 13(10+3)이다.
+  * (2) combiner가 결과를 합쳐 11 + 12 + 13인 36이 결과값으로 나온다.
+
+<h3>collect() 메소드</h3>
+
+* `Stream`에 대한 reduction은 `collect()`로도 수행될 수 있다.   
+  `collect()` 메소드는 `Collector` 타입을 매개변수로 받는데, `Collector`는 reduction의   
+  동작 방식이 정의되어 있다.
+
+* 대부분의 `Collector` 작업들은 `Collectors`에 정의되어 있다.
+
+* 아래의 코드가 기본적으로 있다고 하자.
+```java
+List<Product> productList = Arrays.asList(new Product(23, "potatoes"),
+  new Product(14, "orange"), new Product(13, "lemon"),
+  new Product(23, "bread"), new Product(13, "sugar"));
+```
+
+* 위 productList를 `List<String>`으로 변환해보면 아래와 같다.
+```java
+String listToString = productList.stream().map(Product::getName).collect(Collectors.toList());
+```
+
+* 이번에는 위의 productList의 `Product.price`의 평균값과 총 합을 구해보자.
+```java
+double averagePrice = productList.stream().collect(Collectors.averagingInt(Product::getPrice));
+
+int summingPrice = productList.stream().collect(Collectors.summingInt(Product::getPrice));
+```
+
+* `avaragingXX()`, `summingXX()`, `summarizingXX()`는 int, long, double과 그들의 Wrapper 클래스인   
+  `Integer`, `Double`, `Long`에 대해서도 작동한다.
+
+* `Stream`의 원소들에 대해 지정된 함수로 grouping을 수행할 수도 있다.
+```java
+Map<Integer, List<Product>> collectorMapOfLists = productList.stream()
+    .collect(Collectors.groupBy(Product::getPrice));
+```
+
+* `Stream`의 원소들을 특정 조건에 따라 grouping할 수도 있다.
+```java
+Map<Boolean, List<Product>> mapPartitioned = productList.stream()
+    .collect(Collectors.partitionBy(element -> element.getPrice() > 15));
+```
+
+* Collector에게 추가적인 작업을 수행하게 할 수도 있다.
+```java
+Set<Product> unmodifiableSet = productList.stream()
+    .collect(Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
+```
+
+* 위 코드는 `Stream`을 `Set`으로 변환한 후, 그 `Set`을 수정 불가하게 했다.
+
+* `Collector` 직접 만들기 : 특정 경우에는 기존에 제공되는 `Collector` 대신에 필요한 `Collector`를 직접 만들어야 한다.   
+  이를 해결하는 가장 쉬운 방법은 `Collector#of()`를 사용하는 것이다.
+```java
+Collector<Product, ?, LinkedList<Product>> toLinkedList = 
+    Collector.of(LinkedList::new, LinkedList::add,
+    (first, second) -> {
+        first.addAll(second);
+        return first;
+    });
+
+LinkedList<Product> linkedListOfProducts = productList.stream().collect(toLinkedList);
+```
+
+* 위 코드는 `Collector`의 인스턴스를 `LinkedList<Person>`으로 reduce 했다.
+<hr/>
+
 <a href="https://www.baeldung.com/java-8-streams-introduction">참고 링크1</a>
 <a href="https://www.baeldung.com/java-8-streams">참고 링크2</a>
