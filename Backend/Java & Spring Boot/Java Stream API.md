@@ -140,4 +140,53 @@ Integer reduced = integers.stream().reduce(23, (a, b) -> a + b);
 * Reduction은 `Stream#collect()` 메소드로도 수행될 수도 있다.   
   이 메소드는 `Stream`을 `Collection` 또는 `Map`으로 변환하게 하는 작업을 수월하게 해준다.   
   이 작업에는 collecting 작업에 대한 대부분을 지원하는 `Collectors` 클래스를 주로 같이 활용한다.
+
+* 예를 들어, 아래 코드는 `Stream<String>`을 `List<String>`으로 변환해준다.
+```java
+List<String> resultList = list.stream().map(element -> element.toUpperCase()).collect(Collectors.toList());
+```
 <hr/>
+
+<h1>Stream 더 깊이 파고들기</h1>
+
+<h2>Stream 객체 생성하기</h2>
+
+<h3>비어 있는(Empty) Stream 생성</h3>
+
+* `empty()` 메소드가 없는 비어 있는 `Stream` 객체를 생성해준다.
+```java
+Stream<String> streamEmpty = Stream.empty();
+```
+
+* `empty()` 메소드는 주로 원소가 없는 `Stream`에 대해 null을 반환하는 것을 방지하는 용도로 사용된다.
+```java
+public Stream<String> streamOf(List<String> list) {
+    return list == null || list.isEmpty() ? Stream.empty() : list.stream();
+}
+```
+
+<h3>Collection으로부터 Stream 생성</h3>
+
+* `Stream`은 `Collection`들의 어느 타입에 대해서도 생성될 수 있다.
+```java
+Collection<String> collection = Arrays.asList("a", "b", "c");
+Stream<String> streamOfCollection = collection.stream();
+```
+
+<h3>배열로부터 Stream 생성</h3>
+
+* 배열(Array) 또한 `Stream`의 제공자가 될 수 있다.
+```java
+Stream<String> streamOfArray = Stream.of("a", "b", "c");
+
+String[] arr = new String[]{"a", "b", "c"};
+Stream<String> streamOfArrayFull = Arrays.stream(arr);
+Stream<String> streamOfArrayPart = Arrays.stream(arr, 1, 3);
+```
+
+<h3>Stream.builder()</h3>
+
+
+
+<a href="https://www.baeldung.com/java-8-streams-introduction">참고 링크1</a>
+<a href="https://www.baeldung.com/java-8-streams">참고 링크2</a>
