@@ -265,6 +265,39 @@ Optional<String> firstElement = elements.stream().findFirst();
 ```
 <hr/>
 
+<h2>Stream Pipeline</h2>
+
+* 특정 데이터들에 대해 일련의 작업들을 수행하기 위해서는 세 개의 부분들이 필요한데, 이는 각각   
+  `source`, `Intermediate Operation(s)`, `Terminal Operation`이다.
+
+* `Intermediate Operation`은 수정된 새로운 `Stream`을 반환한다.   
+  예를 들어 기존 `Stream`에 대해 몇 개의 원소를 제외한 새로운 `Stream`을 생성하려면 `skip()` 메소드가 사용되어야 한다.
+```java
+Stream<String> onceModifiedStream = Stream.of("abcd", "bbcd", "cbcd").skip(1);
+```
+
+* 만약 1개 이상의 수정 작업이 필요하다면, `Intermediate Operation`들은 chaining이 가능하다.   
+  기존의 `Stream<String>`의 모든 원소에 대해 처음 몇개의 글자들로 이루어진 새로운 `Stream`을 만든다고 해보자.
+```java
+Stream<String> twiceModifiedStream = stream.skip(1).map(element -> element.substring(0, 3));
+```
+
+* `map()` 메소드는 함수를 파라미터로 받는다.
+
+* `Stream`은 그 자체로는 무쓸모하다. `Stream`을 사용하는 이유는 특정 원소들에 대해 일련의 작업을 수행하여   
+  원하는 결과로 이루어진 객체를 만들어내는 것이다.
+
+* __`Stream` 하나는 무조건 단 하나의  `Terminal Operation`이 수행될 수 있다__.
+
+* 가장 올바르고 쉬운 방법으로 `Stream`을 다루는 것은 stream pipeline, 즉 Stream Source에 대한   
+  `Intermediate Operation` method chaining을 사용하고 마지막으로 `Terminal Operation`을 수행하는 것이다.
+```java
+List<String> list = Arrays.asList("abc1", "abc2", "abc3");
+long size = list.stream().skip(1).map(element -> element.substring(0, 3)).sorted().count();
+```
+<hr/>
+
+
 
 <a href="https://www.baeldung.com/java-8-streams-introduction">참고 링크1</a>
 <a href="https://www.baeldung.com/java-8-streams">참고 링크2</a>
