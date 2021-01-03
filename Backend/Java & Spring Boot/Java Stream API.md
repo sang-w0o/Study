@@ -297,7 +297,49 @@ long size = list.stream().skip(1).map(element -> element.substring(0, 3)).sorted
 ```
 <hr/>
 
+<h2>Lazy Invocation</h2>
 
+* `Intermediate Operation`들은 Lazy 하다. 이는 즉 이 작업들은 `Terminal Operation`이 수행되기 위해   
+  필수적으로 실행되어야 할 때만 수행된다는 뜻이다.
+
+* 이를 이해하기 위해, `wasCalled()` 메소드가 있다고 가정하자. `wasCalled()` 메소드는 해당 메소드가 호출될 때마다   
+  내부적으로 카운터를 1씩 증가시킨다.
+
+```java
+private long counter;
+
+private void wasCalled() { counter++; }
+```
+
+* 이제 `filter()`에서 `wasCalled()`를 호출해보자.
+```java
+List<String> list = Arrays.asList("abc1", "abc2", "abc3");
+counter = 0;
+Stream<String> stream = list.stream().filter(element -> { wasCalled(); return element.contains("2");});
+```
+
+* 상식적으로는 위 코드가 수행된 후 counter값은 0에서 3으로 증가해야 맞지만, 실제로는 그대로 0이다.   
+  그 이유는 `Terminal Operation`이 호출되지 않았기 때문에 `filter()`가 아예 호출되지 않았기 때문이다.
+
+* 이제 위 코드에 대해 `map()`과 `Terminal Operation` 중 하나인 `findFirst()`를 수행해보자.
+```java
+Optional<String> stream = list.stream().filter(element -> {
+    log.info("filter() was called.");
+    return element.contains("2");
+}).map(element -> {
+    log.info("map() was called.");
+    return element.toUpperCase();
+}).findFirst();
+```
+
+* 위 코드의 수행 결과, `filter()`는 2번 호출되었고, `map()`은 1번 호출되었다.   
+  이는 pipeline이 수직적으로 작동하기 때문이다. 위 예시에서 첫 번째 원소는 `filter()` 메소드의 필터를 통과하지 못했고,   
+  두 번째 원소에 대해 `filter()` 메소드가 호출되었다. 두 번째 원소는 필터를 통과했기 때문에   
+  세 번째 원소에 대해 `filter()`를 호출하지 않고 바로 pipeline을 타고 다음 작업인 `map()`을 호출한 것이다.
+
+* 마지막으로 `findFirst()` 메소드는 단 하나의 원소(첫 번째 원소)로 만족하기 때문에,   
+  위 코드에서는 Lazy Invocation이 동작하여 2번의 메소드 호출을 피한 것이다. (`filter()`, `map()`).
+<hr/>
 
 <a href="https://www.baeldung.com/java-8-streams-introduction">참고 링크1</a>
 <a href="https://www.baeldung.com/java-8-streams">참고 링크2</a>
