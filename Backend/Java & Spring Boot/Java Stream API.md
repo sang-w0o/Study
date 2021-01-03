@@ -81,3 +81,63 @@ list.add("");
 ```java
 Stream<String> streams = list.stream().filter(element -> element.contains("d"));
 ```
+
+<h3>Mapping</h3>
+
+* `map()` 메소드를 활용하면, 새로운 타입의 원소들로 이루어진 `Stream`으로 만들 수 있다.   
+  예를 들어, 아래 코드는 기존에 `String`으로 이루어진 `List`를 `Path`로 이루어진 `Stream`으로 만들어준다.
+```java
+List<String> uris = new ArrayList<>();
+uris.add("C:\\example.txt");
+Stream<Path> stream = uris.stream().map(uri -> Paths.get(uri));
+```
+
+* 만약 `Stream`의 원소들이 내부에 또다른 클래스를 두고 있고, 이 내부의 클래스에 대한 `Stream`을   
+  만들고 싶다면, `flatMap()` 메소드를 사용하면 된다.
+```java
+// Detail 클래스 안에는 List<String> 타입의 parts 멤버 변수가 있다.
+List<Detail> details = new ArrayList<>();
+details.add(new Detail());
+Stream<String> stream = details.stream().flatMap(detail -> detail.getParts().stream());
+```
+
+<h3>Matching</h3>
+
+* Stream API는 각 원소에 대한 특정 검증(validation)을 지원한다.   
+  이를 지원하는 메소드로는 `anyMatch()`, `allMatch()`, `noneMatch()`가 있다.
+```java
+boolean isValid = list.stream().anyMatch(element -> element.contains("h")); // 원소 중 하나라도 h를 포함하면 true 반환
+boolean isValidOne = list.stream().allMatch(element -> element.contains("h"));  // 모든 원소가 h를 포함하면 true 반환
+boolean isValidTwo = list.stream().noneMatch(element -> element.contains("h"));  // 모든 원소가 h를 포함하지 않으면 true 반환
+```
+
+* 원소가 없는 `Stream`에 대해서, `allMatch()` 메소드는 모든 제약에 대해 true를 반환한다.
+```java
+Stream.empty().allMatch(Objects::nonNull);  // true
+```
+
+* 마찬가지로, 원소가 없는 `Stream`에 대해 `anyMatch()`는 모든 제약에 대해 false를 반환한다.
+```java
+Stream.empty().anyMatch(Objects::nonNull);  // false
+```
+
+* 위의 코드가 false를 반환하는 것은 해당 제약을 만족하는 원소가 하나도 없기 때문이다.
+
+<h3>Reduction</h3>
+
+* Stream API는 `Stream#reduce()` 메소드를 이용해 원소를 줄인 `Stream`을 만들어준다.   
+  `reduce()` 메소드는 두 개의 파라미터가 있는데, 첫 번째 파라미터는 Start Value이며, 두 번째 파라미터는   
+  함수로, 수행할 함수를 받는다.
+```java
+List<Integer> integers = Arrays.asList(1, 1, 1);
+Integer reduced = integers.stream().reduce(23, (a, b) -> a + b);
+```
+
+* 위 코드의 결과로 reduced는 26(23 + 1 + 1 + 1)가 된다.
+
+<h3>Collecting</h3>
+
+* Reduction은 `Stream#collect()` 메소드로도 수행될 수도 있다.   
+  이 메소드는 `Stream`을 `Collection` 또는 `Map`으로 변환하게 하는 작업을 수월하게 해준다.   
+  이 작업에는 collecting 작업에 대한 대부분을 지원하는 `Collectors` 클래스를 주로 같이 활용한다.
+<hr/>
