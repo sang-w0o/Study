@@ -186,8 +186,8 @@ Stream<String> streamOfArrayPart = Arrays.stream(arr, 1, 3);
 
 <h3>Stream.builder()</h3>
 
-* 만약 `Stream`의 타입으로 들어가는 원소가 Builder Pattern을 사용한다면,   
-  __원하는 타입을 무조건 명시해야 한다__. 만약 명시를 안한다면 `Stream<Object>`를 반환한다.
+* 만약 `Stream`의 Builder Pattern을 사용한다면, __원하는 타입을 무조건 명시해야 한다__.   
+  만약 명시를 안한다면 `Stream<Object>`를 반환한다.
 ```java
 Stream<String> streamBuilder = Stream.<String>builder().add("a").add("b").build();
 ```
@@ -410,7 +410,7 @@ int reducedParams = Stream.of(1, 2, 3)
   combiner가 호출되게 하려면, stream은 병렬이어야 한다.
 ```java
 int reducedParallel = Arrays.asList(1, 2, 3).parallelStream()
-    .reduce(10, (a + b) -> a + b, (a + b) -> {
+    .reduce(10, (a, b) -> a + b, (a, b) -> {
         log.info("combiner was called.");
         return a + b;
     });
@@ -515,5 +515,5 @@ boolean isParallel = intStreamSequential.isParallel();
 ```
 <hr/>
 
-<a href="https://www.baeldung.com/java-8-streams-introduction">참고 링크1</a>
+<a href="https://www.baeldung.com/java-8-streams-introduction">참고 링크1</a><br/>
 <a href="https://www.baeldung.com/java-8-streams">참고 링크2</a>
