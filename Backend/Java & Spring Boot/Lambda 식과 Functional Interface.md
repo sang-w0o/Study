@@ -48,4 +48,25 @@ String result = useFoo.add("Message", fn);
 ```
 <hr/>
 
+<h2>@FunctionalInterface의 사용</h2>
+
+* Functional Interface들은 `@FuntionalInterface` 어노테이션을 적용하여 만들 수 있다.   
+  처음에는 이 어노테이션을 적용하는 것이 무쓸모해 보일 수도 있다.   
+  이 어노테이션이 없더라도, 해당 Functional Interface는 하나의 추상 메소드를 가진   
+  인터페이스로 취급될 것이다.
+
+* 하지만 프로젝트가 커지며, 이러한 Functional Interface들이 많아지면, 하나 하나 관리하기가 그만큼   
+  어려워질 것이다. 하지만 `@FunctionalInterface` 어노테이션을 적용하면 만약 코드의 다른 부분에서   
+  개발자가 실수로 기존에 정의된 Funtional Interface를 수정하려고 한다면 컴파일러가 에러를 띄운다.   
+  따라서 이는 다른 개발자들과 협업할 때 매우 유용하게 사용할 수 있는 도구이기도 하다.
+
+* 따라서, 아래와 같이 작성하도록 하자.
+```java
+@FunctionalInterface
+public interface Foo {
+    String method();
+}
+```
+<hr/>
+
 <a href="https://www.baeldung.com/java-8-lambda-expressions-tips">참고 링크</a>
