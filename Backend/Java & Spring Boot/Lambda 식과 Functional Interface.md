@@ -27,6 +27,7 @@ public class UseFoo {
 
 * 위의 코드를 실행하려면 아래와 같이 작성할 것이다.
 ```java
+// Foo 인터페이스의 method()로 작동할 Lambda식 정의
 Foo foo = parameter -> parameter = " from lambda.";
 String result = useFoo.add("Message", foo);
 ```
@@ -43,6 +44,7 @@ public String add(String string, Function<String, String> fn) {
 
 * 이제 위 코드를 실행하는 코드를 작성해보자.
 ```java
+// 위의 fn.apply()에서 사용될 apply 메소드를 Lambda식으로 정의
 Function<String, String> fn = parameter -> parameter + " from lambda.";
 String result = useFoo.add("Message", fn);
 ```
