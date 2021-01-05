@@ -122,6 +122,23 @@ public class Insurances {
         this.name = name;
     }
 }
+
+@Entity
+@Table(name = "security_companies")
+public class SecurityCompanies {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+
+    @Column(length = 50, nullable = false)
+    private String name;
+
+    @Builder
+    public SecurityCompanies(String name) {
+        this.name = name;
+    }
+}
 ```
 
 * `SecurityCompanies`도 `Insurances`와 마찬가지로 1:N 양방향 연관에 대한 매핑이 되어 있지 않다.   
