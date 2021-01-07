@@ -149,4 +149,27 @@ public interface FooExtended extends Baz, Bar {
 * 하지만 너무 많은 Default 메소드를 인터페이스에 정의하는 것은 아키텍쳐의 관점에서는 좋지 않다는 점을 명심하자.
 <hr/>
 
+<h2>Functional Interface를 Lambda식으로 인스턴스화하기</h2>
+
+* 컴파일러는 Inner class를 통해 Functional Interface를 인스턴스화 하는 것을 허용한다.   
+  하지만 이는 코드가 복잡해질 수 있으므로, Lambda식을 활용하면 간단하게 구현할 수 있다.
+```java
+// Lambda식 사용 시
+Foo foo = parameter -> parameter + " from Foo.";
+
+// Inner class 사용 시
+Foo fooImplemented = new Foo() {
+    @Override
+    public String method(String string) {
+        return string + " from Foo.";
+    }
+}
+```
+
+* Lambda식을 사용한 인터페이스의 인스턴스화는 모든 라이브러리(예전 라이브러리)에 대해 가능하다.   
+  이는 곧 `Runnable`, `Comparator` 등에도 적용 가능함을 의미한다.
+<hr/>
+
+
+
 <a href="https://www.baeldung.com/java-8-lambda-expressions-tips">참고 링크</a>
