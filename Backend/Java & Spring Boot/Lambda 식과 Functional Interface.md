@@ -71,4 +71,82 @@ public interface Foo {
 ```
 <hr/>
 
+<h2>Functional Interface의 기본 메소드 과도하게 사용하지 않기</h2>
+
+* 개발자는 Functional Interface의 default 메소드를 쉽게 추가할 수 있다.   
+  하지만 이는 추상 메소드의 선언이 단 1개만 되어있을 때 `Functional Interface Contract`를 만족한다.
+```java
+@FunctionalInterface
+public interface Foo {
+    String method(String string);
+    default void defaultMethod() {}
+}
+```
+
+* Functional Interface는 추상 메소드가 동일한 시그니처(Signature)를 가질 때에만   
+  다른 Functional Interface에 의해 상속될 수 있다. 아래는 예시이다.
+```java
+@FunctionalInterface
+public interface FooExtended extends Baz, Bar {}
+
+@FunctionalInterface
+public interface Baz {
+    String method(String string);
+    default String defaultBaz() {}
+}
+
+@FunctionalInterface
+public interface Bar {
+    String method(String string);
+    default String defaultBar() {}
+}
+```
+
+* 위 Functional Interface 중 `Baz#defaultBaz()`와 `Bar#defaultBar()`는   
+  동일한 시그니처를 가지기 때문에 함께 `FooExtended`가 상속할 수 있는 것이다.
+
+* 일반적인 인터페이스들과 마찬가지로, 동일한 default 메소드를 가진 Functional Interface들을   
+  함께 상속하는 것은 허용되지 않는다.
+```java
+@FunctionalInterface
+public interface Baz {
+    String method(String string);
+    default String defaultBaz() {}
+    default String defaultCommon() {}
+}
+
+@FunctionalInterface
+public interface Bar {
+    String method(String string);
+    default String defaultBar() {}
+    default String defaultCommon() {}
+}
+```
+
+* 위 코드에서 `Baz`와 `Bar`는 `defaultCommon()`이라는 동일한 default 메소드를 가지기 때문에   
+  두 인터페이스를 다른 인터페이스가 함께 다중 상속하는 것은 컴파일 에러를 일으킨다.
+```
+interface FooExtended inherits unrelated defaults for defaultCommon() from types Baz and Bar...
+```
+
+* 이를 해결하기 위해 `defaultCommon()` 메소드는 `FooExtended` 인터페이스에서 오버라이딩이 되어야 한다.   
+  물론 사용 시에 원하는대로 구현할 수도 있다. 하지만 인터페이스에서 바로 오버라이딩하면,   
+  `Bar` 또는 `Baz`에서 구현한 `defaultCommon()`을 바로 사용할 수 있다.
+
+* 간단히 말해, 동일한 함수를 가진 인터페이스들을 다중 상속받는 인터페이스에 오버라이딩을 한다면,   
+  해당 메소드를 정의한 부모 인터페이스의 구현체를 사용할 수 있다는 것이다.
+```java
+// 오버라이딩을 통해 Bar#defaultCommon()을 호출한다.
+@FunctionalInterface
+public interface FooExtended extends Baz, Bar {
+    @Override
+    default String defaultCommon() {
+        return Bar.super.defaultCommon();
+    }
+}
+```
+
+* 하지만 너무 많은 Default 메소드를 인터페이스에 정의하는 것은 아키텍쳐의 관점에서는 좋지 않다는 점을 명심하자.
+<hr/>
+
 <a href="https://www.baeldung.com/java-8-lambda-expressions-tips">참고 링크</a>
