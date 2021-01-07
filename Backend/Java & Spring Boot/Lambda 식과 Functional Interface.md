@@ -170,6 +170,54 @@ Foo fooImplemented = new Foo() {
   이는 곧 `Runnable`, `Comparator` 등에도 적용 가능함을 의미한다.
 <hr/>
 
+<h2>Functional Inteface를 파라미터로 취급해서 메소드를 오버로딩하는 것은 좋지 않다.</h2>
 
+* 메소드를 다른 이름으로 만들어서 충돌을 방지해야 한다. 아래 예시를 보자.
+```java
+public interface Processor {
+    String process(Callable<String> c) throws Exception;
+    String process(Supplier<String> s);
+}
+
+public class ProcessorImpl implements Processor {
+    @Override
+    public String process(Callable<String> c) throws Exception {
+        // 구현
+    }
+
+    @Override
+    public String process(Supplier<String> s) {
+        // 구현
+    }
+}
+```
+
+* 그리고 위의 `Processor` 인터페이스를 람다함수를 통해 인스턴스화 해보자.
+```java
+String result = processor.process(() -> "abc");
+```
+
+* 위 코드는 동작할 것 처럼 보이지만, `ProcessorImpl`의 메소드 중 어느것을 실행하려고 하면 실패한다.
+```
+reference to process is ambiguous
+both method process(java.util.concurrent.Callable<java.lang.String>) 
+in com.sangwoo.java8.lambda.ProcessorImpl 
+and method process(java.util.function.Supplier<java.lang.String>) 
+in com.sangwoo.java8.lambda.ProcessorImpl match
+```
+
+* 이를 해결하는 방법은 두 가지가 있는데, 메소드 네이밍을 달리 하거나,   
+  명시적으로 casting을 지정하는 것이다.
+```java
+// 메소드 네이밍 변경
+public interface Processor {
+    String processWithCallable(Callable<String> c) throws Exception;
+    String processWithSupplier(Supplier<String> s);
+}
+
+// 호출 시 명시적으로 casting 적용
+String result = processor.process((Supplier<String>) () -> "abc");
+```
+<hr/>
 
 <a href="https://www.baeldung.com/java-8-lambda-expressions-tips">참고 링크</a>
