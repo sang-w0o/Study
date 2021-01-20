@@ -205,3 +205,57 @@ jobs:
         codedeploy-appspec: appspec-product.yaml
         wait-for-service-stability: true
 ```
+
+* Github Action을 위한 위의 yml이 참조하는 2개의 파일이 있는데,   
+  바로 `task-definition-product.json`과 `appspec-product.yml`이다.
+
+* 우선 `task-definition-product.json`은 이름에서 알 수 있듯이 작업 정의에 대한   
+  설정값들을 담고 있는 파일이다.
+```json
+{
+  "executionRoleArn": "작업 정의에서 지정한 작업 실행 IAM의 ARN",
+  "containerDefinitions": [{
+    "name": "작업 정의에서 지정한 컨테이너 이름",
+    "image": "빌드된 Docker Image 값, Github Action이 자동으로 채워주기에 아무 값이나 넣어줘도 된다.",
+    "essential": true,
+    "portMappings": [{
+      "hostPort": "컨테이너의 호스트 포트 값, int 형",
+      "protocol": "tcp",
+      "containerPort": "컨테이너 포트 값, int 형"
+    }],
+    "secrets": [
+      {
+        "name": "Spring Boot에서 사용할 환경 변수의 key 값",
+        "valueFrom": "Parameter Store의 KEY 값"
+      },
+      {
+        "name": "Spring Boot에서 사용할 환경 변수의 key 값",
+        "valueFrom": "Parameter Store의 KEY 값"
+      }
+    ]
+  }],
+  "requiresCompatibilities": [
+    "FARGATE"
+  ],
+  "networkMode": "VPC 값",
+  "cpu": "512",
+  "memory": "1024",
+  "family": "작업 정의에서 생성한 작업명"
+}
+```
+
+* yml 파일은 위의 json 파일을 참조하여 ECS 설정을 확인하며, 새로운 작업을 정의하게 된다.
+
+* 이제 `appspec-product.yml`을 보자.
+```yml
+version: 0.0
+Resources:
+  - TargetService:
+      Type: AWS::ECS::Service
+      Properties:
+        TaskDefinition: "작업 정의 명(이 값도 Github Action이 자동으로 채워준다.)"
+        LoadBalancerInfo:
+          ContainerName: "작업 정의에서 지정한 컨테이너명"
+          ContainerPort: "컨테이너 포트, int 형"
+        PlatformVersion: "LATEST"
+```
