@@ -125,3 +125,83 @@
 
 * 서비스의 배포가 정상적으로 완료되면 `서비스 --> 작업` 탭에서 실행중인 작업을 볼 수 있다.
 <hr/>
+
+<h2>Github Action을 통한 배포 자동화</h2>
+
+* AWS 공식 문서에는 `CodeCommit`을 통한 배포 자동화에 대한 문서만 나와있어,   
+  `CodeCommit` 보다는 `Github Action`이 편리한 나와 같은 사람들을 위해 간단히 정리해 보았다.
+
+* 우리가 원하는 CI/CD 파이프라인의 작동 순서는 아래와 같다.
+  1. 특정 Branch에 특정 작업이 수행되면, Github Action이 작동한다.
+  2. Github Action - (1) : 컨테이너를 빌드하여 Docker Image로 만든다.
+  3. Github Action - (2) : 빌드된 Docker Image를 ECR에 push 한다.
+  4. Github Action - (3) : ECS 작업 정의에 새로 push된 Docker Image를 적용시킨다.
+  5. Github Action - (4) : CodeDeploy로 Blue/Green 배포 수행
+
+* 우선, 위 과정을 Github X AWS가 제공하는 yml 파일이 있는데, 링크는 아래와 같다.
+<a href="/https://github.com/actions/starter-workflows/blob/5760418d4f378a531680d729f4bf0b73eea45822/ci/aws.yml">링크</a>
+
+* 아래 yml 파일은 위의 템플릿을 바탕으로 Spring Boot를 위해 작성된 파일이다.
+```yml
+on:
+  push:
+    branches: [ master ]
+    
+
+name: Deploy to Amazon ECS
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_S3_REGION }}
+
+    - name: build
+      run: ./gradlew build
+      env:
+        환경 변수 key값: 환경 변수 key
+        Github Secret의 경우: ${{ secrets.GITHUB_SECRET_KEY값 }}
+        
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Build, tag, and push image to Amazon ECR
+      id: build-image
+      env:
+        ECR_REGISTRY: ECR Registry 값
+        ECR_REPOSITORY: ECR Repository 이름
+        IMAGE_TAG: latest
+      run: |
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+    - name: Fill in the new image ID in the Amazon ECS task definition
+      id: task-def
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: task-definition-product.json
+        container-name: 작업 정의에서 지정한 컨테이너 이름
+        image: ${{ steps.build-image.outputs.image }}
+
+    - name: Deploy Amazon ECS task definition
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+        task-definition: ${{ steps.task-def.outputs.task-definition }}
+        service: 클러스터 내의 서비스명
+        cluster: 클러스터 이름
+        codedeploy-deployment-group: CodeDeploy에 등록된 배포 그룹명
+        codedeploy-appspec: appspec-product.yaml
+        wait-for-service-stability: true
+```
