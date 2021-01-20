@@ -244,7 +244,7 @@ jobs:
 }
 ```
 
-* yml 파일은 위의 json 파일을 참조하여 ECS 설정을 확인하며, 새로운 작업을 정의하게 된다.
+* Github Action은 위의 json 파일을 참조하여 ECS 설정을 확인하며, 새로운 작업을 정의하게 된다.
 
 * 이제 `appspec-product.yml`을 보자.
 ```yml
@@ -259,3 +259,6 @@ Resources:
           ContainerPort: "컨테이너 포트, int 형"
         PlatformVersion: "LATEST"
 ```
+
+* Github Action은 위의 yml 파일을 참조하여 CodeDeploy의 배포에 대한 설정을 하게 된다.
+<hr/>
