@@ -204,3 +204,133 @@ export default Number;
   생성한 후 지정해주었다.
 <hr/>
 
+<h2>TS와 React Events</h2>
+
+* 아래와 같은 두 개의 컴포넌트가 있다고 하자.
+```ts
+import React from 'react';
+
+export const Input: React.FC = () => (
+    <input type="text" placeholder="Name" />
+);
+
+export const Form: React.FC = ({children}) => (
+    <form>{children}</form>
+)
+```
+
+* 그리고 위 컴포넌트를 사용하는 곳은 아래와 같다.
+```ts
+class App extends Component<{}, IState> {
+  state = {
+    counter: 0
+  }
+
+  add = ():void => {
+    this.setState(prev => {
+      return {
+        counter: prev.counter + 1
+      }
+    })
+  }
+  render() {
+    const {counter} = this.state;
+    return (
+      <div>
+        <Form>
+          <Input />
+        </Form>
+      <Number count={counter}/>
+      </div>
+    )
+  }
+}
+```
+
+* `<Form>` 컴포넌트 내에 `<Input>` 컴포넌트가 있음을 알 수 있다.   
+  이 상태로 `Form` 컴포넌트의 children을 보면, `React.ReactNode`라는   
+  타입이 지정되어 있는 것을 알 수 있다.
+
+* 이는 `Form`이 `React.FC` 타입이라고 지정해주었고, `React.FC`는   
+  기본적으로 children이라는 prop을 가지기 때문이다.   
+  위 경우 `Form`의 children은 `Input`이 된다.
+
+* 이제 `Input`의 값을 처리해보자. 우선 `<input />` 태그는 value와   
+  `onChange()` 함수를 prop으로 가져야 한다.
+```ts
+export const Input: React.FC = ({value, handleChange}) => (
+    <input type="text" 
+        placeholder="Name" 
+        value={value} 
+        onChange={handleChange} 
+    />
+);
+```
+
+* 위에서 Props를 받아온 것과 마찬가지로 TS 컴파일러는 value와   
+  handleChange에 대해 모르기 때문에 아래와 같이 interface를 지정해주자.
+```ts
+interface IInputProps {
+    value: string;
+    handleChange: () => void;
+}
+
+export const Input: React.FC<IInputProps> = ({value, handleChange}) => (
+    <input type="text" 
+        placeholder="Name" 
+        value={value} 
+        onChange={handleChange} 
+    />
+);
+```
+
+* `IInputProps.handleChange()`는 반환하는 값이 없는 함수라고 타입을 지정했다.
+
+* 이제 `Input` 컴포넌트를 호출하는 부분에 value와 handleChange를 전달하지   
+  않으면 TS 컴파일러는 오류를 띄운다.
+
+* `handleChange()` 함수를 아래와 같이 작성하고, `Input`에 전달해보자.
+```ts
+handleChange = (event) => console.log(event.target);
+
+//...
+<Input type="text" placeholder="Name" value={value} onChange={this.handleChange}>
+```
+
+* 이렇게 했을 때, `Input` 컴포넌트에서 오류가 발생한다.   
+  props의 인터페이스로 전달해준 `handleChange()`는 인자로 받는 값이 없는   
+  void형 함수인데, event를 인자로 전달했기 때문이다.
+
+* 따라서 `IInputProps`와 `handleChange()`를 각각 수정해주자.
+```ts
+// Input 컴포넌트가 정의된 부분
+interface IInputProps {
+    value: string;
+    onChange: (event: React.SyntheticEvent<HTMLInputElement>) => void;
+}
+
+// Input 컴포넌트를 사용하는 부분
+handleChange = (event: React.SyntheticEvent<HTMLInputElement>) => {
+
+}
+```
+
+* 이제 `Form` 컴포넌트를 보자. `Button`이 클릭 되었을 때 기본적으로   
+  수행되는 `submit` 이벤트를 방지하도록 해보자.
+```ts
+// Form 컴포넌트를 사용하는 부분
+onFormSubmit = (event: React.FORMEvent) => {
+    event.preventDefault();
+    // TODO
+}
+
+// Form 컴포넌트가 정의된 부분
+interface IFormProps {
+    onFormSubmit: (event: React.FormEvent) => void;
+}
+
+export const Form: React.FC<IFormProps> = ({ children, onFormSubmit }) => (
+    <form onSubmit={onFormSubmit}>{children}</form>
+)
+```
+<hr />
