@@ -176,3 +176,31 @@ export default App;
   TS 컴파일러가 에러를 띄우게 된다.
 <hr/>
 
+<h2>TS와 React Props</h2>
+
+* 위의 `App.tsx`의 counter를 props로 받는 `Number`라는 컴포넌트가 있다고 해보자. 코드는 아래와 같다.
+```ts
+import React from 'react';
+import styled from 'styled-components';
+
+const Container = styled.span``;
+
+interface IProps {
+    count: number
+}
+
+const Number: React.FC<IProps> = ({count}) => (
+    <Container>{count}</Container>
+);
+
+export default Number;
+```
+
+* `Number` 컴포넌트는 함수형 컴포넌트이며, 이 컴포넌트의 TS 타입은 아래 두 개 중 하나이다.
+  * `React.FC<>`
+  * `React.FunctionComponent<>`
+
+* 클래스형 컴포넌트와 마찬가지로 `<>` 내에 Props에 대한 인터페이스를   
+  생성한 후 지정해주었다.
+<hr/>
+
