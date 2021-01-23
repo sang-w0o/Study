@@ -77,3 +77,17 @@ TypeScript error: Parameter 'a' implicitly has an 'any' type. TS7006
 
 * 위의 `noImplicitAny`는 위에서 발생한 `TS7006` 규칙을 무시하게 해준다.
 <hr/>
+
+<h2>package.json</h2>
+
+* `package.json`을 살펴보면 dependency에 `@types`로 시작하는 패키지들이 설치된 것을 볼 수 있다.   
+  TS는 JS에 기반을 두기에, 이 라이브러리들은 JS로 작성된 React가 TS에서 작동할 수 있게   
+  적절한 타입들을 선언해준 라이브러리다.
+
+* 예를 들어 `styled-components` 패키지를 추가하고 import하면 이 패키지는 JS로 작성되었기에   
+  TS가 인식하기로는 타입이 정의되어 있지 않은 `any` 타입이 된다.
+
+* 이를 해결하기 위해서는 `@types/styled-components` 패키지를 추가해주면 된다.   
+  이렇게 JS로 작성된 라이브러리를 TS 프로젝트에서 사용하기 위해서는 해당 라이브러리를   
+  TS 컴파일러가 인식할 수 있도록 해주는 또다른 라이브러리를 추가해줘야 한다. 
+<hr/>
