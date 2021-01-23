@@ -30,10 +30,31 @@ let result = plus('abc', 3);
 * TS는 타입을 지정함으로써 JS 보다 훨씬 타입에 대해 안전하게 코드를 작성하게 해준다.   
   위의 코드를 TS로 작성해보자.
 ```ts
-const plus:number = (a:number, b:number) => a + b;
+const plus = (a:number, b:number):number => a + b;
 let result = plus(1, 3); // 4
 let result2 = plus('abc', 3);
 ```
 
 * 위 경우, result2는 코드가 작성됨과 동시에 컴파일 에러를 일으킨다.   
   즉, JS에 비해 절대 타입으로 인한 의도치 않은 결과가 도출되는 것을 원천적으로 막을 수 있다.
+<hr/>
+
+<h2>TS 기초</h2>
+
+* 당연하게 함수 뿐만 아니라 변수에도 타입을 지정할 수 있다.
+```ts
+let variable:string = 'abc';
+
+variable = 'def';  // OK
+
+variable = 3;  // Compile Error
+```
+
+* 함수의 타입은 아래와 같이 지정해준다.
+```ts
+const print = (name:string, age:number):string => {
+    return `My name is ${name}(${age})`;
+}
+```
+<hr/>
+
