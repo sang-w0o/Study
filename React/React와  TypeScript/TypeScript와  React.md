@@ -89,5 +89,8 @@ TypeScript error: Parameter 'a' implicitly has an 'any' type. TS7006
 
 * 이를 해결하기 위해서는 `@types/styled-components` 패키지를 추가해주면 된다.   
   이렇게 JS로 작성된 라이브러리를 TS 프로젝트에서 사용하기 위해서는 해당 라이브러리를   
-  TS 컴파일러가 인식할 수 있도록 해주는 또다른 라이브러리를 추가해줘야 한다. 
+  TS 컴파일러가 인식할 수 있도록 해주는 또다른 라이브러리를 추가해줘야 한다.
+
+* 만약 사용하려는 라이브러리에 대해 TS 타입을 제공하는 라이브러리가 없다면   
+  `tsconfig.json`에 `"noImplicitAny": true`를 지정해줘야 한다.  
 <hr/>
