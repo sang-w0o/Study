@@ -94,3 +94,85 @@ TypeScript error: Parameter 'a' implicitly has an 'any' type. TS7006
 * 만약 사용하려는 라이브러리에 대해 TS 타입을 제공하는 라이브러리가 없다면   
   `tsconfig.json`에 `"noImplicitAny": true`를 지정해줘야 한다.  
 <hr/>
+
+<h2>TS와 React State</h2>
+
+* 간단한 클래스형 컴포넌트를 보자.
+```ts
+import React, { Component } from 'react';
+
+class App extends Component {
+  state = {
+    counter: 0
+  }
+
+  add = () => {
+    this.setState(prev => {
+      return {
+        counter: prev.counter++
+      }
+    })
+  }
+  render() {
+    const {counter} = this.state;
+    return (
+      <div>{counter}</div>
+    )
+  }
+}
+
+export default App;
+```
+
+* 위 코드를 실행하면 에러 메시지가 나오는데, 아래와 같다.
+```
+Property 'counter' does not exist on type 'Readonly<{}>
+```
+
+* 이는 우리가 TS 컴파일러가 인식하도록 state를 정의하지 않았기 때문이다.   
+  이를 해결하기 위해서는 state를 지정해줘야 한다.
+
+* `Component` 부분을 보면, 아래와 같다.
+```js
+class Component<P = {}, S = {}, SS = any>
+```
+
+* `P`는 props, `S`는 state를 가리킨다.   
+  따라서 이 부분에 state를 지정해줘야 한다.
+```ts
+import React, { Component } from 'react';
+
+interface IState {
+  counter: number
+}
+
+class App extends Component<{}, IState> {
+  state = {
+    counter: 0
+  }
+
+  add = ():void => {
+    this.setState(prev => {
+      return {
+        counter: prev.counter + 1
+      }
+    })
+  }
+  render() {
+    const {counter} = this.state;
+    return (
+      <div>
+        {counter}
+        <button onClick={this.add}>Add!</button>
+      </div>
+    )
+  }
+}
+
+export default App;
+```
+
+* 이 후에 counter에 숫자가 아닌 타입을 지정하려고 한다면   
+  TS 컴파일러가 에러를 띄우게 된다.
+<hr/>
+
