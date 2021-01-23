@@ -102,7 +102,7 @@ public interface Bar {
 }
 ```
 
-* 위 Functional Interface 중 `Baz#defaultBaz()`와 `Bar#defaultBar()`는   
+* 위 Functional Interface 중 `Baz#method(String string)`와 `Bar#method(String string)`는   
   동일한 시그니처를 가지기 때문에 함께 `FooExtended`가 상속할 수 있는 것이다.
 
 * 일반적인 인터페이스들과 마찬가지로, 동일한 default 메소드를 가진 Functional Interface들을   
