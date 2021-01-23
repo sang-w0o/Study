@@ -58,3 +58,60 @@ const print = (name:string, age:number):string => {
 ```
 <hr/>
 
+<h2>TypeScript Interface</h2>
+
+* TS의 Interface란 JSONObject에 대한 정의를 하는 부분이다.
+```js
+const person = {
+    name: 'Sangwoo',
+    age: 24,
+    isStudent: true
+}
+
+const hello = (person) => {
+    console.log(`I am ${person.name}, ${person.name} years old.`);
+    if(person.isStudent) {
+        console.log('I am a student.');
+    }
+}
+```
+
+* 위 예시를 TS의 인터페이스로 작성해보자.   
+  만약 위 코드를 그대로 TS에서 사용하면 `hello`가 인자로 받는   
+  person의 타입을 모르기 때문에 에러가 난다.
+```ts
+const person = {
+    name: 'Sangwoo',
+    age: 24,
+    isStudent: true
+}
+
+interface IPerson {
+    name: string,
+    age: number,
+    isStudent: boolean
+}
+
+const hello = (person: IPerson) => {
+    console.log(`I am ${person.name}, ${person.name} years old.`);
+    if(person.isStudent) {
+        console.log('I am a student.');
+    }
+}
+```
+
+* 이제 컴파일러는 `hello()`에 들어오는 person이 `IPerson` 인터페이스의 멤버 변수들을 가지고,   
+  각 변수들의 타입에 대해 검사할 수 있게 되었다.
+
+* 만약 `IPerson`의 age 변수가 필수 값이 아니라면, 아래와 같이 지정해주면 된다.
+```ts
+interface IPerson {
+    name: string,
+    age?: number,
+    isStudent: boolean
+}
+```
+
+* 위 코드에서는 타입 정의 시 `?`를 앞에 붙여줬는데, 이는 age가 필수 값이 아님을 표현한다.   
+  만약 이 값이 없다면 age는 `undefined`가 된다.
+<hr/>
