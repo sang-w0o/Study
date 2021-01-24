@@ -412,3 +412,20 @@ const Container = styled.span<{ isBlue: boolean }>`
     color: ${(props) => props.isBlue ? props.theme.blueColor : 'black'};
 `;
 ```
+
+* 여기서 문제점은 `theme.ts`의 blueColor의 타입을 지정해주지 않았다는 것이다.   
+  컴파일러가 에러를 띄우지는 않지만 타입을 지정하지 않으면 TS를 사용하는 의미가 없다.
+
+* styled components 공식 문서에 나와있는 것처럼 파일을 생성해주자.
+```ts
+// styled.d.ts
+
+import "styled-components";
+
+declare module "styled-components" {
+    export interface DefaultTheme {
+        blueColor: string;
+    }
+}
+```
+<hr/>
