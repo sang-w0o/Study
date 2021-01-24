@@ -371,3 +371,44 @@ export const Container = styled.span<IContainerProps>`
   코드가 불필요하게 길어지는 결과를 초래할 수 있으므로   
   prop 개수가 많지 않다면 인라인으로 전달받는 것도 좋은 방식이다.
 <hr/>
+
+<h2>Styled Component Themes</h2>
+
+* 만약 공통적인 스타일 속성이 있고, 이를 복붙하는 과정이 귀찮다면   
+  Styled Component Themes를 활용하면 된다.
+
+* 아래와 같이 공통적인 속성을 정의한 파일이 있다고 하자.
+```ts
+// theme.ts
+export default {
+    blueColor: "#1e56a0"
+};
+```
+
+* 위의 blueColor를 다른 컴포넌트에서 자주 사용한다면, 원하는 스타일에 명시적으로   
+  `#1e56a0` 라는 값을 지정해줘야 한다. Styled Component Themes는 이를 해결한다.
+
+* 공통적인 스타일을 정의한 파일을 `index.tsx`에 import 한 후   
+  아래와 같이 작성해준다.
+```ts
+import React from 'react';
+import ReactDOM from 'react-dom';
+import App from './App';
+import { ThemeProvider } from 'styled-components';
+import theme from './theme';
+
+ReactDOM.rander(
+    <ThemeProvider theme={theme}>
+        <App />
+    </ThemeProvider>,
+    document.getElementById("root")
+);
+```
+
+* 이제 `App` 컴포넌트는 `ThemeProvider`로 묶여있기 때문에 props로 theme을 가진다.   
+  위에서 작성한 `Container` 컴포넌트에서 위의 theme을 사용하면 아래와 같이 하면 된다.
+```ts
+const Container = styled.span<{ isBlue: boolean }>`
+    color: ${(props) => props.isBlue ? props.theme.blueColor : 'black'};
+`;
+```
