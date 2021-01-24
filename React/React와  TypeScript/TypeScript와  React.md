@@ -334,3 +334,40 @@ export const Form: React.FC<IFormProps> = ({ children, onFormSubmit }) => (
 )
 ```
 <hr />
+
+<h2>TS와 Styled Components</h2>
+
+* 아래와 같은 Styled Component가 있다고 하자.
+```ts
+const Container = styled.span``;
+```
+
+* 그리고 이 `Container`에 대해 isBlue prop에 따라 스타일링을   
+  다르게 하고 싶다고 한다면, 아래와 같이 사용할 것이다.
+```ts
+<Container isBlue={true}>{count}</Container>
+```
+
+* 이렇게 하는 순간 TS 컴파일러는 isBlue에 대해 아는 정보가 없기에 에러를 띄운다.   
+  이를 해결하기 위해 아래와 같이 prop을 지정해주자.
+```ts
+const Container = styled.span<{ isBlue: boolean }>`
+    color: ${(props) => props.isBlue ? "blue" : "black"};
+`
+```
+
+* 다른 경우와 마찬가지로 `interface`로 prop에 대한 정보를 알려줄 수도 있다.
+```ts
+interface IContainerProps {
+    isBlue: boolean;
+}
+
+export const Container = styled.span<IContainerProps>`
+    ${(props) => props.isBlue ? 'blue' : 'black'};
+`;
+```
+
+* 하지만 모든 컴포넌트의 props를 위해 `interface`를 정의하는 것은   
+  코드가 불필요하게 길어지는 결과를 초래할 수 있으므로   
+  prop 개수가 많지 않다면 인라인으로 전달받는 것도 좋은 방식이다.
+<hr/>
