@@ -75,3 +75,89 @@ const [object, setObject] = useState({
   }
 })
 ```
+
+* 참고로 `useState`의 두 번째 인자인 함수를 통해 첫 번째 인자인 변수의 값을 변경할 때   
+  아래와 같이 두 가지 방법이 가능하다.
+```ts
+interface ApiResult {
+  name: string;
+  warehouseId: number;
+  lastModifiedAt: string;
+  status: string;
+}
+
+const Example: React.FC = () => {
+  const [results, setResults] = useState<Array<ApiResult>>([]);
+
+  // 비즈니스 로직 중
+  setResults((prevResults) => [...prevResults, newResult]);
+}
+```
+<hr/>
+
+<h2>useEffect</h2>
+
+* 공식 문서에 따르면, __Effect Hook를 사용하면 함수형 컴포넌트에서 `side effect`를 수행할 수 있다__ 고 한다.   
+  여기서 side effect는 아래와 같은 것들을 의미한다.
+  * API로부터 데이터 가져오기
+  * 구독(Subscription) 설정하기
+  * 수동으로 React 컴포넌트의 DOM 수정하기
+
+* 클래스형 컴포넌트의 생명 주기 메소드들로 따졌을 때, `useEffect`는   
+  `componentDidMount()`, `componentDidUpdate()`, `componentWillUnmount()`가 합쳐졌다고 볼 수 있다.
+
+* 우선 비교를 위해 클래스형 컴포넌트를 보자.
+```js
+class Example extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      count: 0
+    };
+  }
+
+  componentDidMount() {
+    document.title = `You clicked ${this.state.count} times`;
+  }
+  componentDidUpdate() {
+    document.title = `You clicked ${this.state.count} times`;
+  }
+
+  render() {
+    return (
+      <div>
+        <p>You clicked {this.state.count} times</p>
+        <button onClick={() => this.setState({ count: this.state.count + 1 })}>
+          Click me
+        </button>
+      </div>
+    );
+  }
+}
+```
+
+* 위 코드는 `componentDidMount()`에서 컴포넌트가 마운트 되는 시점에 문서의 제목을 바꾸고,   
+  `componentDidUpdate()`에서 렌더링이 다시 될 때마다 문서의 제목을 갱신한다.   
+  여기서 두 함수의 내용이 동일하다는 점을 주의깊게 보자.
+
+* 위 코드를 함수형 컴포넌트를 사용하여 구현하면 아래와 같다.
+```js
+import React, { useState, useEffect } from 'react';
+
+function Example() {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    document.title = `You clicked ${count} times`;
+  });
+
+  return (
+    <div>
+      <p>You clicked {count} times</p>
+      <button onClick={() => setCount(count + 1)}>
+        Click me
+      </button>
+    </div>
+  );
+}
+```
