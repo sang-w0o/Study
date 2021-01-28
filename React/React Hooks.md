@@ -15,6 +15,8 @@
 
 * 우선 클래스형 컴포넌트에서 state를 사용하는 간단한 예시는 아래와 같다.
 ```js
+import React from 'react';
+
 class Example extends React.Component {
   constructor(props) {
     super(props);
