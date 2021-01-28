@@ -42,5 +42,18 @@ class Example extends React.Component {
   이에 반해 함수형 컴포넌트는 클래스가 없으므로 상속 관계도 없으며, 당연히 `this`도 없다.   
   위 예시를 함수형 컴포넌트로 바꾸면 아래와 같다.
 ```js
+import React, { useState } from 'react';
 
+const Example = () => {
+  const [count, setCount] = useState(0);
+
+  return (
+    <div>
+      <p>Clicked times : {count}</p>
+      <button onClick={() => setCount(count + 1)}>
+        Click!
+      </button>
+    </div>
+  )
+}
 ```
