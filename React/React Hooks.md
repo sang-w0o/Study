@@ -161,3 +161,49 @@ function Example() {
   );
 }
 ```
+
+* `useEffect`는 __컴포넌트가 렌더링 된 이후에 특정 작업들을 수행할 수 있게__ 해준다.
+* `useEffect`를 컴포넌트 내에 두는 이유는 해당 컴포넌트의 모든 state와 props에 접근하게 하기 위함이다.
+* `useEffect`는 렌더링 이후애 매번 수행된다. 즉 렌더링이 될 때마다 `useEffect`가 한 번씩 호출된다고 보면 된다.
+
+* 또한 `useEffect`는 첫 번째 인자로는 수행할 함수 또는 행동, 두 번째 인자로는   
+  첫 번째 인자로 들어온 함수가 수행될 때 의존하는 변수들을 배열로 넘겨준다.
+```js
+import React, { useState, useEffect } from "react";
+
+const App = () => {
+  const [person, setPerson] = useState({
+    name: "sangwoo",
+    age: 24
+  });
+
+  useEffect(() => {
+    setPerson({age: 999});
+  }, []);
+
+  return (
+    <div>
+      {person.name} is {person.age} years old.
+    </div>
+  );
+};
+
+export default App;
+```
+
+* 위 코드를 수행하면 아래와 같은 경고문이 출력된다.
+```
+React Hook useEffect has a missing dependency:'person'
+Either include it or remove the dependency array.(react-hooks/exhaustive-deps)
+```
+
+* 위 경고문이 출력되는 이유는 `useEffect`의 첫 번째 인자에서 person을 참조하기 때문이다.   
+  이렇게 외부 변수를 참조할 때에는 dependency array에 추가해줘야 한다.
+```js
+useEffect(() => {
+  setPerson({ age: 999});
+}, [person]);
+```
+
+* 이렇게 하면 person은 `useState`로 age를 24로 초기화했지만,   
+  `useEffect`내에서 person의 age를 999로 바꿨기 때문에 화면에는 999가 보인다.
