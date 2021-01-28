@@ -57,3 +57,21 @@ const Example = () => {
   )
 }
 ```
+
+* 위 코드에서는 state에 count라는 변수를 `useState()`를 사용하여 정의했다.   
+  두 번째 인자인 `setCount`는 함수로, count 변수를 바꿀 때에 사용되며,   
+  `useState()`에 들어간 인자인 0은 count를 0으로 초기화시킨다.
+
+* 코드에서 보다시피 count는 const로 선언되어 있어 직접적인 변경이 불가하며,   
+  오로지 `setCount()`를 통해서만 변경할 수 있다.
+
+* `useState()`로 변수를 초기화할 때에는 number, string 뿐만 아니라 배열, object도 가능하다.
+```js
+const [object, setObject] = useState({
+  userInfo: {
+    id: 1,
+    name: 'sangwoo',
+    role: 'user'
+  }
+})
+```
