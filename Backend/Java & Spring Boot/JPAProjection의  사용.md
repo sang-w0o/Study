@@ -121,6 +121,6 @@ public class UserApiController {
 
 <h2>해결법 1 - Native Query</h2>
 
-<h2>해결법 2 - Projection 사용</h2>
+<h2>해결법 2 - JPQL 사용</h2>
 
 <h2>해결법 3 - Projection 사용</h2>
