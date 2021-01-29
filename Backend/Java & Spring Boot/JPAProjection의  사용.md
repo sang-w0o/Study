@@ -275,3 +275,48 @@ select user0_.user_id as col_0_0_, user0_.name as col_1_0_, user0_.email as col_
 <h2>해결법 3 - Projection 사용</h2>
 
 * 마지막 해결법은 `Spring Data Projection`으로 쿼리문의 결과를 조회하는 것이다.
+
+* Interface-based Projection을 사용하기 위해서는 인터페이스를 정의해야 하는데,   
+  각 `getter` 메소드들은 JavaBean Getter에 알맞게 작성해야 한다.   
+  이 경우에는 id, email, name을 조회하고 싶은 것이기에 아래와 같이 작성한다.
+```java
+public interface UserIdAndNameAndEmailProjection {
+    Integer getId();
+    String getName();
+    String getEmail();
+}
+```
+
+* 참고로 인터페이스명은 네이밍 규칙이 없으며 자유로 선택 가능하다.
+
+* 이 Projection Interface를 사용하는 방법은 두 가지가 있는데,   
+  첫 번째로는 JPQL과 함께 사용하는 것이다.
+
+* JPQL과 같이 사용하는 Repository 코드는 아래와 같다.
+```java
+@Repository
+public interface UsersRepository extends JpaRepository<User, Integer> {
+
+    @Query(value = "SELECT u.id AS id, u.name AS name, u.email AS email FROM User u WHERE u.id = :userId")
+    Optional<UserIdAndNameAndEmailProjection> findById_(Integer userId);
+}
+```
+
+* 위 `@Query`의 value에서 유의할 점은 AS 구문이 컬럼마다 붙어있다는 것이다.   
+  만약 AS 구문으로 Aliasing을 하지 않으면 모든 값이 null로 오게 된다.
+
+* Service 코드는 아래와 같다.
+```java
+@RequiredArgsConstructor
+@Service
+public class UserService {
+
+    private final UsersRepository usersRepository;
+
+    @Transactional(readOnly = true)
+    public UserIdAndNameAndEmailProjection getUserInfo(Integer userId) {
+        UserIdAndNameAndEmailProjection projection = usersRepository.findById_(userId).orElseThrow(UserIdNotFoundException::new);
+        return projection;
+    }
+}
+```
