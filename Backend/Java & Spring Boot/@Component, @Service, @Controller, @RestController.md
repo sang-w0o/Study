@@ -85,3 +85,17 @@ public @interface Controller {
   `<context:component-scan>` 어노테이션은 위 어노테이션들을 스캔한 뒤에   
   각 클래스들을 `@Component`가 적용된 것처럼 Spring Bean 객체로 등록시킨다.
 <hr/>
+
+<h2>정리</h2>
+
+* 간단히 정리하면 아래와 같다.
+  * `@Component` : Spring이 관리하는 컴포넌트 또는 Bean을 가리키는 Generic Stereotype이다.
+  * `@Repository` : Persistence Layer를 위한 stereotype이다.
+  * `@Service` : Service Layer를 위한 stereotype이다.
+  * `@Controller` : Presentation Layer를 위한 stereotype이다.
+
+![](2021-01-29-16-22-30.png)
+
+<hr/>
+
+<a href="https://javarevisited.blogspot.com/2017/11/difference-between-component-service.html#ixzz6jcfPTt5s">참고 링크</a>
