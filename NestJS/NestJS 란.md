@@ -12,3 +12,8 @@ npm i -g @nestjs/cli
 
 nest new PROJECT_NAME
 ```
+
+* 프로젝트를 개발 단계에서 수행하려면 아래 명령을 입력한다.
+```
+npm run start:dev
+```
