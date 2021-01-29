@@ -66,3 +66,75 @@ export class AppService {
 }
 ```
 <hr/>
+
+<h2>Controllers</h2>
+
+* NestJS 애플리케이션은 `main.ts`로부터 시작한다.   
+  위에서 봤듯이 한 개의 모듈(AppModule)로부터 애플리케이션(app)을 실행한 후   
+  3000번 포트를 열어 실행시킨다.
+
+* AppModule은 모든 것들의 Root Module이다.
+
+* `main.ts`의 `@Module` 데코레이터를 다시 살펴보자.
+```ts
+@Module({
+  imports: [],
+  controllers: [AppController],
+  providers: [AppService],
+})
+```
+
+* Controller가 하는 일은 기본적으로 Request Path를 읽어온 후   
+  알맞은 서비스 함수를 실행시키는 일이다. Spring MVC의 Controller와 같은 역할을 담당한다.   
+  Node.js 애플리케이션의 Router와도 동일하다.
+
+* 다시 `app.controller.ts`를 보면, `@Get()` 데코레이터가 있다.
+```ts
+@Controller()
+export class AppController {
+  constructor(private readonly appService: AppService) {}
+
+  @Get()
+  getHello(): string {
+    return this.appService.getHello();
+  }
+}
+```
+
+* `@Get()` 데코레이터는 Express의 get 라우터와 같은 역할을 한다.   
+  아래와 같이 라우터에 대한 메소드를 추가할 수 있다.
+```ts
+@Controller()
+export class AppController {
+  constructor(private readonly appService: AppService) {}
+
+  @Get()
+  getHello(): string {
+    return this.appService.getHello();
+  }
+
+  @Get('/test')
+  test(): string {
+    return 'TEST';
+  }
+}
+```
+
+* 이제 NestJS는 `/test`로 요청이 오면 TEST를 반환하게 된다.
+
+* Decorator는 꾸며주는 함수 또는 클래스와 붙어있어야 한다.   
+  쉽게 말해 Java의 Annotation과 같이 사용해야 한다. 아래처럼 하면 안된다.
+```ts
+@Controller()
+export class AppController {
+  constructor(private readonly appService: AppService) {}
+
+  @Get('/test')
+
+
+  test(): string {
+    return 'TEST';
+  }
+}
+```
+<hr/>
