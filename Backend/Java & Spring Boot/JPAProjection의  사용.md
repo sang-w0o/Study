@@ -264,7 +264,14 @@ public class UserService {
 * 위 `@Query`의 value로 들어간 JPQL문은 users 테이블에서 id, name, email을 가져온 후   
   해당 정보를 생성자로 받는 DTO 클래스에 전달하여 바로 DTO 클래스를 만든 것이다.
 
+* 수행되는 쿼리문은 아래와 같다.
+```
+select user0_.user_id as col_0_0_, user0_.name as col_1_0_, user0_.email as col_2_0_ from users user0_ where user0_.user_id=15
+```
+
 * 내가 아는 선에서 딱히 문제될 것은 안보인다... 쿼리문을 직접 써준다는 단점 뿐..?
 <hr/>
 
 <h2>해결법 3 - Projection 사용</h2>
+
+* 마지막 해결법은 `Spring Data Projection`으로 쿼리문의 결과를 조회하는 것이다.
