@@ -40,3 +40,48 @@
 * 이렇게 계층에 알맞은 어노테이션을 사용함으로써 우리는 해당 어노테이션이 적용된 클래스가   
   Spring Bean으로 취급됨을 보장함과 동시에 해당 계층에 알맞은 기능을 수행하도록 할 수 있다.
 <hr/>
+
+<h2>Spring에서 컴포넌트 스캔이 동작하는 방식</h2>
+
+* Spring 2.0 부터 Spring은 `<context:component-scan>` 또는 어노테이션 기반의 의존성 주입 방식을   
+  지원한다. 이 방식은 Spring이 자동으로 Spring Bean으로 등록될 대상들을 인식하고 등록해준다.
+
+* 하지만 이 방식은 `@Controller`, `@Service`, `@Repository`는 검색하려 하지 않고   
+  오로지 `@Component` 어노테이션이 붙은 객체들만 인식하려 한다.
+
+* 그렇다면 `@Controller`, `@Service`, `@Repository`로 된 객체들이 Bean으로 등록되는 이유는 뭘까?   
+  이유는 생각보다 간단한데, 어노테이션 자체가 `@Component` 어노테이션이 적용되어 있기 때문이다.
+```java
+@Target({ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Component
+public @interface Repository {
+	@AliasFor(annotation = Component.class)
+	String value() default "";
+}
+
+@Target({ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Component
+public @interface Service {
+	@AliasFor(annotation = Component.class)
+	String value() default "";
+}
+
+@Target({ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Component
+public @interface Controller {
+	@AliasFor(annotation = Component.class)
+	String value() default "";
+}
+```
+
+* 따라서 `@Controller`, `@Service`, `@Repository`가 `@Component`의 특수한 타입이라고   
+  말하는 것은 전혀 틀린 말이 아님을 알 수 있다.   
+  `<context:component-scan>` 어노테이션은 위 어노테이션들을 스캔한 뒤에   
+  각 클래스들을 `@Component`가 적용된 것처럼 Spring Bean 객체로 등록시킨다.
+<hr/>
