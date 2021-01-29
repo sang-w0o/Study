@@ -320,3 +320,37 @@ public class UserService {
     }
 }
 ```
+
+* 위 방법의 단점은 JPQL을 사용해야 하고, 모든 컬럼에 대해 AS문으로 Aliasing을 해줘야 한다는 것이다.   
+  또한 Aliasing된 이름으로 interface의 getter 메소드를 선언해 줘야 한다.
+
+* 두 번째 방법은 JPQL을 사용하지 않는 것인데, Repository 코드부터 보자.
+```java
+@Repository
+public interface UsersRepository extends JpaRepository<User, Integer> {
+
+    <T> Optional<T> findById_(Integer userId, Class<T> clazz);
+}
+```
+
+* 해당 메소드를 사용하는 Service 코드를 보자.
+```java
+@RequiredArgsConstructor
+@Service
+public class UserService {
+
+    private final UsersRepository usersRepository;
+
+    @Transactional(readOnly = true)
+    public UserIdAndNameAndEmailProjection getUserInfo(Integer userId) {
+        UserIdAndNameAndEmailProjection projection = usersRepository.findById_(userId, UserIdAndNameAndEmailProjection.class).orElseThrow(UserIdNotFoundException::new);
+        return projection;
+    }
+}
+```
+
+* 위 코드로 인해 수행되는 쿼리문은 아래와 같다.
+```
+select user0_.user_id as col_0_0_, user0_.name as col_1_0_, user0_.email as col_2_0_ from users user0_ where user0_.user_id=15
+```
+<hr/>
