@@ -353,4 +353,18 @@ public class UserService {
 ```
 select user0_.user_id as col_0_0_, user0_.name as col_1_0_, user0_.email as col_2_0_ from users user0_ where user0_.user_id=15
 ```
+
+* 만약 아래와 같이 `User` 엔티티의 필드에 없는 대상에 대한 Getter 메소드를 작성하면 오류가 뜬다.
+```java
+public interface UserIdAndNameAndEmailProjection {
+    Integer getIDDD();
+    String getName();
+    String getEmail();
+}
+```
+
+* 오류 메시지는 아래와 같다.
+```j
+org.springframework.data.mapping.PropertyReferenceException: No property IDDD found for type User!
+```
 <hr/>
