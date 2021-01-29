@@ -138,3 +138,27 @@ export class AppController {
 }
 ```
 <hr/>
+
+<h2>Services</h2>
+
+* NestJS는 MVC2 패턴과 같이 컨트롤러와 비즈니스 로직을 분리하는 패턴을 지향한다.
+
+* 따라서 위의 `/test`에 대한 로직을 아래와 같이 분리해야 한다.
+```ts
+// app.service.ts
+
+@Injectable()
+export class AppService {
+  getHello(): string {
+    return 'Hello World!';
+  }
+  getTest(): string {
+    return 'TEST2';
+  }
+}
+```
+
+* 또한 개발자가 작성한 Controller, Service 코드들은 모두   
+  `app.module.ts`에 import해야 하며, 알맞게 `@Module` Decorator에   
+  지정해 주어야 한다.
+<hr/>
