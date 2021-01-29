@@ -189,4 +189,6 @@ public class UserSimpleInfoResponseDto {
 
 <h2>해결법 2 - JPQL 사용</h2>
 
+* 마찬가지로 Repository 코드부터 변경해보자.
+
 <h2>해결법 3 - Projection 사용</h2>
