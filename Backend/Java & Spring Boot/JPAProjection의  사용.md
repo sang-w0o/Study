@@ -190,5 +190,81 @@ public class UserSimpleInfoResponseDto {
 <h2>해결법 2 - JPQL 사용</h2>
 
 * 마찬가지로 Repository 코드부터 변경해보자.
+```java
+@Repository
+public interface UsersRepository extends JpaRepository<User, Integer> {
+
+    @Query(value = "SELECT new example.dto.UserSimpleInfoResponseDto(u.id, u.name, u.email) FROM User u WHERE u.id = :userId")
+    List<UserSimpleInfoResponseDto> findById_(Integer userId);
+}
+```
+
+* 다음으로 Service와 DTO 코드를 보자.
+```java
+// UserService.java
+@RequiredArgsConstructor
+@Service
+public class UserService {
+
+    private final UsersRepository usersRepository;
+
+    @Transactional(readOnly = true)
+    public UserSimpleInfoResponseDto getUserInfo(Integer userId) {
+        List<UserSimpleInfoResponseDto> dtoList = usersRepository.findById_(userId);
+        if(dtoList.size() == 0) {
+            throw new UserIdNotFoundException();
+        } else return dtoList.get(0);
+    }
+}
+
+// UserSimpleInfoResponseDto.java
+@NoArgsConstructor
+@Getter
+@Setter
+public class UserSimpleInfoResponseDto {
+
+    private Integer userId;
+    private String name;
+    private String email;
+
+    public UserSimpleInfoResponseDto(Integer id, String name, String email) {
+        this.userId = id;
+        this.name = name;
+        this.email = email;
+    }
+}
+```
+
+* 위처럼 Repository가 `List`를 반환하게 하지 말고 `Optional`로 할 수도 있다.   
+  아래는 `Optional` 타입을 적용한 코드이다.
+```java
+// UsersRepository.java
+@Repository
+public interface UsersRepository extends JpaRepository<User, Integer> {
+
+    @Query(value = "SELECT new example.dto.UserSimpleInfoResponseDto(u.id, u.name, u.email) FROM User u WHERE u.id = :userId")
+    Optional<UserSimpleInfoResponseDto> findById_(Integer userId);
+}
+
+// UserService.java
+@RequiredArgsConstructor
+@Service
+public class UserService {
+
+    private final UsersRepository usersRepository;
+
+    @Transactional(readOnly = true)
+    public UserSimpleInfoResponseDto getUserInfo(Integer userId) {
+        UserSimpleInfoResponseDto dto = usersRepository.findById_(userId).orElseThrow(UserIdNotFoundException::new);
+        return dto;
+    }
+}
+```
+
+* 위 `@Query`의 value로 들어간 JPQL문은 users 테이블에서 id, name, email을 가져온 후   
+  해당 정보를 생성자로 받는 DTO 클래스에 전달하여 바로 DTO 클래스를 만든 것이다.
+
+* 내가 아는 선에서 딱히 문제될 것은 안보인다... 쿼리문을 직접 써준다는 단점 뿐..?
+<hr/>
 
 <h2>해결법 3 - Projection 사용</h2>
