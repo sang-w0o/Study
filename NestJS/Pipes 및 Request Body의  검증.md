@@ -246,5 +246,49 @@ export interface ArgumentMetadata {
   `UserInfoValidationPipe#transform()`는 async 처리가 되어 있다.   
   이는 Nest가 비동기, 동기적 pipe를 모두 제공하기에 사용 가능하기 때문이다.
 
+* 참고로 `transform()` 내에서 `console.log(metatype)`을 수행해보면 아래의 결과가 나온다.
+```
+[class UserCreateDto]
+```
+
 * 다음으로는 `UserInfoValidationPipe`의 내부에서만 사용되는 `toValidate()` 함수를 보자.   
-  
+  이 함수는 메타데이터가 올바른지를 검증하는 역할을 한다.
+
+* 다음에는 `class-transformer` 패키지에서 가져온 `plainToClass()` 함수가 있다.   
+  우리가 `UserCreateDto`에 `class-validator` 패키지에서 가져온 Decorator들로   
+  각 필드에 제약 조건을 걸어주었는데, 그러려면 `@Body()`로 가져온 JSONObject를   
+  우리가 만든 `UserCreateDto`에 맞게 변환해줘야 제약 조건을 검증할 수 있을 것이다.   
+  `plainToClass()`가 바로 그 역할을 해준다.
+
+* 마지막으로 `class-validator` 패키지에서 가져온 `validate()` 함수를 호출하는데, 인자로   
+  `UserCreateDto`로 변환된 Request Body를 전달한다.   
+  이 함수는 `UserCreateDto`에 적용된 각종 제약 조건들을 검증한 후, 에러가 있으면   
+  `ValidationError[]` 배열을 반환한다. 따라서 이 배열의 길이가 0 보다 크다면   
+  에러가 있는 것이므로 `BadRequestException`을 던지도록 했다.
+
+* 이제 Pipe를 만들었으니 해당 Pipe를 Controller에 전달해보자.
+```ts
+import { UserService } from './user.service';
+
+@Controller('user')
+export class UserController {
+  constructor(private readonly userService: UserService) {}
+  @Post()
+  saveUser(@Body(new UserInfoValidationPipe()) dto: UserCreateDto): string {
+    return this.userService.saveUser(dto);
+  }
+}
+```
+
+* 이제 Request Body가 잘못되어 `UserCreateDto`에 검증에 실패한다면   
+  아래와 같은 응답이 온다.
+```json
+{
+    "statusCode": 400,
+    "message": "VALIDATION FAILED",
+    "error": "Bad Request"
+}
+```
+<hr/>
+
+<a href="https://docs.nestjs.com/pipes">참고 링크</a>
