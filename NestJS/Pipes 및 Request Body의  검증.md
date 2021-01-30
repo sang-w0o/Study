@@ -292,4 +292,46 @@ export class UserController {
 ```
 <hr/>
 
+<h2>Global Scoped Pipe</h2>
+
+* 파이프를 만약 모든 컨트롤러에서 전역으로 설정하고 싶다면 `main.ts`에 적용시키면 된다.
+```ts
+// src/main.ts
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  app.useGlobalPipes(new CustomValidationPipe());
+  await app.listen(3000);
+}
+bootstrap();
+```
+
+* 전역으로 설정된 Pipe는 모든 컨트롤러와 Route Handler에 대해 적용된다.   
+  하지만 DI의 관점에서 본다면 모듈 외부에서 적용된 전역 Pipe는 바인딩이 모듈의   
+  외부에서 이루어졌기 때문에 의존성을 주입할 수 없다. 이를 해결하려면 전역 Pipe를   
+  모듈 내에서 아래와 같이 등록하면 된다.
+```ts
+// src/app.module.ts
+
+import { Module } from '@nestjs/common';
+import { UserController } from './user/user.controller';
+import { UserService } from './user/user.service';
+import { UserInfoValidationPipe } from '../pips/create-user.validation.pipe';
+
+@Module({
+  imports: [],
+  controllers: [UserController],
+  providers: [
+    {
+      provide: APP_PIPE,
+      useClass: UserInfoValidationPipe
+    },
+    UserService
+  ]
+})
+
+export class AppModule {}
+```
+<hr/>
+
 <a href="https://docs.nestjs.com/pipes">참고 링크</a>
