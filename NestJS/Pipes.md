@@ -107,3 +107,89 @@ async findOne(@Param('id', new ParseIntPipe({ errorHttpStatusCode: HttpStatus.NO
 GET localhost:3000/info?id=123
 ```
 <hr/>
+
+<h2>Custom Pipes</h2>
+
+* 사용자의 회원 등록을 처리하는 POST API가 있다고 해보자.   
+  사용자의 데이터를 가지는 DTO는 아래와 같다.
+```ts
+// src/dtos/create-user.dto.ts
+
+export class UserCreateDto {
+  name: string;
+  email: string;
+  password: string;
+  phoneNumber: string;
+}
+```
+
+* 그리고 해당 요청을 처리하는 컨트롤러와 서비스는 아래와 같다.   
+  먼저 서비스이다.
+```ts
+// src/user/user.service.ts
+
+import { UserCreateDto } from 'src/dtos/create-user.dto';
+
+@Injectable()
+export class UserService {
+  saveUser(dto: UserCreateDto): string {
+    return `Saving user.. name:${dto.name}, email:${dto.name}\n
+                phoneNumber:${dto.phoneNumber} password:${dto.password}`;
+  }
+}
+```
+
+* 다음으로는 컨트롤러 코드이다.
+```ts
+//src/user/user.controller.ts
+import { UserService } from './user.service';
+
+@Controller('user')
+export class UserController {
+  constructor(private readonly userService: UserService) {}
+  @Post()
+  saveUser(@Body() dto: UserCreateDto): string {
+    return this.userService.saveUser(dto);
+  }
+}
+```
+
+* 이제 위 Path로 요청을 보내면 정상적으로 작동한다.   
+  하지만 만약 Request Body에서 name, email, password, phoneNumber 중   
+  하나를 빼먹으면 Response Status는 `201(CREATED)`이지만 빼먹은 데이터의 값은   
+  undefined가 된다.
+
+* 위와 같이 Request Body가 잘못된 경우를 대비하기 위해 Custom Pipe가 필요하다.
+
+* 우선 `Dto` 단에서 모든 정보가 필요함을 명시하기 위해 해당 기능을 제공하는 패키지를 설치하자.
+```
+yarn add class-validator
+```
+
+* 이제 constraint를 적용한 DTO 클래스는 아래와 같다.
+```ts
+import { IsString } from 'class-validator';
+
+export class UserCreateDto {
+  @IsString()
+  name: string;
+
+  @IsEmail()
+  email: string;
+
+  @IsString()
+  password: string;
+
+  @IsString()
+  phoneNumber: string;
+}
+```
+
+* 참고 : `class-validator` 링크: <a href="https://github.com/typestack/class-validator#usage">링크</a>
+
+* 이 상태로 올바르지 않은 Request Body로 요청을 보내도 응답 결과는 달라지지 않는다.   
+  추가적인 작업이 필요한데, 바로 Pipe를 만드는 것이다. 만들 때에는 `class-validator`   
+  패키지를 만든 사람들이 함께 만든 `class-transformer` 패키지를 사용한다.
+```
+yarn add class-transformer
+```
