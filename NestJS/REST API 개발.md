@@ -141,4 +141,6 @@ export class MoviesController {
   }
 }
 ```
+
+* Pipe에 대한 더 많은 정보는 <a href="https://github.com/sangwoo-98/Study/blob/master/NestJS/Pipes%20%EB%B0%8F%20Request%20Body%EC%9D%98%20%20%EA%B2%80%EC%A6%9D.md">링크</a>에 정리해 놓았다.
 <hr/>
