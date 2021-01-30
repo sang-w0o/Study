@@ -104,3 +104,41 @@ export class MoviesController {
   number로 가져오며, `typeof id`도 number로 뜬다.   
   또한 `id: string`으로 가져와도 id는 number이 되며, id값에 숫자가 아닌   
   다른 값이 들어가면 `400(BAD_REQUEST)`가 반환된다.
+
+* `POST`, `DELETE`, `PUT` 등의 HTTP Method도 아래와 같이   
+  각각에 맞는 데코레이터를 적용해 주면 된다.
+```ts
+@Controller('movies')
+export class MoviesController {
+  @Get('/movies')
+  getAll(): string {
+    return 'This will return all movieS';
+  }
+
+  @Get('/:id')
+  getMovieById(@Param('id', ParseIntPipe) id: string): string {
+    return `This is info about a movie. (ID : ${id}), ${typeof id}`;
+  }
+
+  @Post()
+  createMovie(): string {
+    return 'This will create a movie.';
+  }
+
+  @Delete('/:id')
+  deleteMovie(@Param('id', ParseIntPipe) id: number): string {
+    return `This will remove a movie.(ID : ${id}`;
+  }
+
+  @Put('/:id')
+  updateMovie(@Param('id', ParseIntPipe) id: number): string {
+    return `This will update a movie.(ID : ${id})`;
+  }
+
+  @Patch('/:id')
+  updateMovieInfo(@Param('id', ParseIntPipe) id: number): string {
+    return `This will update some info about movie.(ID : ${id})`;
+  }
+}
+```
+<hr/>
