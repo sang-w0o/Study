@@ -22,3 +22,88 @@
   해당 컨트롤러의 메소드는 실행되지 않는 다는 것을 의미한다.   
   이는 데이터를 검증하는데에 있어 매우 당연한 일이다.
 <hr/>
+
+<h2>Built-in Pipes</h2>
+
+* NestJS는 아래 6개의 기본 내장 Pipe들을 제공한다.
+  * `ValidationPipe`
+  * `ParseIntPipe`
+  * `ParseBoolPipe`
+  * `ParseArrayPipe`
+  * `ParseUUIDPipe`
+  * `DefaultValuePipe`
+  
+* 이들은 모두 `@nestjs/common` 패키지로부터 export된다.
+
+<h3>Binding Pipes</h3>
+
+* Pipe를 사용하기 위해서 개발자는 각 Pipe의 인스턴스를 올바른 컨텍스트에   
+  바인딩 해야 한다. 예를 들어, Path Variable로 들어오는 id 값을 string이 아닌   
+  number로 받고 싶다면 개발자는 해당 변환 작업(string => number)이 컨트롤러의   
+  서비스 메소드가 실행되기 전에 이루어짐을 보장해야 한다. 따라서 Pipe를   
+  메소드 파라미터 레벨에 바인딩 해야 한다.
+```ts
+@Get(':id')
+async findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.exService.findOne(id);
+}
+```
+
+* 위 코드는 `findOne()`에서 사용되는 id가 number로 취급될 것과 만약 number가 아니라면   
+  Route handler가 실행되기 전에 예외가 발생할 것임을 보장한다.
+
+* 예를 들어 위 Path를 아래와 같이 요청했다고 해보자.
+```
+GET localhost:3000/ABC
+```
+
+* 그렇다면 아래와 같은 응답이 온다.
+```json
+{
+  "statusCode": 400,
+  "message": "Validation failed (numeric string is expected)",
+  "error": "Bad Request"
+}
+```
+
+* 위 예시 코드에는 `Pipe` 클래스의 인스턴스가 아닌 `ParseIntPipe` 클래스 자체를 전달했다.   
+  이는 `ParseIntPipe`의 인스턴스화와 의존성 주입을 프레임워크가 담당하게 한다.
+
+* 개발자는 원하는 응답을 줄 수도 있다. 예를 들어 위의 경우, 숫자가 아닌 값이   
+  id의 자리에 오면 `400(BAD_REQUEST)`가 응답되었지만, `406(NOT_ACCEPTABLE)`로   
+  응답이 오게하려면 아래와 같이 하면 된다.
+```ts
+@Get(':id')
+async findOne(@Param('id', new ParseIntPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE}))id: number) {
+    return this.exService.findOne(id);
+} 
+```
+
+* 이제 id에 숫자가 아닌 값을 넣으면 아래의 응답이 온다.
+```json
+{
+    "statusCode": 406,
+    "message": "Validation failed (numeric string is expected)",
+    "error": "Not Acceptable"
+}
+```
+
+* `Parse**Pipe`들은 사용 구조가 모두 비슷하다. Query Parameter에 대한 것도 마찬가지이다.
+```ts
+@Get('/info')
+  getInfoById(
+    @Query(
+      'id',
+      new ParseIntPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE }),
+    )
+    id: number,
+  ): string {
+    return `INFO ID : ${id}`;
+  }
+```
+
+* 위 코드에 대한 요청URL은 아래와 같다.
+```
+GET localhost:3000/info?id=123
+```
+<hr/>
