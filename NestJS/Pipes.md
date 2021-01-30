@@ -193,3 +193,58 @@ export class UserCreateDto {
 ```
 yarn add class-transformer
 ```
+
+* 이제 `UserCreateDto`를 검증하기 위한 Pipe를 생성해보자.
+```ts
+// src/pipes/create-user.validation.pipe.ts
+
+import { ArgumentMetadata, BadRequestException, Injectable, PipeTransform } from '@nestjs/common';
+import { plainToClass } from 'class-transformer';
+import { validate } from 'class-validator';
+
+@Injectable()
+export class UserInfoValidationPipe implements PipeTransform<any> {
+  async transform(value: any, { metatype }: ArgumentMetadata) {
+    if (!metatype || !this.toValidate(metatype)) {
+      return value;
+    }
+    const object = plainToClass(metatype, value);
+    const errors = await validate(object);
+    if (errors.length > 0) {
+      throw new BadRequestException('VALIDATION FAILED');
+    }
+    return value;
+  }
+
+  private toValidate(metatype: Function): boolean {
+    const types: Function[] = [String, Boolean, Number, Array, Object];
+    return !types.includes(metatype);
+  }
+}
+```
+
+* 먼저 `UserInfoValidationPipe#transform()`을 먼저 보자.   
+  모든 Pipe는 `PipeTransform` 인터페이스의 구현체여야만 하며, `PipeTransform#transform()`을   
+  구현해야 한다. `ransform()`은 value, metadata를 인자로 전달받는다.
+
+* value는 해당 Pipe가 처리할 매개 변수들을 의미하며, metadata는 처리할 매개변수들의 메타데이터이다.   
+  아래는 `ArgumentMetaData`의 코드이다.
+```ts
+export interface ArgumentMetadata {
+    type: 'body' | 'query' | 'param' | 'custom';
+    metatype?: Type<unknown>;
+    data?: string;
+}
+```
+
+  * `type` : 매개변수가 `@Body()`, `@Query()`, `@Param()` 등으로 읽혀온 것인지에 대한 정보
+  * `metatype` : 매개변수의 메타 타입 정보를 가진다.
+  * `data` : Decorator로 전달된 인자 값을 읽어온다.ex) `@Body('user')`
+
+
+* 다시 `UserInfoValidationPipe`의 코드를 보자.   
+  `UserInfoValidationPipe#transform()`는 async 처리가 되어 있다.   
+  이는 Nest가 비동기, 동기적 pipe를 모두 제공하기에 사용 가능하기 때문이다.
+
+* 다음으로는 `UserInfoValidationPipe`의 내부에서만 사용되는 `toValidate()` 함수를 보자.   
+  
