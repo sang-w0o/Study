@@ -225,9 +225,10 @@ export class UserInfoValidationPipe implements PipeTransform<any> {
 
 * 먼저 `UserInfoValidationPipe#transform()`을 먼저 보자.   
   모든 Pipe는 `PipeTransform` 인터페이스의 구현체여야만 하며, `PipeTransform#transform()`을   
-  구현해야 한다. `ransform()`은 value, metadata를 인자로 전달받는다.
+  구현해야 한다. `transform()`은 value, metadata를 인자로 전달받는다.
 
 * value는 해당 Pipe가 처리할 매개 변수들을 의미하며, metadata는 처리할 매개변수들의 메타데이터이다.   
+  쉽게 말해 value는 `@Body()`, `@Param()` 등이 읽어오는 데이터 자체를 가진다.
   아래는 `ArgumentMetaData`의 코드이다.
 ```ts
 export interface ArgumentMetadata {
