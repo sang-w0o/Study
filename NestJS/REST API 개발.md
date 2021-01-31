@@ -144,3 +144,22 @@ export class MoviesController {
 
 * Pipe에 대한 더 많은 정보는 <a href="https://github.com/sangwoo-98/Study/blob/master/NestJS/Pipes%20%EB%B0%8F%20Request%20Body%EC%9D%98%20%20%EA%B2%80%EC%A6%9D.md">링크</a>에 정리해 놓았다.
 <hr/>
+
+<h2>DTO와 DTO의 검증</h2>
+
+* DTO에는 다양한 제약을 걸 수 있는데, 우선 `readonly` 부터 알아보자.   
+  `readonly`는 읽을 수만 있다는 속성을 주는 예약어로, 아래와 같이 사용한다.
+```ts
+import { IsEmail, IsString } from 'class-validator';
+
+export class UserCreateDto {
+
+  readonly name: string;
+
+  readonly email: string;
+
+  readonly password: string;
+
+  readonly phoneNumber: string;
+}
+```

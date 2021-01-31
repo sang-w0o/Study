@@ -334,4 +334,128 @@ export class AppModule {}
 ```
 <hr/>
 
+<h2>ValidationPipe 사용</h2>
+
+* ValidationPipe은 `@nestjs/common` 패키지에서 제공하는 기본적인 Pipe이다.   
+  이 Pipe를 전역으로 사용하기 위해 `main.ts.`를 아래와 같이 해보자.
+```ts
+// src/main.ts
+
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+import { ValidationPipe } from '@nestjs/common';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  app.useGlobalPipes(new ValidationPipe());
+  await app.listen(3000);
+}
+bootstrap();
+```
+
+* `ValidationPipe`는 기본적으로 제공하는 여러 가지의 유용한 설정들이 있다.   
+  우선 whitelist 속성부터 보자.
+
+* `ValidationPipe`의 whitelist속성이 true로 지정되어 있으면   
+  Dto의 필드에는 없는 key-value의 JSONObject가 Request Body로 들어오면   
+  해당 키 값은 컨트롤러에서 사용하지 않는다.
+
+* 예를 들어 아래의 `UserCreateDto`를 보자.
+```ts
+import { IsEmail, IsString } from 'class-validator';
+
+export class UserCreateDto {
+  @IsString()
+  readonly name: string;
+
+  @IsEmail()
+  readonly email: string;
+
+  @IsString()
+  readonly password: string;
+
+  @IsString()
+  readonly phoneNumber: string;
+}
+```
+
+* 그리고 `UserCreateDto`의 타입에 알맞게 데이터를 받는 컨트롤러를 보자.
+```ts
+@Controller('user')
+export class UserController {
+  @Post()
+  saveUser(@Body() dto: UserCreateDto) {
+    console.log(dto);
+  }
+}
+```
+
+* 아래의 요청은 올바른 Request Body이다.
+```json
+{
+    "email":"robbyra@gmail.com",
+    "name":"sangwoo",
+    "password":"1234",
+    "phoneNumber":"01012341234"
+}
+```
+
+* 하지만 아래와 같이 있어서는 안될 데이터가 추가된 Request Body를 보냈다고 하자.
+```json
+{
+    "email":"robbyra@gmail.com",
+    "name":"sangwoo",
+    "password":"1234",
+    "phoneNumber":"01012341234",
+    "ass":"12"
+}
+```
+
+* 이런 경우를 처리하는 방법에는 두 가지가 있는데, 첫 번째가 위에서 말한   
+  `ValidationPipe`의 whitelist를 true로 지정하는 것이다. true로 지정하면   
+  컨트롤러에서 콘솔에 찍는 결과는 아래와 같다.
+```json
+{
+    "email":"robbyra@gmail.com",
+    "name":"sangwoo",
+    "password":"1234",
+    "phoneNumber":"01012341234"
+}
+```
+
+* 즉, Request Body의 "ass"는 DTO에 제약이 명시되어 있지 않기 때문에   
+  유효하지 않다고 판단하고, `ValidationPipe`에서 제거해버린 것이다.
+
+* 여기서 문제점은 Request Body가 잘못됐음에도 불구하고 Response Status가 200번대로   
+  오는 것인데, 이를 `400(BAD_REQUEST)`로 오게 하려면 `ValidationPipe`의 forbidNonWhitelisted   
+  속성을 true로 지정해주면 된다.
+```ts
+// src/main.ts
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    }),
+  );
+  await app.listen(3000);
+}
+bootstrap();
+```
+
+* 이렇게 애플리케이션을 실행한 후 추가적인 데이터가 붙은 잘못된 Request Body를 보내면   
+  아래와 같은 응답이 온다.
+```json
+{
+    "statusCode": 400,
+    "message": [
+        "property ass should not exist"
+    ],
+    "error": "Bad Request"
+}
+```
+
+* 참고로 __forbidNonWhitelisted는 whitelist 먼저 true로 설정되어 있어야만 작동한다__.
 <a href="https://docs.nestjs.com/pipes">참고 링크</a>
