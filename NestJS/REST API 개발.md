@@ -444,3 +444,6 @@ getAll(@Req() requestObject, @Res responseObject): any {
   이는 NestJS가 Express 와 Fastify 모두를 지원하기 때문이다. Express와 Fastify는   
   각각 `Request`, `Response` 객체에 접근하는 방법이 다르기 때문에 위 방법은 권장되지 않는다.
 <hr/>
+
+* 간단한 코드는 아래에 있다.
+<a href="https://github.com/sangwoo-98/NestJS-Example">링크</a>
