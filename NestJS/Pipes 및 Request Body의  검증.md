@@ -458,4 +458,7 @@ bootstrap();
 ```
 
 * 참고로 __forbidNonWhitelisted는 whitelist 먼저 true로 설정되어 있어야만 작동한다__.
+
+* 또한 __전역으로 설정된 Pipe가 있고, 해당 컨트롤러에서 사용하는 Pipe가 있을 때,__   
+  __즉 2개의 Pipe를 설정한다면 전역으로 설정한 Pipe가 우선적으로 동작한다__.
 <a href="https://docs.nestjs.com/pipes">참고 링크</a>
