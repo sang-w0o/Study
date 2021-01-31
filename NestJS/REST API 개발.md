@@ -222,3 +222,208 @@ import { UserCreateDto } from './create-user.dto';
 export class UserUpdateDto extends PartialType(UserCreateDto) {}
 ```
 <hr/>
+
+<h2>Module과 DI</h2>
+
+* 프로젝트 최상단에 있는 `app.module.ts`를 보자.
+```ts
+import { Module } from '@nestjs/common';
+import { UserController } from './user/user.controller';
+import { UserService } from './user/user.service';
+
+@Module({
+  imports: [],
+  controllers: [UserController],
+  providers: [UserService],
+})
+export class AppModule {}
+```
+
+* 기존에 `UserController`와 `UserService`를 만든 방법은 NestJS CLI를 사용해서 만들었다.   
+  이 상태에서 주문(Order) API와 권한(Auth) API를 만든다면 `app.module.ts`는 아래와 같아질 것이다. 
+```ts
+@Module({
+  imports: [],
+  controllers: [UserController, OrderController, AuthController],
+  providers: [UserService, OrderService, AuthService],
+})
+export class AppModule {}
+```
+
+* 이렇게 Controller, Service가 하나씩 늘어날 때마다 `app.module.ts`에 명시해주는 방법은   
+  바람직하지 않다. Controller, Service가 몇개가 될지 모르기 때문이다.
+
+* 이런 문제를 해소하기 위해 `NestJS`는 `app.module.ts`에 `AppController`와   
+  `AppService`만을 가지는 컨벤션을 강조한다.
+
+* NestJS의 애플리케이션은 여러 개의 모듈로 구성된다.
+
+* 모듈 또한 Nest CLI로 생성 가능하다.
+```
+nest g mo
+```
+
+* 이름을 user로 지정하면, `app.module.ts`가 아래와 같이 바뀐다.
+```ts
+import { Module } from '@nestjs/common';
+import { UserController } from './user/user.controller';
+import { UserService } from './user/user.service';
+import { UserModule } from './user/user.module';
+
+@Module({
+  imports: [UserModule],
+  controllers: [UserController],
+  providers: [UserService],
+})
+export class AppModule {}
+```
+
+* 차이점이라면 `@Module` Decorator의 imports에 `UserModule`이 추가되었다는 것이다.   
+  `UserModule`은 아래와 같다.
+```ts
+// src/user/user.module.ts
+
+import { Module } from '@nestjs/common';
+
+@Module({})
+export class UserModule {}
+```
+
+* 이제 `app.module.ts`에서 `UserController`와 `UserService`를 제거하자.
+```ts
+import { Module } from '@nestjs/common';
+import { UserModule } from './user/user.module';
+
+@Module({
+  imports: [UserModule],
+  controllers: [],
+  providers: [],
+})
+export class AppModule {}
+```
+
+* `AppModule`이 `UserModule`을 import하고 있음을 파악하자.
+
+* 이 상태에서 `/user`로 요청을 보내면 아래와 같은 응답이 온다.
+```json
+{
+    "statusCode": 404,
+    "message": "Cannot PUT /user",
+    "error": "Not Found"
+}
+```
+
+* 이는 `UserController`와 `UserService`가 어떠한 모듈에도 포함되어 있지 않기 때문이다.   
+  따라서 `UserModule`를 아래와 같이 수정해주자.
+```ts
+import { Module } from '@nestjs/common';
+import { UserController } from './user.controller';
+import { UserService } from './user.service';
+
+@Module({
+  controllers: [UserController],
+  providers: [UserService],
+})
+export class UserModule {}
+```
+
+* 이제 `/user`로의 요청은 정상적으로 수행된다.
+
+<h3>DI(Dependency Injection)</h3>
+
+* `UserController`의 코드를 보자.
+```ts
+// src/users/user.controller.ts
+
+import { Body, Controller, Post, Put } from '@nestjs/common';
+import { UserCreateDto } from 'src/dtos/create-user.dto';
+import { UserUpdateDto } from 'src/dtos/update-user.dto';
+import { UserInfoValidationPipe } from 'src/pipes/create-user.validation.pipe';
+import { UserService } from './user.service';
+
+@Controller('user')
+export class UserController {
+  constructor(private readonly userService: UserService) {}
+  @Post()
+  saveUser(
+    @Body(new UserInfoValidationPipe()) dto: UserCreateDto,
+  ): UserCreateDto {
+    return this.userService.saveUser(dto);
+  }
+
+  @Put()
+  updateUser(@Body() dto: UserUpdateDto): UserUpdateDto {
+    return this.userService.updateUser(dto);
+  }
+}
+```
+
+* 위 코드에서 `saveUser()`내에서 `this.userService.saveUser(dto)`가 작동하는 이유는   
+  생성자 부분에 userService 프로퍼티가 `UserService` 타입임을 명시해주었기 때문이다.
+
+* 즉, `UserController`는 `UserService`로의 의존성(Dependency)를 가지는 것이다.   
+  그렇다면 의존성 주입은 누가 하는 것일까?   
+  단순히 `UserController`의 생성자에 `UserService` 타입을 지정해준다고 의존성이 주입되지는   
+  않는다. 실제로 의존성을 주입하는 곳은 `UserModule`이다.
+```ts
+import { Module } from '@nestjs/common';
+import { UserController } from './user.controller';
+import { UserService } from './user.service';
+
+@Module({
+  controllers: [UserController],
+  providers: [UserService],
+})
+export class UserModule {}
+```
+
+* 만약 위 코드에서 `@Module` Decorator의 providers에서 `UserService`를 제거한다면   
+  아래와 같은 오류 메시지가 출력된다.
+```
+Nest can't resolve dependencies of the UserController (?). 
+Please make sure that the argument UserService at index [0] is available in the UserModule context.
+
+Potential solutions:
+- If UserService is a provider, is it part of the current UserModule?
+- If UserService is exported from a separate @Module, is that module imported within UserModule?
+  @Module({
+    imports: [ /* the Module containing UserService */ ]
+  })
+ +1ms
+Error: Nest can't resolve dependencies of the UserController (?). Please make sure that the argument UserService at index [0] is available in the UserModule context.
+```
+
+* 즉, 의존성 주입은 `UserModule`에서 이루어지고 있다는 것이다.
+
+* 실제로 `UserService` 코드를 보자.
+```ts
+import { Injectable } from '@nestjs/common';
+import { UserCreateDto } from 'src/dtos/create-user.dto';
+import { UserUpdateDto } from 'src/dtos/update-user.dto';
+
+@Injectable()
+export class UserService {
+  saveUser(dto: UserCreateDto): UserCreateDto {
+    return dto;
+  }
+  updateUser(dto: UserUpdateDto): UserUpdateDto {
+    return dto;
+  }
+}
+```
+
+* 여기서 `@Injectable()` Decorator에 눈여겨 보자. 이 Decorator는 아래의 기능을 수행한다.
+```
+Decorator that marks a class as a provider. 
+Providers can be injected into other classes via constructor parameter injection using Nest's built-in Dependency Injection (DI) system.
+```
+
+* 여기서 궁금했던 점은, `@Injectable()` decorator를 명시하지 않아도 `UserService`의   
+  `UserController`로의 의존성 주입이 원활하게 동작한다는 점이었다.   
+  그렇다면 `@Injectable()`을 굳이 왜 명시해줘야 하는 걸까?
+
+  * `@Injectable()` Decorator의 기능은 NestJS에게 이 Decorator가 적용된 클래스가   
+    다른 클래스로부터 의존성 주입을 받을 경우가 있다는 것을 알리는 것이다.   
+    즉, 이 Decorator는 외부로부터 주입받는 의존성이 없을 때에는 생략이 가능하다.   
+    위의 `UserService`는 다른 클래스로부터 의존성 주입을 받지 않기에 생략이 가능하다.
+<hr/>
