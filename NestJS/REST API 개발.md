@@ -427,3 +427,20 @@ Providers can be injected into other classes via constructor parameter injection
     즉, 이 Decorator는 외부로부터 주입받는 의존성이 없을 때에는 생략이 가능하다.   
     위의 `UserService`는 다른 클래스로부터 의존성 주입을 받지 않기에 생략이 가능하다.
 <hr/>
+
+<h2>그 외의 간략한 기능</h2o>
+
+* NestJS는 Express.js 상에서 동작하는 프레임워크이기 때문에 Express로 API를 개발하던 것처럼   
+  컨트롤러에서 `Request`, `Response` 객체가 필요하다면 사용할 수 있다.   
+  사용법은 아래와 같다.
+```ts
+@Get()
+getAll(@Req() requestObject, @Res responseObject): any {
+    // Call service.
+}
+```
+
+* 하지만 NestJS에서 `Request`, `Response`에 대한 직접적인 접근은 좋은 방법이 아니다.   
+  이는 NestJS가 Express 와 Fastify 모두를 지원하기 때문이다. Express와 Fastify는   
+  각각 `Request`, `Response` 객체에 접근하는 방법이 다르기 때문에 위 방법은 권장되지 않는다.
+<hr/>
