@@ -461,4 +461,41 @@ bootstrap();
 
 * 또한 __전역으로 설정된 Pipe가 있고, 해당 컨트롤러에서 사용하는 Pipe가 있을 때,__   
   __즉 2개의 Pipe를 설정한다면 전역으로 설정한 Pipe가 우선적으로 동작한다__.
+
+* `ValidationPipe`는 transform 속성이 있는데, 이 속성이 true로 지정되면   
+  개발자가 원하는 타입으로 값을 받아올 수 있다.
+
+* 아래 컨트롤러 코드를 보자.
+```ts
+@Get(':id')
+getUserInfo(@Param('id') id: number): string {
+  return `Type of id is ${typeof id}`;
+}
+```
+
+* URL Parameter는 기본적으로 타입이 string이다. 하지만 이렇게 number로 가져오려면   
+  `ValidationPipe`의 transform을 true로 지정해주면 된다.
+```ts
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
+  await app.listen(3000);
+}
+bootstrap();
+```
+
+* 이와 같은 기능을 `ValidationPipe`를 사용하지 않고 구현하는 또다른 방법으로는   
+  위에서 사용했던 `ParseIntPipe`를 사용하는 것이다.
+```ts
+@Get(':id')
+getUserInfo(@Param('id', ParseIntPipe) id: number): string {
+  return `Type of id is ${typeof id}`;
+}
+```
 <a href="https://docs.nestjs.com/pipes">참고 링크</a>
