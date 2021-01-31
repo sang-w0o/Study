@@ -137,3 +137,47 @@ it('should be 5', () => {
   즉 `expect()` 내에는 실제 값(테스트가 통과해야 하는 값)을 지정하고,   
   `toEqual()` 내에는 `expect()`가 반환하는 값과 일치해야하는 값을 지정해야함을 알 수 있다.
 <hr/>
+
+<h2>Unit Test 예시</h2>
+
+* 모든 책에 대한 정보를 배열로 반환하는 서비스 메소드가 있다고 하자.   
+  그렇다면 테스트 코드는 아래와 같이 작성할 수 있다.
+```ts
+describe('Get All books', () => {
+    it("Should return all array of books", () => {
+        const result = bookService.getAll();
+        expect(result).toBeInstanceOf(Array);
+    })
+})
+```
+
+* 책의 특정 id값을 받아 해당 id의 책에 대한 정보를 반환하는 `BookService#getById()`가 있다고 하자.   
+  이 메소드는 해당 id로 조회된 결과가 없을 때 `NotFoundException`을 던진다.
+```ts
+describe('Get book info by id', () => {
+
+    // 정상적인 응답 체크
+    it('Should return info about a book.', () => {
+        // 테스트를 위해 BookService#create()를 호출하여 책을 저장한다.
+        const bookId = bookService.create({
+        title: 'Test book',
+        year: 2020,
+        author: 'sangwoo'
+        });
+        const book = bookService.getById(bookId);
+        expect(book).toBeDefined();
+        expect(book.id).toEquals(bookId);
+        expect(book.title).toEqual('Test book');
+        expect(book.year).toEqual(2020);
+        expect(book.author).toEqual('sangwoo');
+    });
+
+    // 잘못된 경우로 조회한 경우에 대한 체크
+    it('Should throw an 404 error', () => {
+        // 잘못된 id 값으로 조회하여 404 에러 발생시킴
+        expect(() => {
+            bookService.getById(-1)
+        }).toThrow(NotFoundException);
+    })
+})
+```
