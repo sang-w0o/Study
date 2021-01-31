@@ -163,3 +163,62 @@ export class UserCreateDto {
   readonly phoneNumber: string;
 }
 ```
+
+* 회원 정보를 업데이트 하는 `UserUpdateDto` 클래스를 만들어보자.   
+  항상 모든 정보를 업데이트 해야하진 않기에 각 필드는 필수 속성이 아닐 것이다.   
+  즉, 들어온 필드에 대해서만 업데이트를 실시한다는 것이다.
+```ts
+import { IsEmail, IsString } from 'class-validator';
+
+export class UserUpdateDto {
+  @IsString()
+  readonly name?: string;
+
+  @IsEmail()
+  readonly email?: string;
+
+  @IsString()
+  readonly password?: string;
+
+  @IsString()
+  readonly phoneNumber?: string;
+}
+```
+
+* DTO의 필드마다 `?:` 를 주어 해당 타입이 undefined 또는 null일 수 있다고 명시할 수도 있지만,   
+  이러한 기능을 NestJS에서 제공해준다.   
+  해당 기능을 사용하려면 `@nestjs/mapped-types` 패키지를 설치한다.
+```
+yarn add @nestjs/mapped-types
+```
+
+* `@nestjs/mapped-types`는 타입을 개발자가 원하는대로 변환하고 사용하는 작업을 도와주는 패키지이다.
+
+* 사용법은 아래와 같다.
+```ts
+import { IsEmail, IsString } from 'class-validator';
+
+export class UserUpdateDto extends PartialType {
+  @IsString()
+  readonly name?: string;
+
+  @IsEmail()
+  readonly email?: string;
+
+  @IsString()
+  readonly password?: string;
+
+  @IsString()
+  readonly phoneNumber?: string;
+}
+```
+
+* `PartialType`은 Base Type이 필요한데, 이 경우 `UserUpdateDto`는 `UserCreateDto`의   
+  필드 중 일부만을 가져도 되므로 Base Type으로 `UserCreateDto`를 지정해준다.
+```ts
+import { PartialType } from '@nestjs/mapped-types';
+import { UserCreateDto } from './create-user.dto';
+
+export class UserUpdateDto extends PartialType(UserCreateDto) {}
+```
+<hr/>
