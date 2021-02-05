@@ -272,4 +272,89 @@ public void ifInformationSizeIsLess_someIndexIsSameAndSomeAreRemoved() {
 
 <h2>문제 해결</h2>
 
-* 
+* 위에서 작성한 __기존보다 더 적은 수로 업데이트할 경우__ 에 작동하는 서비스 코드를 다시 보자.
+```java
+// 기존보다 더 크기가 작을 경우
+else {
+    for(int i = 0; i < newInformationContents.size(); i++) {
+        informations.get(i).setContent(newInformationContents.get(i));
+    }
+    for(int i = newInformationContents.size(); i < informations.size(); i++) {
+        informationRepository.delete(informations.get(i));
+    }
+}
+```
+
+* 위 코드의 두 번째 for문을 보면, 더 이상 필요 없는 `Information` Entity를   
+  `informationRepository`를 통해 삭제하고 있다. 하지만 우리는 앞서 도메인 코드에서 `User`와   
+  `Information`를 `1:N` 연관 관계로 매핑했다. 여기서 문제가 발생하는데, __`Information`만__   
+  __직접적으로 삭제하면 `User`입장에서는 `Information`이 삭제되었는지 알 수 없다.__   
+
+* 말이 이해하기 쉽지 않은데, 우선 해결 방법부터 보자.
+
+* 해결법(1) : 명시적으로 `User`, `Information`입장에서 모두 삭제해주기
+  * 이 해결법은 말그대로 명시적으로 연관 관계를 가지는 두 테이블의 입장에서 모두 지워주는 것이다.   
+    코드는 아래와 같다.
+```java
+else {
+    for(int i = 0; i < newInformationContents.size(); i++) {
+        informations.get(i).setContent(newInformationContents.get(i));
+    }
+    for(int i = newInformationContents.size(); i < informations.size(); i++) {
+        Integer idToRemove = informations.get(i).getId();
+        userRepository.getInformations().removeIf(information -> information.getId().equals(idToRemove));
+        informationRepository.delete(informations.get(i));
+    }
+}
+```
+
+  * 코드에서 딱 알 수 있듯이 `User`입장에서도 삭제를 하고, `Information`입장에서도 삭제를 진행했다.   
+    이렇게 하면 테스트 코드는 모두 통과한다.
+
+* 해결법(2) : `orphanRemoval = true`로 설정하기
+  * `User`입장에서는 한 개의 `User`가 여러 `Information`을 가질 수 있다. 만약 `User` 입장에서 자신이 가진   
+    `Information`중 하나를 삭제하면, 삭제된 `Information`은 연관 관계의 주인이 없는 고아(orphan)가 된다.
+  * 이러한 경우를 쉽게 처리하기 위해 JPA 2.0 부터는 `@OneToMany`에 `orphanRemoval`이라는 속성을 지원한다.   
+    orphanRemoval에 대한 설명은 아래와 같다.
+```
+(Optional) Whether to apply the remove operation to entities that have been removed from the relationship and to cascade the remove operation to those entities.
+```
+
+  * 즉 우리의 경우, `User`에서 `Information`에 대한 삭제 연산이 작동되었을 때, `Information` 자체도   
+    고아로 남지 않고 삭제되게 하려면 이 속성을 true로 지정하면 된다.
+
+  * `User` 도메인 클래스를 아래와 같이 수정하자.
+```java
+@NoArgsConstructor
+@Getter
+@Entity
+@Table(name = "users")
+public class User {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "user_id")
+    private Integer id;
+
+    @Column
+    private String name;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Setter
+    private List<Information> informations = new ArrayList<>();
+}
+```
+
+* 마지막으로 삭제하는 부분의 서비스 코드는 아래와 같다.
+```java
+else {
+    for(int i = 0; i < newInformationContents.size(); i++) {
+        informations.get(i).setContent(newInformationContents.get(i));
+    }
+    for(int i = newInformationContents.size(); i < informations.size(); i++) {
+        Integer idToRemove = informations.get(i).getId();
+        userRepository.getInformations().removeIf(information -> information.getId().equals(idToRemove));
+    }
+}
+```
+<hr/>
