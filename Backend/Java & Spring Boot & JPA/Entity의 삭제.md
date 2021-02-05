@@ -190,5 +190,50 @@ public class UserInformationUpdateTest {
 
 * 다음으로는 위의 로직을 담당하는 서비스 코드이다.
 ```java
+@RequiredArgsConstructor
+@Service
+public class UserInformationUpdateService {
 
+    private final UserRepository userRepository;
+    private final InformationRepository informationRepository;
+
+    @Transactional
+    public void updateInformationOfUser(Integer userId, List<String> newInformationContents) {
+        User user = userRepository.findById(userId).orElseThrow(UserIdNotFoundException::new);
+        List<Information> informations = informationRepository.findByUserId(userId);
+
+        // 기존 information의 크기와 새로운 값들의 크기가 같을 경우
+        if(informations.size() == newInformationContents.size()) {
+            for(int i = 0; i < informations.size(); i++) {
+                informations.get(i).setContent(newInformationContents.get(i));
+            }
+        }
+
+        // 기존보다 크기가 더 클 경우
+        else if(informations.size() < newInformationContents.size()) {
+            for(int i = 0; i < informations.size(); i++) {
+                informations.get(i).setContent(newInformationContents.get(i));
+            }
+            for(int i = informations.size(); i < newInformationContents.size(); i++) {
+                Information newInformation = Information.builder()
+                    .user(user).content(newInformationContents.get(i));
+                informationRepository.save(newInformation);
+            }
+        }
+
+        // 기존보다 더 크기가 작을 경우
+        else {
+            for(int i = 0; i < newInformationContents.size(); i++) {
+                informations.get(i).setContent(newInformationContents.get(i));
+            }
+            for(int i = newInformationContents.size(); i < informations.size(); i++) {
+                informationRepository.delete(informations.get(i));
+            }
+        }
+    }
+}
 ```
+<hr/>
+
+<h2>테스트 코드의 결과</h2>
+
