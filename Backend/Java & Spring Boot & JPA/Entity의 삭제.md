@@ -27,9 +27,11 @@ public class User {
     @Column(name = "user_id")
     private Integer id;
 
-    // 그 외 column들
+    @Column
+    private String name;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @Setter
     private List<Information> informations = new ArrayList<>();
 }
 ```
@@ -61,6 +63,19 @@ public class Information {
     }
 }
 ```
+
+* 마지막으로 레포지토리 코드는 각각 아래와 같다.
+```java
+// UserRepository
+public interface UserRepository extends JpaRepository<User, Integer> {
+    //..
+}
+
+// InformationRepository
+public interface InformationRepository extends JpaRepository<Information, Integer> {
+    //..
+}
+```
 <hr/>
 
 <h2>서비스 코드 생각하기</h2>
@@ -83,6 +98,97 @@ public class Information {
 <h2>코드 보기</h2>
 
 * 우선 아래와 같은 테스트 코드를 작성했다.
+```java
+@RunWith(SpringRunner.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@TestPropertySource(locations = "classpath:application-test.properties")
+public class UserInformationUpdateTest {
+
+    public static final String[] INFORMATIONS = {"INFO_1", "INFO_2", "INFO_3"};
+    public static final String[] NEW_LESS_INFORMATIONS = {"NEW_INFO_1", "NEW_INFO_2"};
+    public static final String[] NEW_INFORMATIONS = {"NEW_INFO_1", "NEW_INFO_2", "NEW_INFO_3"};
+    public static final String[] NEW_MORE_INFORMATIONS = {"NEW_INFO_1", "NEW_INFO_2", "NEW_INFO_3", "NEW_INFO_4"};
+    User user;
+    Integer userId;
+
+    @Before
+    public void setUp() {
+        User user = new User("NAME");
+        List<Information> informations = Arrays.stream(INFORMATIONS)
+            .map(content -> new Information(content, user)).collect(Collectors.toList());
+        user.setInformation(informations);
+        user = userRepository.save(user);
+        userId = user.getId();
+    }
+
+    @After
+    public void cleanUp() {
+        userRepository.deleteAll();
+        informationRepository.deleteAll();
+    }
+
+    // Information의 content가 갱신되었음을 갱신하는 메소드
+    private void assertInformationContents(String[] newInformationContents) {
+        assertEquals(informationRepository.findByUserId(userId).stream().map(Information::getContent).collect(Collectors.toList()),
+        Arrays.asList(newInformationContents));
+    }
+
+    // 기존과 같은 수의 information을 저장할 때
+    @Test
+    public void ifInformationSizeIsSame_indexIsSame() {
+        List<Integer> beforeInformationId = informationRepository.stream()
+            .map(Information::getId).collect(Collectors.toList());
+        
+        // 사용자 정보 업데이트하는 API 호출
+
+        List<Integer> updatedInformationId = informationRepository.stream()
+            .map(Information::getId).collect(Collectors.toList());
+        
+        // 값 검증
+        assertInformationContents(NEW_INFORMATIONS);
+
+        // id값 검증
+        assertEquals(beforeInformationId.size(), updatedInformationId.size());
+        assertTrue(beforeInformationId.equals(updatedInformationId));
+    
+    // 기존보다 더 많은 수의 information을 저장할 때
+    @Test
+    public void ifInformationSizeIsBigger_indexIsSameAndSomeAreAdded() {
+        List<Integer> beforeInformationId = informationRepository.stream()
+            .map(Information::getId).collect(Collectors.toList());
+        
+        // 사용자 정보 업데이트하는 API 호출
+
+        List<Integer> updatedInformationId = informationRepository.stream()
+            .map(Information::getId).collect(Collectors.toList());
+        
+        // 값 검증
+        assertInformationContents(NEW_MORE_INFORMATIONS);
+
+        // id값 검증
+        assertEquals(beforeInformationId.size() + 1, updatedInformationId.size());
+        assertTrue(updatedInformationId.containsAll(beforeInformationId));
+    }
+
+    // 기존보다 더 적은 수의 information을 저장할 때
+    @Test
+    public void ifInformationSizeIsLess_someIndexIsSameAndSomeAreRemoved() {
+        List<Integer> beforeInformationId = informationRepository.stream()
+            .map(Information::getId).collect(Collectors.toList());
+        
+        // 사용자 정보 업데이트하는 API 호출
+
+        // 값 검증
+        assertInformationContents(NEW_LESS_INFORMATIONS);
+
+        // id값 검증
+        assertEquals(beforeInformationId.size() - 1, updatedInformationId.size());
+        assertTrue(beforeInformationId.containsAll(updatedInformationId));
+    }
+}
+```
+
+* 다음으로는 위의 로직을 담당하는 서비스 코드이다.
 ```java
 
 ```
