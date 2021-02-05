@@ -7,7 +7,7 @@
   * `User`라는 테이블이 있으며, `Information`이라는 테이블이 이 테이블과 `1:N` 연관의   
     관계를 가진다.
   * 사용자가 한 번에 여러 개의 `Information`들의 내용을 수정하게 할 수 있는 서비스가 필요하다.
-  * 기존에는 `informationsRepository.deleteByUserId(Integer userId)` 메소드를 사용해서   
+  * 기존에는 `informationRepository.deleteByUserId(Integer userId)` 메소드를 사용해서   
     해당 user의 `Information`을 모두 삭제한 후 새로 넣는 방식으로 작성하였으나, 이렇게 하면   
     너무나 비효율 적이고 `Information`의 AUTO_INCREMENT id값도 기하급수적으로 증가하게 되므로   
     다른 방식이 필요했다. 또한 이 상황은 사용자가 `Information` 중 몇개를 삭제하여 개수를 줄이는 경우와   
@@ -80,8 +80,8 @@ public interface InformationRepository extends JpaRepository<Information, Intege
 
 <h2>서비스 코드 생각하기</h2>
 
-* 위 코드에서 보다시피 `Information`은 고유의 AUTO_INCREMENT로 증가하는 question_id라는 PK가 있다.   
-  사용자가 여러개의 `Information`의 content를 수정하는 API를 보낼때마다 `informationsRepository.deleteByUserId(Integer userId)`를   
+* 위 코드에서 보다시피 `Information`은 고유의 AUTO_INCREMENT로 증가하는 information_id라는 PK가 있다.   
+  사용자가 여러개의 `Information`의 content를 수정하는 API를 보낼때마다 `informationRepository.deleteByUserId(Integer userId)`를   
   호출하는 것은 우선 `DELETE` query를 수행한 후 새로운 값들을 넣기 때문에 성능 상에서도 시간이 더 오래 걸리며,   
   `Information`의 id값이 수정할 때마다 증가하게 될 것이다.
 
