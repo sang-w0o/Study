@@ -237,3 +237,39 @@ public class UserInformationUpdateService {
 
 <h2>테스트 코드의 결과</h2>
 
+* 위 테스트 코드의 결과는 단 한 경우만 빼고 모두 통과한다.   
+  통과하지 못하는 케이스는 __기존보다 더 적은 개수로 업데이트 할 때__ 이다.   
+  즉, 서비스 코드의 아래 부분이 문제가 있던 것이다.
+```java
+// 기존보다 더 크기가 작을 경우
+else {
+    for(int i = 0; i < newInformationContents.size(); i++) {
+        informations.get(i).setContent(newInformationContents.get(i));
+    }
+    for(int i = newInformationContents.size(); i < informations.size(); i++) {
+        informationRepository.delete(informations.get(i));
+    }
+}
+```
+
+* 테스트 결과를 보니, id값을 검증하는 아래 부분에서 문제가 일어났다.
+```java
+// 기존보다 더 적은 수의 information을 저장할 때
+@Test
+public void ifInformationSizeIsLess_someIndexIsSameAndSomeAreRemoved() {
+    
+    // 생략
+
+    // id값 검증
+    assertEquals(beforeInformationId.size() - 1, updatedInformationId.size());
+    // 위 코드에서 문제가 발생했다!
+    assertTrue(beforeInformationId.containsAll(updatedInformationId));
+}
+```
+
+* 테스트 결과로는 __예상한 값(Expected)은 2인데, 실제 값(Actual)은 3이었다고 나왔다.__
+<hr/>
+
+<h2>문제 해결</h2>
+
+* 
