@@ -70,6 +70,90 @@
   `로드 밸런싱 활성화`를 체크 해제하여 선택하지 않고 넘어간다.
 
 - 만약 https를 사용하려 한다면 로드 밸런서를 생성하고 연결해주면 된다.
+<hr/>
+
+<h2>CodeDeploy가 수행할 작업 정의하기</h2>
+
+- 우리는 Github Action을 통해 CodeDeploy를 작동시킬 것이기 때문에  
+  CodeDeploy가 어떤 작업을 언제 수행할지를 지정해줘야 한다.
+
+- 코드가 있는 Github Repository에 `scripts` 폴더를 만들고, 아래처럼 추가해주자.
+
+- 우선은 새로운 코드를 CodeDeploy가 받아서 EC2상에서 실행 시키기 전에 할 작업을 정의한  
+  Shell Script 파일이다. 만약 기존에 Spring Boot 애플리케이션이 실행중이었다면  
+  그 프로세스를 끝내야 할 것이다.  
+  아래 파일 이름은 `delete-before-artifacts.sh`라고 했다.
+
+```sh
+rm -rf /home/ec2-user/YOUR_PROJECT_NAME
+```
+
+- 위 코드에서 `YOUR_PROJECT_NAME`에는 본인이 원하는 프로젝트명을 지정하면 된다.  
+  아래에 나오는 Shell Script 파일들에도 마찬가지로 적용하면 된다.
+
+- 만약 EC2 인스턴스가 Amazon Linux가 아니라면 `ec2-user`에 OS에 알맞게 지정해주면 된다.
+
+- 다음으로는 S3에서 파일을 받아온 후 CodeDeploy가 수행할 작업을 정의하는 Shell Script파일을 작성하자.  
+  여기서는 `change-script-permissions.sh`라 했다.
+
+```sh
+cd /home/ec2-user/YOUR_PROJECT_NAME
+
+sudo chown -R ec2-user:ec2-user /home/ec2-user/YOUR_PROJECT_NAME
+chmod 777 /home/ec2-user/YOUR_PROJECT_NAME
+chmod 777 /home/ec2-user/YOUR_PROJECT_NAME/*/**
+```
+
+- 마지막으로 애플리케이션을 실행시키는 작업을 정의한 Shell Script 파일을 작성하자.  
+  여기서는 `run-application.sh`라고 했다.
+
+```sh
+sudo pkill -6 java
+source /home/ec2-user/.env
+SPRING_PROFILES_ACTIVE=production nohup java -jar /home/ec2-user/YOUR_PROJECT_NAME/build/libs/*.jar 1>>/home/ec2-user/log/spring-log.log 2>>/home/ec2-user/log/spring-error.log &
+```
+
+- 우선 기존에 실행되고 있던 java 프로세스를 종료시킨 후, `~/.env`에서 환경 변수 파일을 읽어온다.  
+  다음으로 빌드외어 있는 `*.jar` 파일을 실행시키는데, 1번 스트림(표준 출력)은 `~/spring-log.log`로,  
+  2번 스트림(에러 출력)은 `~/spring-error.log`로 기록되게 해 놓았다.
+
+- 참고로 환경 변수가 담겨져 있는 `/home/ec2-user`하위에 있는 `.env` 파일은 아래와 같이 작성한다.
+
+```sh
+export ENVIRONMENT_VARIABLE_NAME=VALUE
+export ENVIRONMENT_VARIABLE_NAME_2=VALUE2
+```
+
+- 참고로 이 `.env` 파일에 있는 값들은 노출되면 안되는 값들이므로 Github Repository에 작성하지 않고,  
+  직접 EC2에 접속하여 작성하도록 한다.
+
+- 마지막으로 위의 Shell Script 파일들을 어떤 시점에 수행할 것인지를 정의하는 파일을  
+  작성하도록 하자. 위치는 레포지토리의 최상위로 하고, `appspec.yml`이라고 하자.
+
+```yml
+version: 0.0
+os: linux
+files:
+  - source: /
+    destination: /home/ec2-user/YOUR_PROJECT_NAME
+permissions:
+  - object: /home/ec2-user/YOUR_PROJECT_NAME
+    owner: ec2-user
+  - object: /home/ec2-user/YOUR_PROJECT_NAME/*/**
+    owner: ec2-user
+hooks:
+  BeforeInstall:
+    - location: scripts/delete-before-artifacts.sh
+  AfterInstall:
+    - location: scripts/change-script-permissions.sh
+  ApplicationStart:
+    - location: scripts/run-application.sh
+      runas: ec2-user
+```
+
+- `os`는 EC2의 OS를, `owner`, `runas`에는 위에서 Shell Script를 작성할 때와 마찬가지로  
+ 본인의 EC2 OS에 맞는 값을 지정해주면 된다.
+<hr/>
 
 <h2>Github Action 작성하기</h2>
 
