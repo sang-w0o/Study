@@ -53,3 +53,7 @@
 ![picture 2](../../images/da503088e240f716c9c9cca114e92bf975a13fd9a80c66b8306b59218772bc9e.png)
 
 <hr/>
+
+<h2>IAM Role</h2>
+
+-
