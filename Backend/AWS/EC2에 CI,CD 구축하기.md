@@ -227,6 +227,7 @@ jobs:
       # 스프링 부트 프로젝트를 빌드한다.
       - name: build
         run: ./gradlew build
+        # 아래는 빌드 시 테스트를 수행하므로 환경 변수를 지정해주는 것이다.
         env:
           DATASOURCE_URL: ${{ secrets.DATASOURCE_URL }}
           DATASOURCE_ID: ${{ secrets.DATASOURCE_ID }}
@@ -261,4 +262,16 @@ jobs:
         run: aws deploy create-deployment --application-name CodeHelper --deployment-config-name CodeDeployDefault.OneAtATime --deployment-group-name CodeHelperDeployGroup --s3-location bucket=${{ secrets.AWS_S3_BUCKET }},bundleType=zip,key=codehelper-backend.zip --region ${{ secrets.AWS_S3_REGION }} --file-exists-behavior OVERWRITE
 ```
 
-- 위의 `main.yml` 파일에 대해서 알아보자.
+- 위의 `main.yml` 파일에 대해서 알아보자.  
+  주석을 달아두긴 했지만 추가적으로 더 보면 아래와 같다.
+
+* 우선 `Congigure AWS credentials`에서 `aws-actions/configure-aws-credentials@v1`는  
+ AWS에서 제공하는 것으로 AWS에 로그인하여 해당 IAM 사용자가 특정 작업을 수행할 수 있는지를  
+ 확인하는 과정이다. 해당 부분의 아래를 보면 `with`에 `aws-access-key-id`,  
+ `aws-secret-access-key`, `aws-region`이 있는데, value 부분에  
+ `${{ secrets.AWS_ACCESS_KEY_ID }}`와 같이 작성되어 있다.  
+ 이 부부분은 `Github Secret`을 사용하는 것인데, Repository Settings에서  
+ Repository Secret에 있는 값을 읽어오는 것이다. 예를 들어 `${{ secrets.AWS_ACCESS_KEY_ID }}`라면  
+ Github Repository Secret에 `AWS_ACCESS_KEY_ID`를 추가하고, 값으로는 AWS IAM 사용자를 만들 때  
+ 발급받은 `ACCESS_KEY`를 값으로 지정해주면 된다.
+<hr/>
