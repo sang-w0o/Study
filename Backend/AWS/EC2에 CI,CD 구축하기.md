@@ -313,4 +313,26 @@ yum install wget
 - yum으로 wget을 설치한 후 아래 명령어를 입력하여  
   EC2를 위한 CodeDeploy Agent를 다운로드 받자.
 
--
+```
+wget https://aws-codedeploy-ap-northeast-2.s3.amazonaws.com/latest/install
+```
+
+- 이제 CodeDeploy Agent를 수행하면 된다.
+
+```
+sudo service codedeploy-agent start
+```
+
+- 아래 명령어로 상태를 확인할 수 있다.
+
+```
+sudo service codedeploy-agent status
+```
+
+- 위 명령어의 결과가 아래와 같으면 정상적으로 작동하고 있는 것이다.
+
+```
+The AWS CodeDeploy agent is running as PID $NUMBER.
+```
+
+<hr/>
