@@ -207,16 +207,16 @@ jobs:
   # This workflow contains a single job called "build"
   build:
     name: build and upload to s3
-    # The type of runner that the job will run on
+    # Github Action의 작업들이 수행될 가상 OS를 지정한다.
     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
+    # 각 작업(jobs)가 수행될 단계를 steps로 정의한다.
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      # Github Action이 수행될 가상 머신에 접속한다.
       - name: checkout
         uses: actions/checkout@v2
 
-      # Runs a single command using the runners shell
+      # AWS에 접속한다.
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -224,7 +224,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_S3_REGION }}
 
-      # Runs a set of commands using the runners shell
+      # 스프링 부트 프로젝트를 빌드한다.
       - name: build
         run: ./gradlew build
         env:
@@ -232,25 +232,33 @@ jobs:
           DATASOURCE_ID: ${{ secrets.DATASOURCE_ID }}
           DATASOURCE_PASSWORD: ${{ secrets.DATASOURCE_PASSWORD }}
 
+      # 빌드된 파일을 S3에 업로드 하기 위해 zip 파일로 압축한다.
+      # 여기서는 빌드된 파일, appspec.yml과 Shell Script들이 들어 있는
+      # scripts 파일도 함께 압축한다.
       - name: compress files for deploy
         run: zip -r codehelper-backend.zip build/libs appspec.yml scripts
 
+      # 압축한 zip파일을 S3에 업로드한다.
       - name: upload to s3
         run: aws s3 cp codehelper-backend.zip s3://${{ secrets.AWS_S3_BUCKET }}
 
+  # 이 아래부터는 배포 작업인데, CodeDeploy가 수행할 작업들을 정의한다.
   deploy:
     needs: build
     name: deploy to ec2
     runs-on: ubuntu-latest
 
     steps:
+      # AWS에 로그인한다.
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_S3_REGION }}
-
+      # 배포를 수행한다. run 에 수행할 작업들을 정의한다.
       - name: deploy
         run: aws deploy create-deployment --application-name CodeHelper --deployment-config-name CodeDeployDefault.OneAtATime --deployment-group-name CodeHelperDeployGroup --s3-location bucket=${{ secrets.AWS_S3_BUCKET }},bundleType=zip,key=codehelper-backend.zip --region ${{ secrets.AWS_S3_REGION }} --file-exists-behavior OVERWRITE
 ```
+
+- 위의 `main.yml` 파일에 대해서 알아보자.
