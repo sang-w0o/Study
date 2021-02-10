@@ -1,29 +1,32 @@
-<h1>EC2 인스턴스에 CI/CD 구축하기</h1>
+<h1>EC2에 SSH로 접속하여 아래 명령어를 입력해주자.
+```
+
+````인스턴스에 CI/CD 구축하기</h1>
 
 <h2>들어가며</h2>
 
-- Spring Boot를 이용해서 EC2 서버에 CI/CD를 구축하는 방법을 정리한 글이다.  
+- Spring Boot를 이용해서 EC2 서버에 CI/CD를 구축하는 방법을 정리한 글이다.
    작동 순서는 아래와 같다.
 
   1. Github의 `main` 브랜치에 `push`가 발생하면 Github Action이 작동한다.
   2. Github Action은 우선 빌드를 진행한 후, `*.zip` 파일로 압축한 후 AWS S3에 업로드한다.
   3. CodeDeploy가 작동하여 AWS S3에 업로드된 파일을 가져와 EC2 인스턴스에서 동작시킨다.
 
-- 참고로 여기서 설명하는 Spring Boot Application은 Environment Variable도 사용하기에  
+- 참고로 여기서 설명하는 Spring Boot Application은 Environment Variable도 사용하기에
  컴파일 시 환경 변수를 주입하는 방법도 다룰 것이다.
 <hr/>
 
 <h2>EC2 인스턴스 생성 및 IAM 역할 연결</h2>
 
-- EC2 인스턴스는 기존에 생성하는 것처럼 생성하면 된다.  
+- EC2 인스턴스는 기존에 생성하는 것처럼 생성하면 된다.
   한 가지 태그를 추가하는데, 키는 `Name`, 값은 원하는 값을 넣어주면 된다.
-  차이점이라면 **CodeDeploy** 가 EC2 인스턴스 상에서 작동하게 하려면  
+  차이점이라면 **CodeDeploy** 가 EC2 인스턴스 상에서 작동하게 하려면
   EC2 인스턴스에 IAM 역할을 지정해줘야 한다.
 
-- 인스턴스를 생성한 후 중지시킨 후, `작업` -> `보안` -> `IAM 역할 수정`에 가면  
+- 인스턴스를 생성한 후 중지시킨 후, `작업` -> `보안` -> `IAM 역할 수정`에 가면
   인스턴스에 IAM 역할을 지정할 수 있는데, 지정하는 필드에 적합한 IAM 역할을 생성해야 한다.
 
-- IAM Management Console로 이동해서 `역할` 로 이동하여 `EC2`를 선택한 후 아래의 2개  
+- IAM Management Console로 이동해서 `역할` 로 이동하여 `EC2`를 선택한 후 아래의 2개
   권한을 추가로 지정해주자.
   - `AmazonEC2FullAccess`
   - `AmazonS3FullAccess`
@@ -33,14 +36,14 @@
 
 <h2>AWS S3 Bucket 생성하기</h2>
 
-- AWS S3에 새로운 Bucket을 만들어야 하는데, public access는 막아 놓고  
+- AWS S3에 새로운 Bucket을 만들어야 하는데, public access는 막아 놓고
  원하는 이름으로 만든다. 이 예제에서는 `Example Bucket`이라 하겠다.
 <hr/>
 
 <h2>Github Action을 수행할 IAM 사용자 생성</h2>
 
-- 파일을 작성하기 이전에 Github Action에서 S3에 파일을 업로드하고, CodeDeploy를 수행시킬 수 있는  
-  작업을 가진 IAM 사용자가 필요하다. 새로운 IAM 사용자를 IAM Management Console에서 생성한 후,  
+- 파일을 작성하기 이전에 Github Action에서 S3에 파일을 업로드하고, CodeDeploy를 수행시킬 수 있는
+  작업을 가진 IAM 사용자가 필요하다. 새로운 IAM 사용자를 IAM Management Console에서 생성한 후,
   ACCESS_KEY와 SECRET_ACCESS_KEY를 발급받아야 하며, 이 사용자에게는 아래의 권한을 주자.
 
   - `AmazonEC2FullAccess`
@@ -58,15 +61,15 @@
   - AWS S3에서 압축되어 업로드되어 있는 `*.zip` 파일을 다운로드 한다.
   - 파일을 받은 후 압축을 풀고 Spring Boot 애플리케이션을 수행한다.
 
-- 우선 CodeDeploy 콘솔로 이동해서 `애플리케이션 생성` 을 클릭하여 애플리케이션을 생성하자.  
-  이름에는 원하는 이름을 넣는데, 여기서는 `ExampleApplication`이라 하겠다.  
+- 우선 CodeDeploy 콘솔로 이동해서 `애플리케이션 생성` 을 클릭하여 애플리케이션을 생성하자.
+  이름에는 원하는 이름을 넣는데, 여기서는 `ExampleApplication`이라 하겠다.
   컴퓨팅 플랫폼은 우리는 EC2를 사용하기에 `EC2/온프레미스` 를 선택한 후 생성한다.
 
-- 다음으로는 CodeDeploy 배포 그룹을 생성하자.  
-  배포 그룹 이름을 지정하자. 여기서는 `ExampleDeployGroup`이라 하겠다.  
-  서비스 역할에는 우리가 EC2 IAM Role에 지정한 역할을 선택한다.  
-  배포 유형은 `현재 위치`를 선택하고, 환경 구성은 `Amazon EC2 인스턴스`를 선택한다.  
-  배포 설정에서는 `CodeDeployDefault.AllAtOnce`를 선택하고, 로드 밸런서에서는  
+- 다음으로는 CodeDeploy 배포 그룹을 생성하자.
+  배포 그룹 이름을 지정하자. 여기서는 `ExampleDeployGroup`이라 하겠다.
+  서비스 역할에는 우리가 EC2 IAM Role에 지정한 역할을 선택한다.
+  배포 유형은 `현재 위치`를 선택하고, 환경 구성은 `Amazon EC2 인스턴스`를 선택한다.
+  배포 설정에서는 `CodeDeployDefault.AllAtOnce`를 선택하고, 로드 밸런서에서는
   `로드 밸런싱 활성화`를 체크 해제하여 선택하지 않고 넘어간다.
 
 - 만약 https를 사용하려 한다면 로드 밸런서를 생성하고 연결해주면 된다.
@@ -74,19 +77,19 @@
 
 <h2>CodeDeploy가 수행할 작업 정의하기</h2>
 
-- 우리는 Github Action을 통해 CodeDeploy를 작동시킬 것이기 때문에  
+- 우리는 Github Action을 통해 CodeDeploy를 작동시킬 것이기 때문에
   CodeDeploy가 어떤 작업을 언제 수행할지를 지정해줘야 한다.
 
 - 코드가 있는 Github Repository에 `scripts` 폴더를 만들고, 아래처럼 추가해주자.
 
-- 우선은 새로운 코드를 CodeDeploy가 받아서 EC2상에서 실행 시키기 전에 할 작업을 정의한  
-  Shell Script 파일이다. 만약 기존에 Spring Boot 애플리케이션이 실행중이었다면  
-  그 프로세스를 끝내야 할 것이다.  
+- 우선은 새로운 코드를 CodeDeploy가 받아서 EC2상에서 실행 시키기 전에 할 작업을 정의한
+  Shell Script 파일이다. 만약 기존에 Spring Boot 애플리케이션이 실행중이었다면
+  그 프로세스를 끝내야 할 것이다.
   아래 파일 이름은 `delete-before-artifacts.sh`라고 했다.
 
 ```sh
 rm -rf /home/ec2-user/YOUR_PROJECT_NAME
-```
+````
 
 - 위 코드에서 `YOUR_PROJECT_NAME`에는 본인이 원하는 프로젝트명을 지정하면 된다.  
   아래에 나오는 Shell Script 파일들에도 마찬가지로 적용하면 된다.
@@ -259,19 +262,55 @@ jobs:
           aws-region: ${{ secrets.AWS_S3_REGION }}
       # 배포를 수행한다. run 에 수행할 작업들을 정의한다.
       - name: deploy
-        run: aws deploy create-deployment --application-name CodeHelper --deployment-config-name CodeDeployDefault.OneAtATime --deployment-group-name CodeHelperDeployGroup --s3-location bucket=${{ secrets.AWS_S3_BUCKET }},bundleType=zip,key=codehelper-backend.zip --region ${{ secrets.AWS_S3_REGION }} --file-exists-behavior OVERWRITE
+        run: aws deploy create-deployment --application-name ExampleApplication --deployment-config-name CodeDeployDefault.OneAtATime --deployment-group-name ExampleDeployGroup --s3-location bucket=${{ secrets.AWS_S3_BUCKET }},bundleType=zip,key=example-backend.zip --region ${{ secrets.AWS_S3_REGION }} --file-exists-behavior OVERWRITE
 ```
 
 - 위의 `main.yml` 파일에 대해서 알아보자.  
   주석을 달아두긴 했지만 추가적으로 더 보면 아래와 같다.
 
 * 우선 `Congigure AWS credentials`에서 `aws-actions/configure-aws-credentials@v1`는  
- AWS에서 제공하는 것으로 AWS에 로그인하여 해당 IAM 사용자가 특정 작업을 수행할 수 있는지를  
- 확인하는 과정이다. 해당 부분의 아래를 보면 `with`에 `aws-access-key-id`,  
- `aws-secret-access-key`, `aws-region`이 있는데, value 부분에  
- `${{ secrets.AWS_ACCESS_KEY_ID }}`와 같이 작성되어 있다.  
- 이 부부분은 `Github Secret`을 사용하는 것인데, Repository Settings에서  
- Repository Secret에 있는 값을 읽어오는 것이다. 예를 들어 `${{ secrets.AWS_ACCESS_KEY_ID }}`라면  
- Github Repository Secret에 `AWS_ACCESS_KEY_ID`를 추가하고, 값으로는 AWS IAM 사용자를 만들 때  
- 발급받은 `ACCESS_KEY`를 값으로 지정해주면 된다.
-<hr/>
+  AWS에서 제공하는 것으로 AWS에 로그인하여 해당 IAM 사용자가 특정 작업을 수행할 수 있는지를  
+  확인하는 과정이다. 해당 부분의 아래를 보면 `with`에 `aws-access-key-id`,  
+  `aws-secret-access-key`, `aws-region`이 있는데, value 부분에  
+  `${{ secrets.AWS_ACCESS_KEY_ID }}`와 같이 작성되어 있다.  
+  이 부부분은 `Github Secret`을 사용하는 것인데, Repository Settings에서  
+  Repository Secret에 있는 값을 읽어오는 것이다. 예를 들어 `${{ secrets.AWS_ACCESS_KEY_ID }}`라면  
+  Github Repository Secret에 `AWS_ACCESS_KEY_ID`를 추가하고, 값으로는 AWS IAM 사용자를 만들 때  
+  발급받은 `ACCESS_KEY`를 값으로 지정해주면 된다.
+
+* 한국의 경우 AWS Region이 ap-northeast-2이므로 이 값을 `AWS_S3_REGION`을 key로 하는  
+  Github Secret에 추가해주자. 또한 `AWS_S3_BUCKET`은 빌드 파일을 압축하여 업로드하는 용도로 만든  
+  S3의 Bucket명을 지정해주면 된다.
+
+* 마지막으로 가장 아래에 있는 명령어를 보자.
+
+```sh
+aws deploy create-deployment --application-name ExampleApplication --deployment-config-name CodeDeployDefault.OneAtATime --deployment-group-name ExampleDeployGroup --s3-location bucket=${{ secrets.AWS_S3_BUCKET }},bundleType=zip,key=example-backend.zip --region ${{ secrets.AWS_S3_REGION }} --file-exists-behavior OVERWRITE
+```
+
+- 위 명령어들은 `aws deploy` 명렁을 실행하는데, `create-deployment`는 새로운 배포를 생성한다는 것을  
+  의미하고, `--application-name`은 배포가 생성될 CodeDeploy 애플리케이션을 의미한다.  
+  `--deployment-config-name`은 배포할 때의 설정을 의미한다. 위에서는 `CodeDeployDefault.OneAtATime`을  
+  지정했는데, 이는 우리가 CodeDeploy에서 배포 그룹을 생성할 때의 작업과 일치한다.  
+  `--deployment-group-name`은 우리가 CodeDeploy Console에서 생성한 배포 그룹명을 지정하면 되며,  
+  `--s3-location bucket`는 빌드 파일을 다운로드할 S3 Bucket명을 지정하는 옵션이다.  
+  `bundleType`은 우리가 업로드한 파일이 zip파일이라는 것을 의미하며, `key`값은  
+  그 zip파일의 이름이다. 속성명이 `key`인 이유는 S3 Bucket은 각 객체명을 `key`로 구분하기 때문이다.  
+  `--region`은 S3 Bucket, CodeDeploy가 수행될 AWS Region을 의미하며, 마지막으로  
+  `--file-exists-behavior`는 기존에 S3에 같은 key의 객체가 존재할 때 어떻게 처리할지를 지정한다.  
+  위에서는 `OVERWRITE`를 지정함으로써 기존 파일을 덮어쓰도록 지정했다.
+
+- <hr/>
+
+<h2>EC2에 CodeDeploy Agent 설치하기</h2>
+
+- EC2에 SSH로 접속하여 아래 명령어를 입력해주자.
+
+```sh
+yum install wget
+```
+
+- yum으로 wget을 설치한 후 아래 명령어를 입력하여  
+  EC2를 위한 CodeDeploy Agent를 다운로드 받자.
+
+-
