@@ -152,8 +152,31 @@ hooks:
 ```
 
 - `os`는 EC2의 OS를, `owner`, `runas`에는 위에서 Shell Script를 작성할 때와 마찬가지로  
- 본인의 EC2 OS에 맞는 값을 지정해주면 된다.
-<hr/>
+  본인의 EC2 OS에 맞는 값을 지정해주면 된다.
+
+- `hooks`에 있는 `BeforeInstall` 와 같은 것들은 CodeDeploy의 단계인데, 단계들은 아래와 같다.
+
+  - `ApplicationStop`
+  - `DownloadBundle`
+  - `BeforeInstall`
+  - `Install`
+  - `AfterInstall`
+  - `ApplicationStart`
+  - `ValidateService`
+
+- 위 단계들 중 `ApplicationStop`은 CodeDeploy가 EC2에서 실행되고 있던  
+  기존의 애플리케이션을 중지시키는 작업이다.
+- `DownloadBundle`은 S3에서 우리가 업로드할 `*.zip` 파일을 받아오는 것이며,  
+  `BeforeInstall`는 애플리케이션을 실행하기 전에, `Install`은 애플리케이션 설치,  
+  `AfterInstall`은 설치 후에, `ApplicationStart`는 애플리케이션을 실행하는 것을 의미한다.  
+  `ValidateService`는 EC2의 상태 등을 확인하는 작업을 수행한다.
+
+* 위의 `appspec.yml` 파일에서 우리는 `BeforeInstall`, `AfterInstall`, `ApplicationStart`에  
+  대해 각 단계에서 수행할 작업들을 정의한 script 파일을 지정함으로써 우리가 원하는 작업을  
+  수행하도록 했다.
+
+* 다음으로 위에서 작성한 `appspec.yml`, Shell Script 파일들을 수행시킬 Github Action을 정의하자.
+  <hr/>
 
 <h2>Github Action 작성하기</h2>
 
