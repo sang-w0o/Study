@@ -176,7 +176,7 @@ hooks:
   수행하도록 했다.
 
 * 다음으로 위에서 작성한 `appspec.yml`, Shell Script 파일들을 수행시킬 Github Action을 정의하자.
-  <hr/>
+<hr/>
 
 <h2>Github Action 작성하기</h2>
 
