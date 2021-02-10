@@ -336,3 +336,24 @@ The AWS CodeDeploy agent is running as PID $NUMBER.
 ```
 
 <hr/>
+
+<h2>결론</h2>
+
+- 이제 main 브랜치에 push가 일어나면 자동적으로 새로운 코드가  
+  EC2로 배포될 것이다. 여기서 한가지 유의할 점은 지금 방식은  
+  기존에 켜져 있던 Spring Application을 종료한 후 새로운 코드를 받아  
+  실행하기 때문에 다운 타임이 발생한다는 것이다. 또한 Spring Application 자체로도  
+  실행되기 까지 소요되는 시간이 약 10~15초가 있다.
+
+- 이를 해결하는 방법에는 CodeDeploy 배포 방식에서 `Blue/Green Deployment`를 선택하면 된다.  
+  물론 이 방식을 사용하면 다운타임은 발생하지 않지만 Load Balancer 등과 같은 추가적인 설정을 해줘야 한다.
+
+- 개인적인 생각이지만 요즘에는 백엔드 애플리케이션을 수행할 때 Docker Image로 빌드하여 Docker Container에서  
+  수행하는 것이 거의 당연하게 여겨지고, 이를 위해 AWS에서 Docker Image를 수행하는 Container만을 제공하는데,  
+  이는 AWS ECS, Fargate를 사용하면 된다.
+
+- ECS, Fargate에 대한 설명과 이 서비스를 이용한 `Blue/Green Deployment`를  
+  Github Action으로 구축하는 방법에 대한 설명은 아래 링크에 있다.
+  <a href="https://github.com/sangwoo-98/Study/blob/master/Backend/AWS/ECS%2C%20Fargate.md">AWS ECS, Fargate에 대해</a>
+
+<hr/>
