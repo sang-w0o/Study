@@ -350,7 +350,7 @@ The AWS CodeDeploy agent is running as PID $NUMBER.
   이는 AWS ECS, Fargate를 사용하면 된다.
 
 - ECS, Fargate에 대한 설명과 이 서비스를 이용한 `Blue/Green Deployment`를  
-  Github Action으로 구축하는 방법에 대한 설명은 아래 링크에 있다.
+  Github Action으로 구축하는 방법에 대한 설명은 아래 링크에 있다.  
   <a href="https://github.com/sangwoo-98/Study/blob/master/Backend/AWS/ECS%2C%20Fargate.md">AWS ECS, Fargate에 대해</a>
 
 <hr/>
