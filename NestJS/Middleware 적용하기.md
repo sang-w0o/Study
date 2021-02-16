@@ -73,3 +73,52 @@ consumer
 ```
 
 <hr/>
+
+<h2>함수형 Middleware 사용하기</h2>
+
+- 만약 Middleware에서 수행하는 작업들이 그리 복잡하거나 많지 않다면 함수형 Middleware를 사용하자.  
+  위의 `LoggerMiddleware`를 함수형으로 바꾸면 아래와 같다.
+
+```ts
+export function logger(req: Request, res: Response, next: NextFunction) {
+  console.log("This is logged by LoggerMiddleware");
+  next();
+}
+```
+
+- 마찬가지로 이를 `AppModule`에 적용해보자.
+
+```ts
+consumer.apply(logger).forRoutes(UserController);
+```
+
+- 함수형 Middleware를 사용하면 코드가 간결해지는 것 뿐만 아니라  
+  의존성 주입에 대한 신경을 쓰지 않아도 된다는 장점이 있다.
+
+<hr/>
+
+<h2>여러 개의 Middleware 사용하기</h2>
+
+- 만약 여러 개의 Middleware들을 적용하고 싶다면, `apply()` 메소드에 컴마를 구분으로 인자에 넣으면 된다.
+
+```ts
+consumer.apply(cors(), helmet(), logger).forRoutes(UserController);
+```
+
+<hr/>
+
+<h2>전역 Middleware 사용하기</h2>
+
+- 등록된 모든 Route들에 대해 Middleware를 적용하고 싶다면, 모듈의 최상단인  
+  `AppModule`을 실행하는 `main.ts`에 아래와 같이 `use()` 함수를 사용하면 된다.
+
+```ts
+// main.ts
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  app.use(logger);
+  await app.listen(3000);
+}
+bootstrap();
+```
