@@ -13,3 +13,19 @@
 - Cross-Origin Request의 예시를 들어보자.  
   JavaScript로 작성된 프론트엔드 코드가 작동하는 `https://domain-a.com`에서 `XMLHttpRequest`를 사용하여  
   `https://domain-b.com/data.json` 파일에 HTTP 요청을 보낸다고 해보자.
+
+- 보안 상의 문제로, 브라우저 차원에서 JS, TS와 같은 스크립트 언어에서 호출한 cross-origin 요청들은 막아진다.
+  예를 들어, `XMLHttpRequest`와 `Fetch API`는 cross-origin policy가 아닌 same-origin policy를 따른다.  
+  same-origin policy를 따른 다는 것은, `XMLHttpRequest`, `Fetch API`를 사용하는 웹 애플리케이션은  
+  해당 애플리케이션이 로딩된 동일한 origin에 대해서만 리소스 요청을 보낼 수 있다는 것이다.  
+  만약 요청이 CORS 헤더 정보를 담으면, CORS 요청도 가능해진다.
+
+- 아래 그림은 same-origin과 cross-origin 요청에 대한 간략한 설명이다.
+
+![picture 1](images/cc515be9aa904229abb84fa4f35cc26645297445f34af58904c11e9e185b468e.png)
+
+- CORS 메커니즘은 브라우저와 서버 사이의 cross-origin 요청과 데이터 송수신에 대한 보안을 지원한다.  
+  최근, 거의 모든 브라우저들은 `XMLHttpRequest`, `Fetch`와 같은 API에서 CORS를 사용해 cross-origin HTTP 요청에 대한  
+  위험성을 최소화 한다.
+
+he CORS mechanism supports secure cross-origin requests and data transfers between browsers and servers. Modern browsers use CORS in APIs such as XMLHttpRequest or Fetch to mitigate the risks of cross-origin HTTP requests.
