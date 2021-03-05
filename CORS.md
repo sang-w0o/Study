@@ -41,6 +41,7 @@
 
 - 추가적으로, 서버는 요청과 함께 보내져야 할 클라이언트에게 인증에 대한 정보(Credentials, 쿠키, HTTP Authentication 등)를 요구할 수 있다.
 
-CORS failures result in errors, but for security reasons, specifics about the error are not available to JavaScript. All the code knows is that an error occurred. The only way to determine what specifically went wrong is to look at the browser's console for details.
-
-Subsequent sections discuss scenarios, as well as provide a breakdown of the HTTP headers used.
+- CORS의 실패는 에러로 처리되는데, 보안적 문제로 에러에 대한 정확한 정보는 JavaScript에서 확인할 수 없다.  
+ 에러 코드로 확인할 수 있는 정보는 에러가 발생했다는 것 뿐이다. 정확히 무엇이 잘못되었는지에 대해서는 브라우저의  
+ 콘솔을 확인하는 방법 외에는 없다.
+<hr/>
