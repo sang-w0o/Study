@@ -40,3 +40,16 @@
   특정 리로스에 대해서만 이 객체를 사용하는 것은 메모리 초과 등의 문제를 일으킬 수 있다.
 
 <hr/>
+
+# AuthenticationManager
+
+- `AuthenticationManager`는 Spring Security의 `Filter`들이 어떻게 작동할 것인지를 정의하는 API이다.  
+  `Filter`에 의해 반환된 `Authentication`객체는 `AuthenticationManager`를 동작시킨 "컨트롤러"에 의해  
+  `SecurityContextHolder`에 저장된다.(컨트롤러는 Spring Security의 Filter 등을 포함한다.)
+
+- 만약 Spring Security의 `Filter`를 사용하지 않는다면, `AuthenticationManager`를 사용하지 않고  
+  직접 `Authentication` 객체를 `SecurityContextHolder`에 넣어줄 수 있다.
+
+- `AuthenticationManager`의 구현체는 다양하지만, 주로 `ProviderManager` 구현체가 사용된다.
+
+<hr/>
