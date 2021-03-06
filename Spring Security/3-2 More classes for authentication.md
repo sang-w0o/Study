@@ -53,3 +53,17 @@
 - `AuthenticationManager`의 구현체는 다양하지만, 주로 `ProviderManager` 구현체가 사용된다.
 
 <hr/>
+
+# ProviderManager
+
+- `ProviderManager`는 가장 많이 쓰이는 `AuthenticationManager`의 구현 클래스이다.
+  또한 `ProviderManager`는 `AuthenticationProvider`들로 이루어진 리스트를 가진다.  
+  각 `AuthenticationProvider`는 요청된 인증이 성공했는지, 실패했는지, 또는 그 단계에서는 판별할 수 없다고  
+  판단했을 때에는 다른 `AuthenticationProvider`가 성공 여부를 결정할 수 있다. 만약 설정된 `AuthenticationProvider`들 중  
+  인증에 대한 처리를 할 수 있는 클래스가 없다면, 인증은 `ProviderNotFoundException` 예외를 던지며 실패한다.  
+  `ProviderNotFoundException`은 `AuthenticationException` 중 하나로, 해당 인증을 처리기 위해  
+  `ProviderManager`가 알맞게 설정되어 있지 않았을 때 던져지는 예외 클래스이다.
+
+- 아래 그림은 `ProviderManager`와 `AuthenticationManager`들의 관계를 나타낸 그림이다.
+
+![picture 2](../images/fa6f9ed85d6b184c14846ce3aa9352dab1cbb977ed1666af2a3bc60c903eb6e0.png)
