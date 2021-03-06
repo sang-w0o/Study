@@ -85,3 +85,15 @@
   예를 들어 여러 개의 `SecurityFilterChain` 인스턴스들이 동일한 인증 방식을 사용한다면 공통적인 인증 방식을  
   부모 클래스인 `AuthenticationManager`의 구현체에 정의하면 되고, 각자 다른 인증 방식들에 대해서는  
   각각의 `ProviderManager` 인스턴스 내에 정의하면 된다.
+
+![picture 4](../images/be555234fafb4b9419e69a67ca6208f9cdd19eb743d51747fc9d23503de44bc2.png)
+
+- 기본적으로 `ProviderManager`는 성공적인 인증 요청에 의해 반환되는 `Authentication`객체의 민감한 인증 정보를 지우려고 한다.  
+  이는 비밀번호와 같은 비밀 정보가 `HttpSession`에 필요 이상으로 유지되는 것을 방지한다.  
+  이러한 행위는 Stateless 애플리케이션에서 성능 향상을 위해 사용자 정보를 cache화 시킬 때 문제를 발생시킬 수 있다.  
+  만약 `Authentication`객체가 `UserDetails` 인스턴스와 같이 cache내의 객체와 연관되어 있을 때,  
+  `ProviderManager`가 해당 객체를 cache에서 지워버리려 하기에 더 이상 cache내의 정보로 인증을 진행할 수 없을 수도 있다.  
+  따라서 cache를 사용할 때에는 이에 항상 유념해야 한다. 이 방식을 `ProviderManager`의 eraseCredentialsAfterAuthentication  
+  속성을 설정하여 막을 수도 있다.
+
+<hr/>
