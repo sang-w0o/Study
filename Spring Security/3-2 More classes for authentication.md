@@ -67,3 +67,21 @@
 - 아래 그림은 `ProviderManager`와 `AuthenticationManager`들의 관계를 나타낸 그림이다.
 
 ![picture 2](../images/fa6f9ed85d6b184c14846ce3aa9352dab1cbb977ed1666af2a3bc60c903eb6e0.png)
+
+- 실제로 각 `AuthenticationProvider`는 특정 형식의 인증을 어떻게 처리해야 할지 알고 있다.  
+   예를 들어, 하나의 `AuthenticationProvider`는 username/password 형식의 인증을 처리할 수 있는 반면에  
+   다른 `AuthenticationProvider`는 SAML Assertion에 대한 인증을 수행할 수 있다.  
+   이는 각 `AuthenticationProvider`가 특정 인증 방식에 대한 인증을 수행할 수 있게 해주며, 이를 통해  
+   여러 가지의 인증 방식을 지원할 수 있도록 해준다. 그리고 `AuthenticationProvider`들은 하나의 `AuthenticationManager`로  
+   묶여 있기에 Spring 차원에서는 한 개의 bean만 등록되는 것으로 처리된다.
+
+- `ProviderManager`는 만약 해당 인스턴스가 가진 `AuthenticationProvider`들 중 인증을 처리할 수 있는  
+  `AuthenticationProvider`가 없다면 수행될 부모 클래스인 `AuthenticationManager`를 설정할 수도 있다.  
+  부모 클래스는 `AuthenticationManager`의 구현체이기만 하면 되는데, 대부분의 경우 `ProviderManager`의 인스턴스가 사용된다.
+
+![picture 3](../images/e35f905238ad07606d69b88b03cc2e435b74f20a4f33553c1f160f4502855cf6.png)
+
+- 동일한 `AuthenticationManager`의 구현체를 부모 클래스를 두는 `ProviderManager` 인스턴스들이 다중으로 있을 수도 있다.  
+  예를 들어 여러 개의 `SecurityFilterChain` 인스턴스들이 동일한 인증 방식을 사용한다면 공통적인 인증 방식을  
+  부모 클래스인 `AuthenticationManager`의 구현체에 정의하면 되고, 각자 다른 인증 방식들에 대해서는  
+  각각의 `ProviderManager` 인스턴스 내에 정의하면 된다.
