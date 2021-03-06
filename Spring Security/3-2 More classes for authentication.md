@@ -97,3 +97,11 @@
   속성을 설정하여 막을 수도 있다.
 
 <hr/>
+
+# AuthenticationProvider
+
+- 위에서 봤듯이, 여러 개의 `AuthenticationProvider`는 `ProviderManager`에 의존성 주입이 될 수 있다.  
+  각 `AuthenticationProvider` 인스턴스는 특정 형식의 인증을 진행한다. 예를 들어 `DaoAuthenticationProvider`는  
+  username/password 방식의 인증을 지원하는 반면, `JwtAuthenticationProvider`는 JWT Token에 대한 인증을 진행한다.
+
+<hr/>
