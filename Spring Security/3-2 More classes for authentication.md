@@ -105,3 +105,17 @@
   username/password 방식의 인증을 지원하는 반면, `JwtAuthenticationProvider`는 JWT Token에 대한 인증을 진행한다.
 
 <hr/>
+
+# Request Credentials with AuthenticationEntryPoint
+
+- `AuthenticationEntryPoint`는 클라이언트에게 요청에 대한 정보(credentials)를 달라고 요구하는 HTTP 응답을 보낼 때 사용된다.
+
+- 때로는 클라이언트가 특정 리로스에 대한 요청을 보내기 위해 username/password와 같은 요청 인증 정보(credentials)를  
+  직접 전달할 수 있다. 이 경우에, 이미 요청에 필요한 인증 정보들이 모두 제공되었으므로  
+  Spring Security는 요청에 대한 정보를 달라는 HTTP 응답을 보낼 필요가 없다.
+
+- 하지만 위의 경우와 다르게 인증 정보가 필요하지만, 해당 정보가 누락된 채로 리소스에 대한 요청이 왔을 때  
+  `AuthenticationEntryPoint`의 구현체가 클라이언트에게 인증 정보를 달라고 요청할 수 있다.  
+  이 클래스의 구현체는 로그인 페이지로 이동시키거나, WWW-Authenticate 헤더를 포함하여 응답하는 등의 방식을 사용한다.
+
+<hr/>
