@@ -138,4 +138,17 @@
   예를 들어, 자식 클래스들 중 하나인 `UsernamePasswordAuthenticationFilter`가 사용되었다면, 이 클래스는  
   제공된 `HttpServletRequest`에 제공된 username과 password를 통해 `UsernamePasswordAuthenticationToken`을 만든다.
 
-- (2) :
+- (2) : `Authentication` 객체가 인증이 되기 위해 `AuthenticationManager`로 전달된다.
+- (3) : 만약 인증이 실패하면, 아래의 작업이 수행된다.
+  1. `SecurityContextHolder`가 가지는 `SecurityContext`가 메모리 초기화 된다.
+  2. `RememberMeServices#loginFail()`이 호출된다. 만약 remember me가 설정되어 있지 않다면, 이 단계는 건너뛴다.
+  3. `AuthenticationFailureHandler`가 호출되어 작업을 넘긴다.
+- (4) : 만약 인증이 성공하면, 아래의 작업이 수행된다.
+  1. `SessionAuthenticationStrategy`에게 새로운 로그인이 성공했다고 알린다.
+  2. `Authentication`객체가 `SecurityContextHolder`에 "set" 된다.  
+     추후에 `SecurityContextPersistenceFilter`가 `SecurityContext`를 `HttpSession`에 저장한다.
+  3. `RememberMeServices#loginSuccess()`가 호출된다. 마찬가지로 remember me가 설정되어 있지 않다면, 이 단계는 건너뛴다.
+  4. `ApplicationEventPublisher`가 `InteractiveAuthenticationSuccessEvent`를 호출한다.
+  5. `AuthenticationSuccessHandler`가 호출된다.
+
+<hr/>
