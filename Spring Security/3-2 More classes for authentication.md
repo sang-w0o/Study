@@ -129,3 +129,13 @@
 - 인증에 대한 정보가 정상적으로 제공되면, `AbstractAuthenticationProcessingFilter`가 인증 요청에 대한 인증 작업을 수행할 수 있다.
 
 ![picture 2](../images/000f62bfa03fa56c1cff018c877e5f01efd480abbfda6f26fcff6d9b9917e983.png)
+
+- 위 그림에 대한 순서대로의 설명은 아래와 같다.
+
+- (1) : 사용자가 인증 정보화 함께 요청을 보내면, `AbstractAuthenticationProcessingFilter`는 `HttpServletRequest`로부터  
+  `Authentication` 객체를 만들어내 인증을 진행할 준비를 한다. `Authentication`의 구현체의 타입은  
+  `AbstractAuthenticationProcessingFilter`의 자식 클래스에 의해 결정된다.  
+  예를 들어, 자식 클래스들 중 하나인 `UsernamePasswordAuthenticationFilter`가 사용되었다면, 이 클래스는  
+  제공된 `HttpServletRequest`에 제공된 username과 password를 통해 `UsernamePasswordAuthenticationToken`을 만든다.
+
+- (2) :
