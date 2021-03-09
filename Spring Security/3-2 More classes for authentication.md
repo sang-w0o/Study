@@ -119,3 +119,13 @@
   이 클래스의 구현체는 로그인 페이지로 이동시키거나, WWW-Authenticate 헤더를 포함하여 응답하는 등의 방식을 사용한다.
 
 <hr/>
+
+# AbstractAuthenticationProcessingFilter
+
+- `AbstractAuthenticationProcessingFilter`는 사용자의 인증 정보에 대한 인증을 수행하기 위한 기본적인 `Filter`이다.  
+  인증 정보가 인증이 되기 위한 절차를 밟기 전에, Spring Security는 `AuthenticationEntryPoint`를 사용하여  
+  인증에 대한 정보를 요청한다.
+
+- 인증에 대한 정보가 정상적으로 제공되면, `AbstractAuthenticationProcessingFilter`가 인증 요청에 대한 인증 작업을 수행할 수 있다.
+
+![picture 2](../images/000f62bfa03fa56c1cff018c877e5f01efd480abbfda6f26fcff6d9b9917e983.png)
