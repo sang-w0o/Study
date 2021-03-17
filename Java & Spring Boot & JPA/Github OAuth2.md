@@ -19,3 +19,8 @@ dependencies {
 ```
 
 <hr/>
+
+<h2>Spring Security Configuration</h2>
+<h2>Service</h2>
+<h2>Handlers</h2>
+<h2>Exception handling</h2>
