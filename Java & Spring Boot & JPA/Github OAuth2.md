@@ -9,3 +9,13 @@
 <h2>Spring Security 도입하기</h2>
 
 - Spring Security는 Google, Facebook, Github 등에 대한 OAuth2 지원을 기본적으로 해준다.
+- 우선 Spring Security를 통해 OAuth를 사용하기 위한 의존성은 아래와 같다.
+
+```gradle
+dependencies {
+    // Other dependencies..
+    implementation('org.springframework.boot:spring-boot-starter-oauth2-client')
+}
+```
+
+<hr/>
