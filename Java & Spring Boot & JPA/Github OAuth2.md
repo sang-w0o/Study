@@ -105,6 +105,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 <hr/>
 
-<h2>Service</h2>
-<h2>Handlers</h2>
-<h2>Exception handling</h2>
+<h2>OAuthAttributes</h2>
+
+- <h2>Service</h2>
+  <h2>Exception Handling</h2>
+  <h2>Handlers</h2>
