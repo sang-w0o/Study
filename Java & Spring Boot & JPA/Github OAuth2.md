@@ -126,6 +126,61 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 - 이제 OAuth2 인증을 수행한 후 정보가 담길 클래스를 작성해보자.
 
-* <h2>Service</h2>
+```java
+@Getter
+public class OAuthAttributes {
+    private Map<String, Object> attributes;
+    private String nameAttributeKey;
+    private String name;
+    private String email;
+
+    @Builder
+    public OAuthAttributes(Map<String, Object> attributes, String nameAttributeKey, String name, String email) {
+        this.attributes = attributes;
+        this.nameAttributeKey = nameAttributeKey;
+        this.name = name;
+        this.email = email;
+    }
+
+    public static OAuthAttributes ofGithub(String userNameAttributeName, Map<String, Object> attributes) {
+        if(attributes.get("email") == null) {
+            throw new GithubEmailNotPublicException("깃허브 링크에 Public Email이 없습니다. 설정 후 다시 시도해 주세요.");
+        }
+
+        return OAuthAttributes.builder()
+                .name((String) attributes.get("login"))
+                .email((String) attributes.get("email"))
+                .attributes(attributes)
+                .nameAttributeKey(userNameAttributeName)
+                .build();
+    }
+
+    public User toEntity() {
+        return User.builder()
+                .name(name)
+                .email(email)
+                .role(UserRole.ROLE_USER)
+                .auth(UserAuth.GITHUB)
+                .build();
+    }
+}
+```
+
+- 위의 `OAuthAttributes` 클래스의 필드들에 대해 알아보자.
+
+  - 우선 `nameAttributeKey`는 어떠한 OAuth2 서비스를 이용하는지를 구분해준다.  
+    예를 들어, Github, Google, Naver의 경우 이 값은 모두 각각 다를 것이다.
+  - `attributes`는 OAuth에서 제공받은 정보들을 담는 필드이다.  
+    깃허브의 경우에는 name, id, avatar_url, company, location, email, bio, public_repos 등의  
+    다양한 정보를 읽어와서 제공해준다. 이 데이터들을 출력해보고 싶다면 `OAuthAttributes#ofGithub()`내에  
+    아래 코드를 추가해봐도 된다.
+
+```java
+attributes.forEach((key, value) -> System.out.println(key + ": " + value));
+```
+
+<hr/>
+
+- <h2>Service</h2>
   <h2>Exception Handling</h2>
   <h2>Handlers</h2>
