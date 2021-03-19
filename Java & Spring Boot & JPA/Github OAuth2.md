@@ -24,6 +24,23 @@ dependencies {
 
 <hr/>
 
+<h2>Properties 파일 작성하기</h2>
+
+- 가장 먼저, Github가 발급해주는 `CLIENT_ID`와 `CLIENT_SECRET` 등의 인증 정보를 property 파일에 지정해야 한다.  
+  나는 이 값들을 환경변수에 저장해서 사용하는 방식을 선택했다.
+
+```properties
+# Other properties..
+
+spring.security.oauth2.client.registration.github.client-id=${GH_CLIENT_ID}
+spring.security.oauth2.client.registration.github.client-secret=${GH_CLIENT_SECRET}
+spring.security.oauth2.client.registration.github.scope=read:user
+```
+
+- `spring.security.oauth2.client.registration.github.client-id` : Github가 제공한 `CLIENT_ID` 값
+- `spring.security.oauth2.client.registration.github.client-secret` : Github가 제공한 `CLIENT_SECRET` 값
+- `spring.security.oauth2.client.registration.github.scope`: OAuth2로 읽어올 사용자의 정보 범위(scope)
+
 <h2>Spring Security Configuration</h2>
 
 - 가장 먼저, Spring Security 설정 클래스를 작성해보자.  
@@ -105,8 +122,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 <hr/>
 
-<h2>OAuthAttributes</h2>
+<h2>인증 정보 저장 클래스 작성</h2>
 
-- <h2>Service</h2>
+- 이제 OAuth2 인증을 수행한 후 정보가 담길 클래스를 작성해보자.
+
+* <h2>Service</h2>
   <h2>Exception Handling</h2>
   <h2>Handlers</h2>
