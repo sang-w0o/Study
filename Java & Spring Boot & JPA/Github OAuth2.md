@@ -243,7 +243,60 @@ public class GithubOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 }
 ```
 
-- 우선 `GithubOAuth2UserService`는 `OAuth2UserService` 인터페이스를 구현하고 있다.
+- 우선 `GithubOAuth2UserService`는 `OAuth2UserService` 인터페이스를 구현하고 있다.  
+  이 인터페이스를 봐보자.
 
-<h2>Exception Handling</h2>
-<h2>Handlers</h2>
+```java
+@FunctionalInterface
+public interface OAuth2UserService<R extends OAuth2UserRequest, U extends OAuth2User> {
+  U loadUser(R userRequest) throws OAuth2AuthenticationException();
+}
+```
+
+- `R` 타입은 OAuth 2.0 User Request이며, `U` 타입은 OAuth 2.0 User의 타입이다.  
+  JavaDoc에 따르면, 이 인터페이스의 구현체는 사용자에 대한 정보를 리소스 소유자(이 경우 Github)로부터 읽어오고,  
+  `OAuth2User` 형식에 맞춰 `AuthenticatedPrincipal`을 반환해야 한다고 작성되어 있다.
+
+- `GithubOAuth2UserService`는 `OAuth2UserService<OAuth2UserRequest, OAuth2User>`를 구현한다.  
+  이 말은 곧 `GithubOAuth2UserService#loadUser()`가 OAuth 요청에 대한 정보는 `OAuth2UserRequest`가 가지며,  
+  리소스 소유자로부터 받아온 정보들을 `OAuth2User`에 담아 반환할 것이라는 뜻이다.
+
+- 다음으로 아래 코드를 보자.
+
+```java
+OAuth2UserService<OAuth2UserRequest, OAuth2User> delegate = new DefaultOAuth2UserService()
+```
+
+- delegate 변수는 `DefaultOAuth2UserService`의 인스턴스이다. 이 클래스는 `OAuth2UserService` 인터페이스의 구현체로,
+  Spring Security가 기본적으로 제공하는 Google, Github 등의 리소스 소유자들에 대해 OAuth2 인증을 진행하게 해준다.
+
+```java
+OAuth2User oAuth2User = delegate.loadUser(userRequest);
+```
+
+- OAuth2 요청에 대한 정보를 담은 userRequest를 `DefaultOAuth2UserService#loadUser()`에 전달하여  
+  인증을 수행한 후, 리소스 소유자로부터 읽어온 사용자 정보를 담은 `OAuth2User`를 받아온다.
+
+```java
+OAuthAttributes attributes = OAuthAttributes.ofGithub(userNameAttributeName, oAuth2User.getAttributes());
+```
+
+- 사용자 정보를 담고 있는 oAuth2User를 우리가 작성한 `OAuthAttributes`에 전달하여 적절하게 정보를 추출해낸다.
+
+```java
+@Transactional
+protected User saveOrFindUser(OAuthAttributes attributes) {
+  //..
+}
+```
+
+- 데이터베이스에 접근하여 이메일을 통해 해당 데이터가 존재한다면 존재하는 데이터를 반환하고,  
+  존재하지 않는다면 저장한 후 저장된 데이터를 반환한다. 한 가지 유의할 점은 이 예제에서는 Github OAuth2를 통한  
+  로그인, 회원가입 방식과 일반 회원가입 방식을 지원한다는 것이다. 만약 `a@a.com`인 이메일이 Github OAuth2를 통해  
+  저장된 정보가 아니라, 일반 회원가입을 통해 저장된 정보인데, `a@a.com`를 가진 Github 사용자가 Github OAuth2를 통해  
+  인증을 진행하려 할 경우 이메일이 중복되는 현상이 나타나기에 `GithubUserAuthException()`을 던지도록 했다.
+
+- 위 메소드에서 던져지는 `GithubUserAuthException()`와 이를 처리하는 방법은 아래에서 다룰 것이다.
+
+- <h2>Exception Handling</h2>
+  <h2>Handlers</h2>
