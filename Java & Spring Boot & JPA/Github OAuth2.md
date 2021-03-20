@@ -130,28 +130,24 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 @Getter
 public class OAuthAttributes {
     private Map<String, Object> attributes;
-    private String nameAttributeKey;
     private String name;
     private String email;
 
     @Builder
-    public OAuthAttributes(Map<String, Object> attributes, String nameAttributeKey, String name, String email) {
+    public OAuthAttributes(Map<String, Object> attributes, String name, String email) {
         this.attributes = attributes;
-        this.nameAttributeKey = nameAttributeKey;
         this.name = name;
         this.email = email;
     }
 
-    public static OAuthAttributes ofGithub(String userNameAttributeName, Map<String, Object> attributes) {
+    public static OAuthAttributes ofGithub(Map<String, Object> attributes) {
         if(attributes.get("email") == null) {
             throw new GithubEmailNotPublicException("깃허브 링크에 Public Email이 없습니다. 설정 후 다시 시도해 주세요.");
         }
-
         return OAuthAttributes.builder()
                 .name((String) attributes.get("login"))
                 .email((String) attributes.get("email"))
                 .attributes(attributes)
-                .nameAttributeKey(userNameAttributeName)
                 .build();
     }
 
@@ -163,7 +159,7 @@ public class OAuthAttributes {
                 .auth(UserAuth.GITHUB)
                 .build();
     }
-}
+
 ```
 
 - 위의 `OAuthAttributes` 클래스의 필드들에 대해 알아보자.
@@ -213,18 +209,16 @@ public class GithubOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
                 .getProviderDetails().getUserInfoEndpoint()
                 .getUserNameAttributeName();
 
-        OAuthAttributes attributes = OAuthAttributes.ofGithub(userNameAttributeName, oAuth2User.getAttributes());
-
+        OAuthAttributes attributes = OAuthAttributes.ofGithub(oAuth2User.getAttributes());
         User user = saveOrFindUser(attributes);
 
-        attributes.setUserId(user.getId());
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
         request.setAttribute("token", jwtTokenUtil.generateAccessToken(user.getId(), user.getRole()));
 
         return new DefaultOAuth2User(
                 Collections.singleton(new SimpleGrantedAuthority(user.getRole().name())),
                 attributes.getAttributes(),
-                attributes.getNameAttributeKey()
+                userNameAttributeName
         );
     }
 
