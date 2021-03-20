@@ -292,5 +292,15 @@ protected User saveOrFindUser(OAuthAttributes attributes) {
 
 - 위 메소드에서 던져지는 `GithubUserAuthException()`와 이를 처리하는 방법은 아래에서 다룰 것이다.
 
+- `GithubOAuth2UserService#saveOrFindUser()`를 통해 `User`객체를 가져온 후 수행되는 작업을 보자.  
+  우선 아래 코드를 통해 해당 스레드에서 `HttpServletRequest`를 받아온다. 받아온 후, 직접 작성한 JWT Access Token을  
+  생성하고 반환하는 `JwtTokenUtil#generateAccessToken()`를 사용하여 토큰을 생성한 후, `HttpServletRequest`의  
+  attribute에 "token"이라는 key로 저장한다.
+
+```java
+HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+request.setAttribute("token", jwtTokenUtil.generateAccessToken(user.getId(), user.getRole()));
+```
+
 - <h2>Exception Handling</h2>
   <h2>Handlers</h2>
