@@ -320,5 +320,46 @@ public class Application {
 }
 ```
 
-- <h2>Exception Handling</h2>
-  <h2>Handlers</h2>
+- 마지막으로 `GithubOAuth2UserService#loadUser()`가 반환하는 객체에 대한 부분을 살펴보자.
+
+```java
+@RequiredArgsConstructor
+@Service
+public class GithubOAuth2UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
+
+    //..
+
+    @Override
+    public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+        //..
+
+        return new DefaultOAuth2User(
+                Collections.singleton(new SimpleGrantedAuthority(user.getRole().name())),
+                attributes.getAttributes(),
+                userNameAttributeName
+        );
+    }
+
+    // saveOrFindUser()
+}
+```
+
+- `DefaultOAuth2User`는 `OAuth2User` 인터페이스의 구현체 중 하나로, 생성자에 들어가는 값들은 아래와 같다.
+
+```java
+public DefaultOAuth2User(Collection<? extends GrantedAuthority> authorities, Map<String, Object> attributes, String nameAttributeKey) {
+  //..
+}
+```
+
+- authorities 매개변수는 사용자(`OAuth2User`)에 부여된 권한(authorities)를 담는다.
+- attributes 매개변수는 리소스 소유자로부터 읽어온 사용자에 대한 정보들을 담는다.
+- nameAttributeKey는 사용자의 "name"을 읽어오는 데에 사용되는 key 값이다.  
+  github의 경우 key값이 `id`에 저장된다. 따라서 위 서비스 코드에서 userNameAttributeName의 값은 `id`가 된다.
+
+- 이제 예외 처리에 대해서 알아보도록 하자.
+
+<hr/>
+
+<h2>Exception Handling</h2>
+<h2>Handlers</h2>
