@@ -302,5 +302,23 @@ HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.ge
 request.setAttribute("token", jwtTokenUtil.generateAccessToken(user.getId(), user.getRole()));
 ```
 
+- Spring은 기본적으로 요청(request)마다 하나의 Thread가 생성되어, 해당 request의 수행을 담당하게 된다.  
+  위 방식으로 `HttpServletRequest`를 가져와 사용하려면, 애플리케이션 메인 클래스에 아래의 Spring Bean을 추가해줘야 한다.
+
+```java
+@SpringBootApplication
+@EnableJpaAuditing
+public class Application {
+    public static void main(String[] args) {
+        SpringApplication.run(Application.class, args);
+    }
+
+    @Bean
+    public RequestContextListener requestContextListener() {
+        return new RequestContextListener();
+    }
+}
+```
+
 - <h2>Exception Handling</h2>
   <h2>Handlers</h2>
