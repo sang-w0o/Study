@@ -181,6 +181,69 @@ attributes.forEach((key, value) -> System.out.println(key + ": " + value));
 
 <hr/>
 
-- <h2>Service</h2>
-  <h2>Exception Handling</h2>
-  <h2>Handlers</h2>
+<h2>Service</h2>
+
+- 이제 OAuth 인증을 받고 나서 사용자 정보를 데이터베이스에 저장하는 서비스 코드를 작성해보자.  
+  우선, 서비스 클래스의 이름은 `GithubOAuth2UserService`라 하겠다.
+
+- 이 서비스 클래스가 담당할 비즈니스 로직은 아래와 같다.
+
+  1. Github OAuth2로부터 사용자 정보를 받아와 `OAuthAttributes`에 담는다.
+  2. 받아온 정보들을 토대로 사용자(`User`) 테이블에 대해 기존에 없는 정보라면 저장하고,  
+     기존에 있는 정보라면 알맞은 사용자를 테이블로부터 불러온다.
+  3. 불러온 정보를 토대로 알맞은 JWT Access Token을 발급한다.
+
+- 위 3가지 과정 이후에 AccessToken을 클라이언트에 전달하는 등에 대한 과정은 핸들러가 처리하도록 할 것이다.
+
+- 우선 코드를 보자.
+
+```java
+@RequiredArgsConstructor
+@Service
+public class GithubOAuth2UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
+    private final UserRepository userRepository;
+    private final JwtTokenUtil jwtTokenUtil;
+
+    @Override
+    public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+        OAuth2UserService<OAuth2UserRequest, OAuth2User> delegate = new DefaultOAuth2UserService();
+        OAuth2User oAuth2User = delegate.loadUser(userRequest);
+
+        String userNameAttributeName = userRequest.getClientRegistration()
+                .getProviderDetails().getUserInfoEndpoint()
+                .getUserNameAttributeName();
+
+        OAuthAttributes attributes = OAuthAttributes.ofGithub(userNameAttributeName, oAuth2User.getAttributes());
+
+        User user = saveOrFindUser(attributes);
+
+        attributes.setUserId(user.getId());
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        request.setAttribute("token", jwtTokenUtil.generateAccessToken(user.getId(), user.getRole()));
+
+        return new DefaultOAuth2User(
+                Collections.singleton(new SimpleGrantedAuthority(user.getRole().name())),
+                attributes.getAttributes(),
+                attributes.getNameAttributeKey()
+        );
+    }
+
+    @Transactional
+    protected User saveOrFindUser(OAuthAttributes attributes) {
+        Optional<User> optionalUser = userRepository.findByEmail(attributes.getEmail());
+        if(optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            if(user.getAuth().equals(UserAuth.GITHUB)) {
+                return optionalUser.get();
+            } else throw new GithubUserAuthException("해당 이메일은 일반 회원가입으로 가입되어 있습니다.");
+        } else {
+            return userRepository.save(attributes.toEntity());
+        }
+    }
+}
+```
+
+- 우선 `GithubOAuth2UserService`는 `OAuth2UserService` 인터페이스를 구현하고 있다.
+
+<h2>Exception Handling</h2>
+<h2>Handlers</h2>
