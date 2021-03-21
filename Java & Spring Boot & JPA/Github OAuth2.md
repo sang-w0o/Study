@@ -397,24 +397,7 @@ public class OAuthAttributes {
 - 위의 `ofGithub()`에서 `attributes.get("email")`이 null일 때 `GithubEmailNotPublicException`을  
   발생시키도록 했다. 이 예외가 처리되는 과정에 대해 알아보자.
 
-- 우선 Spring Security의 OAuth2를 사용하는 과정에서 발생시키는 예외를 처리하는 클래스는  
-  `AuthenticationFailureHandler`의 구현체이다. 하지만 이 인터페이스의 구현체가  
-  처리하는 예외 클래스는 `AuthenticationException`이다. 인터페이스 코드를 보자.
-
-```java
-public interface AuthenticationFailureHandler {
-
-	/**
-	 * 인증 시도가 실패할 때 호출된다.
-	 * @param request 인증이 수행되는 요청 객체
-	 * @param response 응답 객체
-	 * @param exception 인증 수행 도중 발생한 예외
-	 */
-	void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
-			AuthenticationException exception) throws IOException, ServletException;
-
-}
-```
+<h3>예외 클래스 작성하기</h3>
 
 - 우선 Github OAuth 인증 도중, 더 많은 예외를 처리해야할 경우가 있으므로 Github OAuth2 인증 도중에  
   발생하는 모든 예외들에 대한 부모 클래스인 `GithubException`을 먼저 작성했다.
@@ -447,6 +430,28 @@ public class GithubEmailNotPublicException extends GithubException {
 
 - `GithubEmailNotPublicException`은 `GithubException`을 상속하고, `GithubException`은  
   `org.springframework.security.core.AuthenticationException`을 상속하기 때문에 만약 예외가  
-  던져진다면 `AuthenticationFailureHandler`에 의해 처리될 것이다.
+  던져진다면 `AuthenticationFailureHandler`에 의해 처리될 것이다. 왜 `AuthenticationException`이  
+  `AuthenticationFailureHandler`에 의해 처리되는지에 대해서는 아래에서 보자.
+
+<h3>예외 처리 핸들러 작성하기</h3>
+
+- Spring Security의 OAuth2를 사용하는 과정에서 발생시키는 예외를 처리하는 클래스는  
+  `AuthenticationFailureHandler`의 구현체이다. 하지만 이 인터페이스의 구현체가  
+  처리하는 예외 클래스는 `AuthenticationException`이다. 인터페이스 코드를 보자.
+
+```java
+public interface AuthenticationFailureHandler {
+
+	/**
+	 * 인증 시도가 실패할 때 호출된다.
+	 * @param request 인증이 수행되는 요청 객체
+	 * @param response 응답 객체
+	 * @param exception 인증 수행 도중 발생한 예외
+	 */
+	void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
+			AuthenticationException exception) throws IOException, ServletException;
+
+}
+```
 
 <h2>Handlers</h2>
