@@ -361,5 +361,57 @@ public DefaultOAuth2User(Collection<? extends GrantedAuthority> authorities, Map
 
 <hr/>
 
-<h2>Exception Handling</h2>
+<h2>예외 처리 하기</h2>
+
+- 위에서 작성한 `GithubOAuth2UserService#loadUser()`가 수행되는 도중 예외가 발생하면, 알맞게 처리해줘야 한다.  
+  나의 경우, OAuth2 scope가 `read:user`이었는데, 사용자의 email을 받아와야지만 회원 가입이 되는 상황이었다.  
+  하지만 Github 공식 문서를 보니, **사용자가 Verified && Public** email을 하나 이상 설정해야지만  
+  이메일을 읽어올 수 있는 것이었다.
+
+- `GithubOauth2UserService#loadUser()`에서는 `OAuthAttributes.ofGithub()`를 호출한다.  
+  그 부분을 다시 봐보자.
+
+```java
+@Getter
+public class OAuthAttributes {
+
+    //..
+
+    public static OAuthAttributes ofGithub(Map<String, Object> attributes) {
+        if(attributes.get("email") == null) {
+            throw new GithubEmailNotPublicException("깃허브 링크에 Public Email이 없습니다. 설정 후 다시 시도해 주세요.");
+        }
+        return OAuthAttributes.builder()
+                .name((String) attributes.get("login"))
+                .email((String) attributes.get("email"))
+                .attributes(attributes)
+                .build();
+    }
+
+    //..
+}
+```
+
+- 위의 `ofGithub()`에서 `attributes.get("email")`이 null일 때 `GithubEmailNotPublicException`을  
+  발생시키도록 했다. 이 예외 클래스에 대해서 보도록 하자.
+
+- 우선 Spring Security의 OAuth2를 사용하는 과정에서 발생시키는 예외를 처리하는 클래스는  
+  `AuthenticationFailureHandler`의 구현체이다. 하지만 이 인터페이스의 구현체가  
+  처리하는 예외 클래스는 `AuthenticationException`이다. 인터페이스 코드를 보자.
+
+```java
+public interface AuthenticationFailureHandler {
+
+	/**
+	 * 인증 시도가 실패할 때 호출된다.
+	 * @param request 인증이 수행되는 요청 객체
+	 * @param response 응답 객체
+	 * @param exception 인증 수행 도중 발생한 예외
+	 */
+	void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
+			AuthenticationException exception) throws IOException, ServletException;
+
+}
+```
+
 <h2>Handlers</h2>
