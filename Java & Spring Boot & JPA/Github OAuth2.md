@@ -640,3 +640,9 @@ public class GithubOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
     //..
 }
 ```
+
+- 위 과정에서 알 수 있는 것은, 우선 `OAuth2UserService#loadUser()`가 먼저 호출 된 후, 인증이 성공적으로 진행되면  
+  `AuthenticationSuccessHandler#onSuccess()`가 호출된다는 것을 알 수 있다.
+
+- Cookie, Session 등을 통해 토큰 값을 전달할 수도 있지만, View자체를 반환하지 않기에 방법을 찾던 도중 이 방법이 생각났다.  
+  만약 추후에 더 안전한 방법이 있다면 업데이트 하겠다.
