@@ -481,4 +481,48 @@ public class GithubOAuthExceptionHandler implements AuthenticationFailureHandler
   만약 `GithubEmailNotPublicException`이 발생하면 `http://localhost:3000/signup?error_code=400`으로  
   클라이언트는 보내질 것이다.
 
-<h2>Handlers</h2>
+- 프론트 엔드에서는 위 값을 확인해서 처리할 것이다.  
+  나의 경우, ReactJS의 `useEffect()` hook을 사용하여 아래와 같이 처리했다.
+
+```ts
+// import statements
+// /signup에 나오는 최상위 컴포넌트
+
+const SignUp: React.FC = () => {
+  //..
+  const location = useLocation();
+
+  useEffect(() => {
+    const query = new URLSearchParams(location.search);
+    const error_code = query.get("error_code");
+    if (error_code !== null) {
+      switch (parseInt(error_code)) {
+        case 400:
+          message.error(
+            "해당 Github 계정은 공개 이메일이 설정되어 있지 않습니다."
+          );
+          break;
+        case 406:
+          message.error("해당 이메일은 일반 회원 가입으로 가입되어 있습니다.");
+          break;
+        case 500:
+          message.error(
+            "알 수 없는 문제가 발생했습니다. 관리자에게 문의해 주세요."
+          );
+          break;
+        default:
+          message.error("알 수 없는 오류가 발생했습니다.");
+          break;
+      }
+    }
+  }, [location]);
+
+  //..
+};
+
+export default SignUp;
+```
+
+<hr/>
+
+<h2>인증 성공 시의 처리</h2>
