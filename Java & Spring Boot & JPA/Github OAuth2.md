@@ -363,6 +363,8 @@ public DefaultOAuth2User(Collection<? extends GrantedAuthority> authorities, Map
 
 <h2>예외 처리 하기</h2>
 
+<h3>예외 발생 상황</h3>
+
 - 위에서 작성한 `GithubOAuth2UserService#loadUser()`가 수행되는 도중 예외가 발생하면, 알맞게 처리해줘야 한다.  
   나의 경우, OAuth2 scope가 `read:user`이었는데, 사용자의 email을 받아와야지만 회원 가입이 되는 상황이었다.  
   하지만 Github 공식 문서를 보니, **사용자가 Verified && Public** email을 하나 이상 설정해야지만  
@@ -393,7 +395,7 @@ public class OAuthAttributes {
 ```
 
 - 위의 `ofGithub()`에서 `attributes.get("email")`이 null일 때 `GithubEmailNotPublicException`을  
-  발생시키도록 했다. 이 예외 클래스에 대해서 보도록 하자.
+  발생시키도록 했다. 이 예외가 처리되는 과정에 대해 알아보자.
 
 - 우선 Spring Security의 OAuth2를 사용하는 과정에서 발생시키는 예외를 처리하는 클래스는  
   `AuthenticationFailureHandler`의 구현체이다. 하지만 이 인터페이스의 구현체가  
@@ -413,5 +415,38 @@ public interface AuthenticationFailureHandler {
 
 }
 ```
+
+- 우선 Github OAuth 인증 도중, 더 많은 예외를 처리해야할 경우가 있으므로 Github OAuth2 인증 도중에  
+  발생하는 모든 예외들에 대한 부모 클래스인 `GithubException`을 먼저 작성했다.
+
+```java
+@Getter
+public abstract class GithubException extends AuthenticationException {
+    protected Integer status;
+    protected String message;
+
+    public GithubException(Integer status, String message) {
+        super(message);
+        this.message = message;
+        this.status = status;
+    }
+}
+```
+
+- 그리고 위에서 얘기했던, Verified + Public 이메일이 없을 때 던져지는 `GithubEmailNotPublicException`은 아래와 같다.
+
+```java
+@Getter
+public class GithubEmailNotPublicException extends GithubException {
+    private static final Integer STATUS = HttpStatus.BAD_REQUEST.value();
+    public GithubEmailNotPublicException(String message) {
+        super(STATUS, message);
+    }
+}
+```
+
+- `GithubEmailNotPublicException`은 `GithubException`을 상속하고, `GithubException`은  
+  `org.springframework.security.core.AuthenticationException`을 상속하기 때문에 만약 예외가  
+  던져진다면 `AuthenticationFailureHandler`에 의해 처리될 것이다.
 
 <h2>Handlers</h2>
