@@ -493,7 +493,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        // TODO : 보안 적용할 HTTP Endpoint 수정
         http
                 //..
                 .and()
@@ -646,3 +645,38 @@ public class GithubOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
 - Cookie, Session 등을 통해 토큰 값을 전달할 수도 있지만, View자체를 반환하지 않기에 방법을 찾던 도중 이 방법이 생각났다.  
   만약 추후에 더 안전한 방법이 있다면 업데이트 하겠다.
+
+- 마지막으로 `GithubOAuthOnSuccessHandler`도 Spring Security 설정 클래스에 Bean으로 등록하고, 사용하도록 설정해주자.
+
+```java
+@RequiredArgsConstructor
+@EnableWebSecurity
+public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
+    private final GithubOAuth2UserService githubOAuth2UserService;
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http
+                //..
+                .and()
+                    .oauth2Login()
+                        .successHandler(authenticationSuccessHandler())
+                        .failureHandler(authenticationFailureHandler())
+                        .userInfoEndpoint()
+                        .userService(githubOAuth2UserService);
+    }
+
+    //..
+
+    @Bean
+    public AuthenticationSuccessHandler authenticationSuccessHandler() {
+      return new GithubOAuthOnSuccessHandler();
+    }
+}
+```
+
+- 위 코드에서 `.oauth2Login().successHandler(authenticationSuccessHandler())`를 통해  
+  인증이 성공하면 `GithubOAuthOnSuccessHandler`의 인스턴스가 사용되도록 설정했다.
+
+<hr/>
