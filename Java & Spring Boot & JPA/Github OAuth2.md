@@ -454,4 +454,31 @@ public interface AuthenticationFailureHandler {
 }
 ```
 
+- 나의 경우, Spring 자체에서 View를 반환해주지 않고, 오직 RESTful API 작성 목적으로만 사용했기에,  
+  요청을 보내준 클라이언트에게 응답을 주는 방법이 마땅치 않았다. 가장 마땅한 방법이 쿼리 파라미터로  
+  `error_code=NUMBER` 형태로 반환해주는 것이었다. 이를 처리하는 `GithubOAuthExceptionHandler`를 보자.
+
+```java
+@NoArgsConstructor
+public class GithubOAuthExceptionHandler implements AuthenticationFailureHandler {
+
+    @Value("${application.url}")
+    private String url;
+
+    @Override
+    public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
+        if(exception instanceof GithubException) {
+            GithubException githubException =  (GithubException) exception;
+            response.setStatus(githubException.getStatus());
+            response.sendRedirect(url + "/signup?error_code=" + githubException.getStatus());
+        }
+    }
+}
+```
+
+- url 변수는 `application.properties`에 설정해 놓은 값이다.  
+  나의 경우, 회원 가입을 수행하는 곳은 `http://localhost:3000/signup`이었다.  
+  만약 `GithubEmailNotPublicException`이 발생하면 `http://localhost:3000/signup?error_code=400`으로  
+  클라이언트는 보내질 것이다.
+
 <h2>Handlers</h2>
