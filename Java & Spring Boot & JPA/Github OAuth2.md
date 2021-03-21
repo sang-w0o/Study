@@ -481,7 +481,43 @@ public class GithubOAuthExceptionHandler implements AuthenticationFailureHandler
   만약 `GithubEmailNotPublicException`이 발생하면 `http://localhost:3000/signup?error_code=400`으로  
   클라이언트는 보내질 것이다.
 
-- 프론트 엔드에서는 위 값을 확인해서 처리할 것이다.  
+- 최종적으로 위에서 만든 `GithubOAuth2ExceptionHandler`가 예외를 처리할 수 있도록 지정하는 방법은  
+  Spring Security 설정 클래스에 이 객체로 Bean을 등록하여 사용하도록 설정하는 것이다.
+
+```java
+@RequiredArgsConstructor
+@EnableWebSecurity
+public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
+    private final GithubOAuth2UserService githubOAuth2UserService;
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        // TODO : 보안 적용할 HTTP Endpoint 수정
+        http
+                //..
+                .and()
+                    .oauth2Login()
+                        .successHandler(authenticationSuccessHandler())
+                        .failureHandler(authenticationFailureHandler())
+                        .userInfoEndpoint()
+                        .userService(githubOAuth2UserService);
+    }
+
+    @Bean
+    public AuthenticationFailureHandler authenticationFailureHandler() {
+        return new GithubOAuthExceptionHandler();
+    }
+
+    //..
+}
+```
+
+- 위 설정 클래스의 `configure()` 메소드 내에서  
+  `.oauth2Login().failureHandler(authenticationFailureHandler())`부분에서  
+  oauth2 작업 도중 예외를 처리할 핸들러가 아래에 선언된 `authenticationFailureHandler()` bean임을 명시했다.
+
+* 프론트 엔드에서는 위 값을 확인해서 처리할 것이다.  
   나의 경우, ReactJS의 `useEffect()` hook을 사용하여 아래와 같이 처리했다.
 
 ```ts
@@ -526,3 +562,6 @@ export default SignUp;
 <hr/>
 
 <h2>인증 성공 시의 처리</h2>
+
+- 인증 도중 예외가 발생하면 `AuthenticationFailureHandler`의 구현체가 처리했던 것처럼 인증이  
+  정상적으로 완료 되었을 때에 대한 처리는 `AuthenticationSucessHandler`의 구현체가 처리할 수 있다.
