@@ -565,3 +565,78 @@ export default SignUp;
 
 - 인증 도중 예외가 발생하면 `AuthenticationFailureHandler`의 구현체가 처리했던 것처럼 인증이  
   정상적으로 완료 되었을 때에 대한 처리는 `AuthenticationSucessHandler`의 구현체가 처리할 수 있다.
+
+- 먼저 `AuthenticationSuccessHandler` 인터페이스부터 살펴보자.
+
+```java
+public interface AuthenticationSuccessHandler {
+
+	/**
+	 * 정상적으로 사용자 인증이 되었을 때 호출된다.
+	 * @param request 정상적 인증이 이루어지도록 한 request
+	 * @param response 응답 객체
+	 * @param chain the {@link FilterChain} which can be used to proceed other filters in
+	 * the chain
+	 * @param authentication 인증 도중에 만들어진 인증 정보를 담은 객체
+	 * @since 5.2.0
+	 */
+	default void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
+			Authentication authentication) throws IOException, ServletException {
+		onAuthenticationSuccess(request, response, authentication);
+		chain.doFilter(request, response);
+	}
+
+	/**
+	 * 정상적으로 사용자 인증이 되었을 때 호출된다.
+	 * @param request 정상적 인증이 이루어지도록 한 request
+	 * @param response 응답 객체
+	 * @param authentication 인증 도중에 만들어진 인증 정보를 담은 객체
+	 */
+	void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
+			Authentication authentication) throws IOException, ServletException;
+
+}
+```
+
+- 위 코드로 인해 `AuthenticationSuccessHandler`의 구현체는 `onAuthenticationSuccess()`를 오버라이딩해야함을 알 수 있다.
+
+- 이제 `GithubOAuthOnSuccessHandler`를 살펴보자.
+
+```java
+@NoArgsConstructor
+public class GithubOAuthOnSuccessHandler implements AuthenticationSuccessHandler {
+
+    @Value("${application.url}")
+    private String url;
+
+    @Override
+    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException { ;
+        response.sendRedirect(url + "?token=" + request.getAttribute("token"));
+    }
+}
+```
+
+- 요청이 성공적이면 `GithubOAuthExceptionHandler`와 같이 query string을 이용해 token값을 전달한다.  
+  이때, 토큰 값은 `HttpServletRequest#getAttribute()`를 통해 가져온다. 즉, 이 과정 전에 `HttpServletRequest`에  
+  "token"을 key로 가지는 정보가 attribute로 저장되어 있어야 하는데, 이 과정은 `GithubOAuth2UserService`에서 볼 수 있다.
+
+```java
+@RequiredArgsConstructor
+@Service
+public class GithubOAuth2UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
+    //..
+
+    @Override
+    public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+
+        //..
+
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        request.setAttribute("token", jwtTokenUtil.generateAccessToken(user.getId(), user.getRole()));
+
+        // return..
+    }
+
+    //..
+}
+```
