@@ -125,3 +125,35 @@ class ArticleSerializer(serializers.Serializer):
   위에서는 title, author, email의 필드를 선언해주었다.
 - `create()`와 `update()` 메소드는 우리가 원하는 필드들(title, author, email)이 포함된  
   데이터(validated_data)가 주어질 때 인스턴스를 저장하거나 UPDATE하는 메소드이다.
+
+<h3>Testing ArticleSerializer</h3>
+
+- 이제 위에서 작성한 `ArticleSerializer`를 테스트 해보자.  
+  `python manage.py shell`로 파이썬 쉘에 들어온 후, 아래 코드를 입력 해보자.
+
+```py
+# Testing ArticleSerializer
+
+from api_basic.models import Article
+from api_basic.serializers import ArticleSerializer
+from rest_framework.renderers import JSONRenderer
+from rest_framework.parsers import JSONParser
+
+# Article 객세 생성
+article = Article(title = 'sample title', author = 'sample author', email = 'sample@sample.com')
+
+# Article 객체를 DB에 저장
+article.save()
+
+# ArticleSerializer 객체 생성
+serializer = new ArticleSerializer(article)
+
+# JSON 형식으로 article 데이터 보기
+serializer.data
+# 위 코드의 결과 : {'title': 'sample title', 'author': 'sample author', email: 'sample@email.com'}
+
+# 응답(Response)에 담을 JSON Response Body 생성
+content = JSONRenderer().render(serializer.data)
+```
+
+<hr/>
