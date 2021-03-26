@@ -157,3 +157,23 @@ content = JSONRenderer().render(serializer.data)
 ```
 
 <hr/>
+
+# ModelSerializer
+
+- 위에서 작성한 `ArticleSerializer`는 title, author, email 등 `Article`의 정보를 명시해야 한다.  
+  코드의 중복을 방지하기 위해 `Serializer`가 아니라 `ModelSerializer`를 상속하도록 해보자.
+
+```py
+# serializers.py
+
+class ArticleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Article
+        fields = ['id', 'title', 'author', 'email']
+```
+
+- 수정된 `ArticleSerializer`의 Inner-class인 `Meta` 클래스에는 model, fields 필드가 있다.  
+  model 필드는 어떤 Model을 사용할지에 대한 것이며, fields는 변환할 필드명들을 지정한다.  
+  만약 모든 필드를 지정하고 싶으면 배열로 필드명을 하나씩 쓰는것이 아니라, `'__all__'`를 써주면 된다.
+
+<hr/>
