@@ -96,3 +96,32 @@ admin.site.register(Article)
 - 이제 어드민 페이지 (`http://localhost:8000/admin`)에 가면 Article을 볼 수 있다.
 
 <h3>Article Serializer 작성</h3>
+
+- Article을 JSON으로 변환해줄 Serializer를 작성해보자.  
+  이 파일은 `api_basic`폴더 하위에 `serializers.py`로 하자.
+
+```py
+from rest_framework import serializers
+from .models import Article
+
+class ArticleSerializer(serializers.Serializer):
+    title = serializers.CharField(max_length=100)
+    author = serializers.CharField(max_length=100)
+    email = serializers.EmailField(max_length=100)
+
+    def create(self, validated_data):
+        return Article.objects.create(validated_data)
+
+    def update(self, instance, validated_data):
+        instance.title = validated_data.get('title', instance.title)
+        instance.author = validated_data.get('author', instance.author)
+        instance.email = validated_data.get('email', instance.email)
+        instance.save() # 인스턴스를 save한다.
+        return instance
+
+```
+
+- `serializers.Serializer`를 상속하는 클래스를 만들 때에는 JSON에 포함될 필드들을 선언해야 한다.  
+  위에서는 title, author, email의 필드를 선언해주었다.
+- `create()`와 `update()` 메소드는 우리가 원하는 필드들(title, author, email)이 포함된  
+  데이터(validated_data)가 주어질 때 인스턴스를 저장하거나 UPDATE하는 메소드이다.
