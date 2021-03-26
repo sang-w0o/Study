@@ -177,3 +177,45 @@ class ArticleSerializer(serializers.ModelSerializer):
   만약 모든 필드를 지정하고 싶으면 배열로 필드명을 하나씩 쓰는것이 아니라, `'__all__'`를 써주면 된다.
 
 <hr/>
+
+# Function based API Views
+
+<h3>서비스 코드 작성하기</h3>
+
+- RESTful API로 JSON 형식의 데이터를 반환하더라도, Django는 view를 사용해야 한다.  
+  View는 `views.py`에 저장된다. `api_basic/views.py`에 아래 코드를 추가하자.
+
+```py
+from django.shortcuts import render
+from django.http import HttpResponse, JsonResponse
+from rest_framework.parsers import JSONParser
+from .models import Article
+from .serializers import ArticleSerializer
+
+def article_list(request):
+    if request.method == 'GET':
+        articles = Article.objects.all()
+        serializer = ArticleSerializer(articles, many=True)
+        return JsonResponse(serializer.data, safe=False)
+
+    elif request.method == 'POST':
+        data = JSONParser().parse(request)
+        serializer = ArticleSerializer(data=data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(serializer.data, status=201)
+        return JsonResponse(serializer.errors, status=400)
+```
+
+- 우선 article_list 메소드는 HTTP Method에 따라 여러 개의 Article들을 불러올지, 저장할지 판단한다.  
+  요청 방식은 `request.method`로 판단할 수 있다.
+
+  - `GET` 요청의 경우, 다수의 article객체를 `Article.objects.all()`로 받아와서 그를 토대로 `ArticleSerializer`  
+    인스턴스를 생성하고, `JsonResponse()`의 인자로 데이터를 전달하여 응답을 한다.
+
+  - `POST` 요청의 경우, 우선 `JSONParser()`로 Request Body를 파싱한다. 파싱에 성공 했는지의 여부는  
+    `Serializer#is_valid()` 메소드를 통해 판단할 수 있다. 파싱에 성공했으면 `serializer.save()`를 호출하여  
+    Article객체를 저장하고, 저장된 데이터를 201(CREATED) 상태 코드와 함께 JSON형식으로 반환한다.  
+    만약 파싱에 실패한 경우(올바르지 않은 JSON 형식이 제공된 경우)에는 `serializers.errors`를 담은 JSON객체를  
+    400(BAD_REQUEST) 상태 코드와 함께 반환한다.
