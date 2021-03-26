@@ -365,3 +365,72 @@ urlpatterns = [
 - 위의 `detail` 다음의 `<int:pk>`가 pk라는 Path Variable이 int형으로 올 것임을 알려준다.
 
 <hr/>
+
+# Function based API에서 api_view() 데코레이터의 사용
+
+- 이전에 `views.py`에서 `article_list()`와 `article_detail()`에서는 직접 `JsonResponse()`를 사용하여  
+  JSON형식의 응답을 하며, `JSONParser`를 사용하여 Request Body를 파싱했다. 하지만 rest_framework 라이브러리에서  
+  제공하는 클래스들을 사용하면 이를 간단하게 처리할 수 있다.
+
+- 우선 `article_list()` 함수부터 바꿔보도록 하자.
+
+```py
+from django.http import HttpResponse
+from .models import Article
+from .serializers import ArticleModelSerializer
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+
+
+@api_view(['GET', 'POST'])
+def article_list(request):
+    if request.method == 'GET':
+        articles = Article.objects.all()
+        serializer = ArticleModelSerializer(articles, many=True)
+        return Response(serializer.data)
+
+    elif request.method == 'POST':
+        serializer = ArticleModelSerializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+```
+
+- `@api_view()`의 인자로 들어간 `GET`, `POST`는 이 메소드는 `GET`, `POST` 요청 이외의 다른  
+  HTTP Method 요청은 허가하지 않는다는 것을 알려준다.
+
+- 또다른 차이점으로는 기존에는 `data = JSONParser().parse(request)`를 통해 요청 데이터를  
+  파싱했는데, 간단하게 `request.data`로 요청 데이터를 파싱할 수 있다는 것이다.  
+  또한 응답 객체도 `JSONResponse`가 아닌 `Response`로 바뀐 것을 확인할 수 있다.
+
+- 마찬가지로 나머지 메소드인 `article_detail()`도 바꿔주도록 하자.
+
+```py
+# Other codes..
+
+@api_view(['GET', 'PUT', 'DELETE'])
+def article_detail(request, pk):
+    try:
+        article = Article.objects.get(pk=pk)
+    except Article.DoesNotExist:
+        return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        serializer = ArticleModelSerializer(article)
+        return Response(serializer.data)
+    elif request.method == 'PUT':
+        serializer = ArticleModelSerializer(article, data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    elif request.method == 'DELETE':
+        article.delete()
+        return HttpResponse(status=status.HTTP_204_NO_CONTENT)
+```
+
+<hr/>
