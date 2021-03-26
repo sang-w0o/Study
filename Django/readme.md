@@ -219,3 +219,97 @@ def article_list(request):
     Article객체를 저장하고, 저장된 데이터를 201(CREATED) 상태 코드와 함께 JSON형식으로 반환한다.  
     만약 파싱에 실패한 경우(올바르지 않은 JSON 형식이 제공된 경우)에는 `serializers.errors`를 담은 JSON객체를  
     400(BAD_REQUEST) 상태 코드와 함께 반환한다.
+
+<h3>URL Endpoint 매핑하기</h3>
+
+- 이제 위에서 작성한 서비스 코드와 URL을 매핑할 차례이다.  
+  우선 `MyProject/urls.py`에 아래 코드를 추가해주자.
+
+```py
+# MyProject/urls.py
+
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', include('api_basic.urls'))
+]
+```
+
+- 위 코드는 일단 아무런 pathPattern이 없는('') 것에 대해서 `api_basic.urls`가 처리할 것임을 의미한다.  
+  그러면 이제 `api_basic/` 폴더 하위에 `urls.py`를 작성할 차례이다.
+
+```py
+# api_basic/urls.py
+
+from django.urls import path
+from .views import article_list
+
+urlpatterns = [
+    path('article/', article_list)
+]
+```
+
+- 이제 `/article`로 `GET` 요청을 보내보면, 아래와 같이 결과가 온다.
+
+```json
+[
+  {
+    "id": 1,
+    "title": "sample title",
+    "author": "sample author",
+    "email": "robby0909@naver.com"
+  },
+  {
+    "id": 2,
+    "title": "sample title2",
+    "author": "sample author2",
+    "email": "sample2@naver.com"
+  }
+]
+```
+
+- 다음으로는 같은 엔드포인트에 `POST` 요청을 보내보자.
+
+* 우선 다양한 경우를 테스트하기 위해 아래와 같이 잘못된 Request Body를 보내보았다.
+
+```json
+{
+  "hi": "1"
+}
+```
+
+- 그랬더니 아래와 같이 400(BAD_REQUEST)와 함께 응답이 왔다.
+
+```json
+{
+  "title": ["This field is required."],
+  "author": ["This field is required."],
+  "email": ["This field is required."]
+}
+```
+
+- email 필드에 이메일 형식이 아닌 값을 보내면 아래의 응답이 온다.
+
+```json
+{
+  "email": ["Enter a valid email address."]
+}
+```
+
+- 마지막으로 올바른 정보를 보냈더니 아래의 응답이 201(CREATED)와 함께 왔다.
+
+```json
+{
+  "id": 3,
+  "title": "title_Test",
+  "author": "author test",
+  "email": "test@test.com"
+}
+```
+
+- 만댝 CSRF Cookie 때문에 로컬에서의 실행이 안된다면, `MyProject/settings.py`의 `MIDDLEWARE` 부분에서  
+  `django.middleware.csrf.CsrfViewMiddleware`를 주석처리 하면 된다.
+
+<hr/>
