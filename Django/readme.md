@@ -312,4 +312,56 @@ urlpatterns = [
 - 만댝 CSRF Cookie 때문에 로컬에서의 실행이 안된다면, `MyProject/settings.py`의 `MIDDLEWARE` 부분에서  
   `django.middleware.csrf.CsrfViewMiddleware`를 주석처리 하면 된다.
 
+<h3>또다른 API 기능 만들기</h3>
+
+- 이번에는 Article의 ID를 통해 특정 Article의 정보를 가져오거나, 수정하거나 삭제하는 API를 만들어보자.  
+  먼저, 서비스 코드부터 작성해보자.
+
+```py
+# views.py
+
+# Other method
+
+def article_detail(request, pk):
+    try:
+        article = Article.objects.get(pk=pk)
+    except Article.DoesNotExist:
+        return HttpResponse(status=404)
+
+    if request.method == 'GET':
+        serializer = ArticleModelSerializer(article)
+        return JsonResponse(serializer.data, safe=False)
+    elif request.method == 'PUT':
+        data = JSONParser().parse(request)
+        serializer = ArticleModelSerializer(article, data=data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(serializer.data, status=200)
+        return JsonResponse(serializer.errors, status=400)
+    elif request.method == 'DELETE':
+        article.delete()
+        return HttpResponse(status=204)
+```
+
+- 이제 마찬가지로 위의 서비스 코드가 작동할 엔드포인트를 매핑해보자.  
+  위 서비스 코드는 `pk`라는 인자를 받기 때문에 이를 위해 url path pattern을 지정해야 한다.
+
+- 또한 `Article.objects.get(pk=pk)`는 Primary Key를 통해 하나의 객체를 가져오도록 한다.  
+  이를 `try-except` 구문으로 묶어주어 `Article.DoesNotExist` 예외를 개치하여 404(NOT_FOUND)를 반환하게 한다.
+
+```py
+# api_basic/urls.py
+
+from django.urls import path
+from .views import article_list, article_detail
+
+urlpatterns = [
+    path('article/', article_list),
+    path('detail/<int:pk>', article_detail)
+]
+```
+
+- 위의 `detail` 다음의 `<int:pk>`가 pk라는 Path Variable이 int형으로 올 것임을 알려준다.
+
 <hr/>
