@@ -36,6 +36,8 @@ python manage.py createsuperuser
 
 # Serializer
 
+<h3>Article Model 생성</h3>
+
 - 우선 위에서 `api_basic`이라는 애플리케이션을 생성하면 `api_basic`폴더 하위에  
   `models.py`라는 파일이 생성된다.
 
@@ -79,3 +81,18 @@ python manage.py makemigrations
 
 python manage.py migrtate
 ```
+
+- 마지막으로 어드민 페이지에서 Article에 대한 정보를 볼 수 있도록 `admin.py`에 아래를 추가해주자.
+
+```py
+# admin.py
+
+from django.contrib import admin
+from .models import Article
+
+admin.site.register(Article)
+```
+
+- 이제 어드민 페이지 (`http://localhost:8000/admin`)에 가면 Article을 볼 수 있다.
+
+<h3>Article Serializer 작성</h3>
