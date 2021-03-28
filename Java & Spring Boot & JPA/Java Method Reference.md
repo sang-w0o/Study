@@ -100,3 +100,35 @@ numbers.stream().sorted(Integer::compareTo);
 ```
 
 <hr/>
+
+<h2>생성자</h2>
+
+- Method Reference에서는 객체의 생성자를 Static Method를 사용한 것처럼 사용할 수 있다.  
+  유일한 차이점은 `new` 키워드를 사용한다는 것이다.
+
+* 우선 `Bicycle`의 brand 필드를 담은 리스트를 생성해보자.
+
+```java
+List<String> bikeBrands = Arrays.asList("A", "B", "C", "D");
+```
+
+- 그 다음 `Bicycle` 클래스에 생성자를 추가하자.
+
+```java
+public Bicycle(String brand) {
+    this.brand = brand;
+    this.frameSize = 0;
+}
+```
+
+- 이제 bikeBrands 변수로 `Bicycle` 객체들로 이루어진 배열을 생성하려면 아래와 같이 하면 된다.
+
+```java
+Bicycle[] bikes = bikeBrands.stream()
+    .map(Bicycle::new)
+    .toArray(Bicycle[]::new);
+```
+
+- 위 코드에서 `Bicycle`의 생성자도 호출하고, 배열의 생성자도 호출했음을 확인하자.
+
+<hr/>
