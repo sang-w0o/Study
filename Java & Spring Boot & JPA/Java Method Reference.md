@@ -132,3 +132,41 @@ Bicycle[] bikes = bikeBrands.stream()
 - 위 코드에서 `Bicycle`의 생성자도 호출하고, 배열의 생성자도 호출했음을 확인하자.
 
 <hr/>
+
+<h2>다른 예시 및 한계점</h2>
+
+- 위에서 본 결과, Method Reference를 사용하면 코드의 목적을 명확히 드러냄과 동시에 가독성이 뛰어나게  
+  작성할 수 있음을 알게 되었다. 하지만 Method Reference를 모든 Lambda 표현식에 대해 적용할 수는 없다.
+
+- Method Reference의 가장 큰 한계점은 가장 큰 이점과도 상응하는데, 바로 **이전 표현식의 결과가**  
+  **Method Reference의 시그니쳐와 일치해야 한다** 는 것이다.  
+  아래 예시를 보자.
+
+```java
+createBicyclesList().forEach(bike -> System.out.printf(
+    "Bike brand is '%s' and frame size is '%d'\n",
+    b.getBrand(), b.getFrameSize()
+));
+```
+
+- 위의 Lambda 표현식은 Method Reference로 사용될 수 없다.  
+  그 이유는 위의 경우에는 `printf()` 메소드가 3개의 매개 변수를 필요하기 때문이다.  
+  하지만 `createBicyclesList().forEach()` 내부에서 Method Reference를 사용하면  
+  `Bicycle` 객체 하나에 대해서만 사용할 수 있다.
+
+- 마지막으로, 아무런 동작도 수행하지 않는 no-operation function을 생성해보자.
+
+```java
+private static <T> void doNothingAtAll(Object... o) {
+}
+```
+
+- 위에서 작성한 `doNothingAtAll()`도 `printf()`와 마찬가지로 가변인자를 받기 때문에  
+  Lambda 표현식에서만 사용할 수 있다.
+
+```java
+createBicyclesList()
+    .forEach((bike) -> MethodReferenceExample.doNothingAtAll(bike));
+```
+
+<hr/>
