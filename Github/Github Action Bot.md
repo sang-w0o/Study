@@ -10,6 +10,8 @@
 
 <hr/>
 
+# 시작하기
+
 - 우선 여느때와 마찬가지로 `.github/workflows` 폴더 하위에 yml 파일을 만들어 주자.  
   가장 먼저 이 workflow가 언제 수행될지를 지정해준다.
 
@@ -73,4 +75,94 @@ jobs:
 ```
 
 - fork된 상황을 가정했기에 `actions/checkout@v2`가 수행되는 위치에 ref 뿐만 아니라 repository까지 지정해주었다.
+<hr/>
+
+# 마무리
+
+- 완성된 전체 yml 파일은 아래와 같다.
+
+```yml
+name: PullRequestGradleTest
+
+on:
+  pull_request_target:
+    branches:
+      - dev
+    types:
+      - labeled
+
+jobs:
+  test:
+    name: GradleTest
+    runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.labels.*.name, 'STAGING')
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{github.event.pull_request.head.repo.full_name }}
+
+      - name: Setup JDK 1.8
+        uses: actions/setup-java@v2
+        with:
+          java-version: "8"
+          distribution: "adopt"
+
+      - name: Grant Permissions to gradlew
+        run: chmod +x gradlew
+      - name: Test
+        run: ./gradlew test
+
+      - name: Test Success
+        if: success()
+        uses: actions/github-script@0.2.0
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const pull_number = "${{github.event.number}}"
+            await github.pulls.createReview({
+              ...context.repo,
+              pull_number,
+              body: "테스트 모두 통과!",
+              event: "APPROVE"
+            })
+      - name: Test Fail
+        if: failure()
+        uses: actions/github-script@0.2.0
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const pull_number = "${{github.event.number}}"
+            await github.pulls.createReview({
+              ...context.repo,
+              pull_number,
+              body: "테스트 코드 실패.. 다시 작성해 주세요.",
+             event: "REQUEST_CHANGES"
+            })
+            await github.pulls.update({
+              ...context.repo,
+              pull_number,
+              state: "closed"
+            })
+```
+
+- 우선 이 workflow는 PR이 내가 만든 `STAGING` label이 적용되어야 수행되도록 했다.  
+  그리고 `actions/setup-java@v2`를 사용하여 간편하게 action이 동작될 VM에 java 설정을  
+  간편하게 수행해주었다.
+
+- 테스트를 수행하는 부분은 `./gradlew test`이며, 만약 이 테스트가 성공한다면  
+  Github Action Bot은 "테스트 모두 통과"라는 댓글과 함께 PR을 APPROVE할 것이고,  
+  실패한다면 "테스트 코드 실패.. 다시 작성해 주세요."라는 댓글과 함께 REQUEST CHANGES를 하며  
+  해당 PR을 closed 처리할 것이다.
+
+- 성공 시
+
+![picture 4](../images/972877387f576eaf4bb5c1651ab392f958470ecda1b447c2aee6c39b6130e095.png)
+
+- 실패 시
+
+![picture 1](../images/555681a33e115cdac5e5efde4565755b6dba74e718a4bf4f3225d243c6d9b8ed.png)
+
 <hr/>
