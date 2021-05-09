@@ -32,3 +32,23 @@ Host: www.example.com
   요청과 응답의 과정은 서버와 클라이언트 사이에서 HTML페이지를 모두 렌더링할 수 있게 될 때 까지 여러 번 진행된다.
 
 <hr/>
+
+# HTTP 2.0
+
+- HTTP 2.0은 Google에서 웹 페이지 로딩 지연을 해결하기 위해 내세운 기술들(압축, Multiplexing, Prioritization)을  
+  적용한 SDPY 프로토콜로 시작되었다.
+
+- 기술적인 관점에서 본다면 HTTP/1.1과 HTTP/2를 구분짓는 핵심적인 요소들 중 하나는 binary framing layer이다.  
+  Binary framing layer는 인터넷 프로토콜 스택 중 가장 최상위에 있는 Application Layer의 일부라고 보면 된다.
+
+- HTTP/1.1이 모든 요청과 응답에 대한 정보를 일반적인 텍스트(plain text)로 모두 저장하고 있다는 점과 다르게,  
+  HTTP/2.0은 Binary framing layer를 사용하여 모든 메시지를 2진수 형태(Binary Format)로 저장한다는 것이다.  
+  하지만 이렇게 2진수로 저장함과 동시에 HTTP verb, Method, Header등과 같은 기본적인 정보를 유지하도록 되어있다.
+
+- Application Level의 API는 계속 관례적인 HTTP 형식으로 메시지를 생성하지만, 안쪽 layer에서는 이 메시지들을  
+  2진수로 변환하여 저장하는 것이다. 이 절차는 HTTP/2.0 이전에 만들어진 웹 애플리케이션들이 HTTP/2.0을 사용하여  
+  소통하는데 문제가 없다는 것을 보장해준다.
+
+- 이렇게 메시지들을 2진수로 변환하는 과정은 HTTP/1.1에서는 수행될 수 없던 데이터들의 전달의 한계점을 극복해준다.
+
+<hr/>
