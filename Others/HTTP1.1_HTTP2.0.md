@@ -122,4 +122,8 @@ Host: www.example.com
 
 - 한 가지 유의할 점은, 많은 브라우저들이 HTTP/2.0을 HTTPS 프로토콜로만 지원한다는 점이다.
 
+- Multiplexing이 HTTP/1.1의 문제점들을 해결해주긴 하지만, 같은 리소스에 대한 응답을 기다리는  
+  여러 개의 Stream들이 있다면, 이는 여전히 성능적인 이슈를 야기할 것이다. 이를 HTTP/2.0은  
+  Stream Prioritization으로 해결한다.
+
 <hr/>
