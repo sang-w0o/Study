@@ -102,7 +102,7 @@ Host: www.example.com
 
 ![picture 1](../images/a95bd214171a63466aa06dd324ebd3228163c2e6567a1c56c7cfb050a39bac8d.png)
 
-- Communication Channel은 여러 개의 2진법으로 인코딩되어 있는 Frame들으 가지며, 이 Frame들은 각각  
+- Communication Channel은 여러 개의 2진법으로 인코딩되어 있는 Frame들을 가지며, 이 Frame들은 각각  
   특정 Stream에 소속되어 있다. 각 Frame들은 고유 식별자로 `Identifying Tag`를 가지는데, 이 태그를 통해  
   Connection이 다른 작업들을 수행하고 난 후에 다시 이 작업을 수행할 수 있도록 해준다.  
   즉, 요청과 응답의 과정이 하나의 Connection 내에서 병렬적으로 수행되며, 비동기적으로 수행될 수 있다는 것이다.  
@@ -125,5 +125,63 @@ Host: www.example.com
 - Multiplexing이 HTTP/1.1의 문제점들을 해결해주긴 하지만, 같은 리소스에 대한 응답을 기다리는  
   여러 개의 Stream들이 있다면, 이는 여전히 성능적인 이슈를 야기할 것이다. 이를 HTTP/2.0은  
   Stream Prioritization으로 해결한다.
+
+<hr/>
+
+<h2>HTTP/2.0 - Stream Prioritization</h2>
+
+- `Stream Prioritization`은 동일한 리소스에 대한 요청들이 겹치는 현상도 방지하는 동시에, 개발자에게  
+  각 요청마다 상대적인 가중치를 부여할 수 있게 하여 애플리케이션 성능을 최적화할 수 있도록 해준다.
+
+- 이제 알 수 있듯이, Binary Framing Layer는 메시지들을 병렬적인 데이터들의 stream으로 정리한다.  
+  클라이언트가 동시다발적으로 서버에게 요청을 보내면, Binary Framing Layer는 1에서 256사이의 가중치를  
+  각 stream에 부여하여 어떤 응답을 먼저 처리할지에 대한 정의를 할 수 있다.  
+  높은 가중치(256에 가까울 수록)는 더 우선순위가 높음을 의미한다.  
+  이에 추가적으로, 만약 특정 stream이 다른 stream에 의존성(Dependency)을 가진다면, 클라이언트는  
+  어떤 stream들이 의존 관계를 가지는지를 stream의 ID를 통해 표현한다.  
+  만약 parent identifier(부모 식별값, 부모의 stream ID)가 누락되었다면, 해당 stream은  
+  Root Stream(최상위 stream)에 의존성을 갖는다고 취급된다. 아래 그림을 보자.
+
+![picture 2](../images/da4c804b6b44b415f8bbe8facd59413d0c8f2ef9a29fa711961429bbed61650a.png)
+
+- 위 그림에서, Channel은 각각 고유한 ID값과 Wt(weight, 가중치)가 부여된 6개의 Stream들로 구성된다.  
+  `Stream ID 1`은 Parent ID가 nll(null)로 기입되어 있다. 이는 곳 Root stream에 의존성을 갖음을 의미한다.  
+  1번 Stream을 제외한 나머지 Stream들은 모두 PID(Parent ID)가 명시되어 있다.  
+  각 stream에 대한 리소스 할당량은 부여된 가중치와 요구하는 의존성 관계에 따라 결정된다.  
+  예를 들어, `Stream ID 5`와 `Stream ID 6`의 관계에서, 이 둘은 같은 PID를 가지며 Wt(Weight)값 또한 동일하다.  
+  이는 곧 이 두 Stream들은 리소스 할당에 있어 동일한 우선순위를 가짐을 의미한다.
+
+* 위 그림에서 보았듯이, Stream들의 `PID(Parent ID)`와 `Wt(Weight)`를 이용하여 서버는  
+  의존성 트리(Dependency Tree)를 생성하여, 어떤 요청이 우선적으로 수행되어야 하는지를 결정한다.  
+  위 그림에 있던 Stream의 경우, 아래의 의존성 트리가 생긴다.
+
+![picture 3](../images/bc39fcbaea21e520f3dbb695379675fe377772029da9a36cb9ab6524436ce8de.png)
+
+- 위 Dependency Tree를 살펴보자.  
+  우선 `Stream ID 1`은 PID가 null이기에 Root에 대해 의존성을 갖는다.  
+  **Root에 의존성을 갖는 다는 것은 가장 먼저 수행되어야 함을 의미** 한다.  
+  다음으로, `Stream ID 2`는 PID가 1이기에, `Stream ID 1`에 의존성을 가진다.  
+  이는 곧 `Stream ID 2`의 작업은 `Stream ID 1`의 작업이 완료될 때 까지 수행되지 않을 것임을 의미한다.  
+  이제 `Stream ID 3`과 `Stream ID 4`를 살펴보자. 이 둘은 모두 PID가 2로, `Stream ID 2`에 의존성을  
+  가진다. 하지만 이 둘의 Wt값은 각각 2와 4로, `Stream ID 4`가 `Stream ID 3`보다 가중치 값이 더 크다.  
+  따라서 `Stream ID 2`의 작업이 모두 끝나면, `Stream ID 3`과 `Stream ID 4`가 수행된다.  
+  마지막으로, `Stream ID 3`의 작업이 모두 끝나면, PID가 3인 `Stream ID 5`와 `Stream ID 6`의  
+  작업이 수행된다.  
+  위 과정에서, `Stream ID 4`가 `Stream ID 3`보다 가중치가 더 크니, `Stream ID 4`가 수행되고,  
+  `Stream ID 3`이 수행된 다음, `Stream ID 5`와 `Stream ID 6`이 수행되어야 하는게 아닌가 라는 생각이 들 수 있다.  
+  `Stream ID 3`과 `Stream ID 4`는 서로 같은 부모(`Stream ID 2`)에 종속되어 있지만, 둘 간의 직접적인  
+  의존 관계는 없기 때문에 서로의 작업 순서는 상관이 없다. 즉, Wt값이 다르기에 서버는 리소스의 우선순위에 따라 당연히  
+  Wt값이 더 큰 `Stream ID 4`부터 작업을 하지만, `Stream ID 3`의 작업이 `Stream ID 4`의 작업이 끝날 때 까지  
+  기다리지 않게 된다. 때에 따라서, `Stream ID 3`의 작업이 `Stream ID 4`보다 늦게 시작되었음에도 불구하고  
+  빨리 끝났다면, `Stream ID 4`의 작업이 끝나지 않았음에도 `Stream ID 5`와 `Stream ID 6`의 작업이  
+  시작될 수도 있다. 즉, **더 하위에 있는 Stream들은 직접적으로 연관된 부모 Stream의 작업이 끝나기만 한다면 시작**  
+  한다는 것이다.
+
+- 애플리케이션 개발자는 요구사항에 따라 요청에 대해 가중치를 부여할 수 있다. 예를 들어, 고해상도 이미지 파일을  
+  원하는 요청을 썸네일을 보여주는 요청을 먼저 수행하도록 한 다음에 수행하도록 할 수 있다.  
+  이렇게 Weight를 사용하여 HTTP/2.0은 개발자에게 웹 페이지 렌더링에 대해 더 많은 control을 부여한다.  
+  또한 HTTP/2.0은 사용자 반응에 따라 클라이언트가 Runtime 내에서 의존성 관계와 가중치 값을 변경할 수도 있게 해준다.  
+  주의할 점으로는 만약 특정 리소스에 접근하고 싶은 stream이 모종의 이유로 block되었다면, 서버가 인위적으로  
+  우선순위를 변경할 수도 있다는 점이다.
 
 <hr/>
