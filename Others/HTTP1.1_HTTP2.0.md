@@ -84,7 +84,42 @@ Host: www.example.com
   모두 받아오지 못한다.
 
 - 위의 문제점을 `HOL(Head-Of-Line) Blocking` 현상이라 하며, 이는 Connection을 효율화한 HTTP/1.1의  
-  매우 큰 문제점이다. 물론 병렬적인 TCP Connection의 수립으로 이 문제를 해결할 수도 있지만, 클라이언트와 서버 사이에서  
-  동시적으로 수립될 수 있는 TCP Connection의 개수에 제한이 있기에 완전한 해결책은 아니다.
+  매우 큰 문제점이다. 이 `HOL Blocking` 현상을 방지하기 위해 HTTP/1.1은 병렬적인 TCP Connection의 수립으로 이 문제를  
+  해결하려 했다. 하지만 애초에 클라이언트와 서버 사이에서 동시적으로 수립될 수 있는 TCP Connection의 개수에 제한이 있기에 완전한  
+  해결책은 아니다.
+
+<hr/>
+
+<h2>HTTP/2.0 - Binary Framing Layer의 이점</h2>
+
+- HTTP/2.0 에서, Binary framing layer는 요청과 응답을 2진수로 인코딩하며, 이들을 더 작은 정보의 단위로  
+  쪼개게 되어 데이터 송수신 작업에 유연함을 크게 더해준다.
+
+* 우선 HTTP/1.1이 HOL Blocking 현상을 방지하기 위해 여러 개의 TCP Connection들을 수립해야 했던 것과 반대로,  
+  HTTP/2.0은 **단 1개의 TCP 연결** 만을 수립한다. 이 연걸 안에는 **data로 구성된 여러개의 Stream** 이 있다.  
+  각 Stream은 익숙한 요청/응답의 형식으로 된 메시지들을 담고 있다.  
+  마지막으로, 각 하나의 Stream안의 여러 메시지들을 각각 **Frames** 라 하는 더 작은 단위로 쪼개어진다.
+
+![picture 1](../images/a95bd214171a63466aa06dd324ebd3228163c2e6567a1c56c7cfb050a39bac8d.png)
+
+- Communication Channel은 여러 개의 2진법으로 인코딩되어 있는 Frame들으 가지며, 이 Frame들은 각각  
+  특정 Stream에 소속되어 있다. 각 Frame들은 고유 식별자로 `Identifying Tag`를 가지는데, 이 태그를 통해  
+  Connection이 다른 작업들을 수행하고 난 후에 다시 이 작업을 수행할 수 있도록 해준다.  
+  즉, 요청과 응답의 과정이 하나의 Connection 내에서 병렬적으로 수행되며, 비동기적으로 수행될 수 있다는 것이다.  
+  이 과정을 `Multiplexing`이라 한다. Multiplexing은 HTTP/1.1의 HOL Blocking 현상을 해결해준다.  
+  이는 또한 서버와 클라이언트가 동시다발적으로 다수의 요청과 응답을 주고받을 수 있다는 것을 의미하며, 곧  
+  훨씬 조절 가능하고 효율적인 Connection 관리가 가능해짐을 의미한다.
+
+- Multiplexing이 클라이언트가 병렬적으로 여러 개의 Stream들을 만들 수 있도록 해주기 때문에, 이 Stream들은  
+  **단 1개의 TCP Connection** 만을 사용해도 된다. Origin별로 `Persist Connection`을 가능하게끔 해준  
+  HTTP/1.1 덕분에, 이는 훨씬 효율적인 네트워크의 사용과 모든 연산 비용을 최적화해준다.
+
+- 단 하나의 TCP Connection만을 사용해도 된다는 것은 HTTPS Protocol의 성능도 향상시켜준다.  
+  왜냐하면 클라이언트와 서버가 안전하게 관리되는 세션 하나로 여러 개의 요청과 응답을 주고받을 수 있기 때문이다.  
+  HTTPS내에서 TLS 또는 SSL Handshake 과정에서, 클라이언트와 서버는 단 하나의 key를 해당 세션 내에서  
+  사용하도록 한다. 만약 해당 세션이 종료되고, 새로운 세션이 시작되녀면 그에 맞게 key도 새롭게 발급해야 한다.  
+  따라서 하나의 Connection을 유지하는 것은 HTTPS를 사용하는데에 매우 효율적일 수 밖에 없다.
+
+- 한 가지 유의할 점은, 많은 브라우저들이 HTTP/2.0을 HTTPS 프로토콜로만 지원한다는 점이다.
 
 <hr/>
