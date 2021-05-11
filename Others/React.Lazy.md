@@ -50,3 +50,31 @@ const someFunction = () => {
 
 - 위 코드를 보면, 이제 최상위에서 특정 라이브러리부터 moduleA를 import하지 않는다.  
   이렇게 필요한 경우에만 로딩하는 것을 `Lazy Loading`이라 한다.
+
+# React.Lazy
+
+- `React.Lazy` 메소드는 React Application을 컴포넌트 레벨에서 dynamic import로 코드를 잘게 쪼갤 수 있게 해준다.  
+  (Code-Splitting)
+
+```js
+import React, { lazy } from "react";
+
+const AvatarComponent = lazy(() => import("./AvatarComponent"));
+
+const DetailsComponent = () => (
+  <div>
+    <AvatarComponent />
+  </div>
+);
+```
+
+- 규모가 큰 React Application은 정말 많은 컴포넌트들과 메소드, 그리고 제3의 라이브러리들을 포함한다.  
+  위에서 말했듯이, 만약 특정 작업을 수행해주지 않으면 페이지가 로딩될 때 부터 위의 수많은 데이터들이  
+  한 번에 모두 로딩되게 된다.
+
+- `React.Lazy` 함수는 React가 제공하는 메소드로, 애플리케이션 내의 컴포넌트들을 각자 다른 JavaScript Chunk로  
+  쉽게 분리할 수 있게 해준다. 이렇게 분리를 하면, 로딩 중인 상태를 `Suspense` 컴포넌트로 처리할 수 있다.
+
+<hr/>
+
+# Suspense
