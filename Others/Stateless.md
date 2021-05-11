@@ -163,3 +163,5 @@ eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOjEwLCJpYXQiOjE2MjA2NDM1NDMsImV4cCI6MTYyMDcyOTk
 - Private Claim에 넣은 userId가 다 노출되었는데, 이게 과연 안전한 것일까?!
 
 # JWT Token의 장단점 정리
+
+# TODO
