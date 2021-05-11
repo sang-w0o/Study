@@ -78,3 +78,109 @@ const DetailsComponent = () => (
 <hr/>
 
 # Suspense
+
+<h2>Suspense와 React.Lazy의 작동</h2>
+
+- `React.Lazy`를 사용하면 말 그대로 필요 시에만 로딩하는 `Lazy Loading`을 사용하기에, 컴포넌트가 로딩될 때 까지  
+  지연 시간이 발생할 수 있다. 이럴 경우에, 사용자에게 로딩 중임을 표시하는게 매우 중요하다.  
+  이를 `React.Lazy`와 `Suspense`로 해결하면 매우 간단하게 해결할 수 있다.
+
+```js
+import React, { lazy, Suspense } from "react";
+
+const AvatarComponent = lazy(() => import("./AvatarComponent"));
+
+const renderLoader = () => <p>Loading</p>;
+
+const DetailsComponent = () => (
+  <Suspense fallback={renderLoader()}>
+    <AvatarComponent />
+  </Suspense>
+);
+```
+
+- `Suspense` 컴포넌트는 만약 컴포넌트가 로딩 중이라면 보여줄 컴포넌트를 fallback 속성으로 받는다.
+
+<hr/>
+
+<h2>Suspense로 여러 개의 컴포넌트 로딩 처리</h2>
+
+- `Suspsense`의 또다른 기능은 여러 개의 컴포넌트가 모두 로딩될 때 까지에 대한 처리도 가능하다는 것이다.
+
+```js
+import React, { lazy, Suspense } from "react";
+
+const AvatarComponent = lazy(() => import("./AvatarComponent"));
+const InfoComponent = lazy(() => import("./InfoComponent"));
+const MoreInfoComponent = lazy(() => import("./MoreInfoComponent"));
+
+const renderLoader = () => <p>Loading</p>;
+
+const DetailsComponent = () => (
+  <Suspense fallback={renderLoader()}>
+    <AvatarComponent />
+    <InfoComponent />
+    <MoreInfoComponent />
+  </Suspense>
+);
+```
+
+- 위 코드에서, `Suspense` 컴포넌트는 `AvatarComponent`와 `InfoComponent`, `MoreInfoComponent`가  
+  모두 로딩될 때 까지 `<p>Loading</p>`를 띄워준다.
+
+- 이는 하나의 로딩 상태에서 여러 개의 컴포넌트를 띄워주고 싶은 경우에 매우 유용하게 사용된다.  
+  `Suspense` 내의 컴포넌트들이 모두 로딩이 완료되면, 사용자는 로딩된 컴포넌트들을 한번에 보게 된다.
+
+<hr/>
+
+<h2>로딩 실패 처리해주기</h2>
+
+- `Suspense`는 컴포넌트가 로딩 될 때 네트워크 통신이 필요할 때, 이에 대한 로딩 처리를 해줄 수 있다.  
+  하지만 만약 모종의 이유로 네트워크 요청이 실패하면 어떻게 될까?  
+  사용자가 오프라인이거나, 웹 서버가 다운되었거나 등의 다양한 경우가 있을 것이다.
+
+- React는 이렇게 로딩할 때 생기는 예외 상황에 대한 처리 방법을 제공하는데, 바로 에러 범주(Error Boundary)를  
+  활용하도록 한다. 공식 문서에 따르면, 모든 React 컴포넌트는 Error Boundary로서의 역할을 할 수 있다.
+
+- Lazy Loading에 대한 예외 상황을 발견하고 처리하기 위해서는 `Suspense` 컴포넌트를 Error Boundary로서  
+  작동하는 컴포넌트로 감싸주면 된다. Error Boundary 컴포넌트의 `render()` 메소드에서 만약 에러가 없다면  
+  children을 반환해주면 되고, 에러가 있다면 개발자가 직접 작성한 화면을 렌더링 해주도록 할 수 있다.
+
+```js
+import React, { lazy, Suspense } from "react";
+
+const AvatarComponent = lazy(() => import("./AvatarComponent"));
+const InfoComponent = lazy(() => import("./InfoComponent"));
+const MoreInfoComponent = lazy(() => import("./MoreInfoComponent"));
+
+const renderLoader = () => <p>Loading</p>;
+
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <p>Loading failed! Please reload.</p>;
+    }
+
+    return this.props.children;
+  }
+}
+
+const DetailsComponent = () => (
+  <ErrorBoundary>
+    <Suspense fallback={renderLoader()}>
+      <AvatarComponent />
+      <InfoComponent />
+      <MoreInfoComponent />
+    </Suspense>
+  </ErrorBoundary>
+);
+```
