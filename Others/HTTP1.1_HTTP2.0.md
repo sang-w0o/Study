@@ -217,3 +217,26 @@ Host: www.example.com
   각각의 Flow control mechanism이 필요하다. 이제 HTTP/2.0는 이를 어떻게 처리하는지 알아보자.
 
 <hr/>
+
+<h2>HTTP/2</h2>
+
+- HTTP/2는 한 개의 TCP Connection 내에서 데이터를 여러 개의 Stream들로 multiplex한다.  
+  따라서, TCP Connection단의 `Receive Window`의 정보는 개별적인 stream들에 대한 Buffer Overflow를  
+  처리할 수 없다. HTTP/2는 Transport Layer에 기반하지 않고, 클라이언트와 서버가 각각의 Flow Control을  
+  구현할 수 있게 하여 이 문제를 해결한다. Transport Layer가 아닌 Application Layer를 사용하여  
+  `Receive Window`에 대한 정보를 알려줄 수 있게 하여, 클라이언트와 서버가 개별적인 stream들에 대해  
+  `Receive Window` 정보를 설정할 수 있게 한다. 이 설정(Flow Control 구현 방법)은 Connection이  
+  수립돈 후에 `WINDOW_UPDATE` frame을 통해 변경될 수도 있다.
+
+- 이 방법은 Data Flow를 Transport Layer가 아닌 Application Layer에서 진행하기에, `Receive Window`를  
+  수정했다는 정보가 상대방에게 전송될 때까지 기다릴 필요가 없다. 각 node들은 각각 자신의 Flow Control 설정을 통해  
+  리소스 할당을 할 수 있고, 수정도 할 수 있다. 이 방식을 통해 각 서버는 자신만의 리소스에 대한 전략을 세워  
+  연결(Connection)의 효율을 극대화할 수 있다.
+
+- 이러한 Flow Control의 자유성은 리소스에 대한 적절한 전략을 수립할 때 큰 도움이 된다.  
+  예를 들어, 클라이언트는 이미지의 첫 스캔을 받아오고, 더 용량이 큰 리소스를 불러오는 동안 사용자에게 처음으로 받아온  
+  이미지를 보여줄 수 있다. 클라이언트가 용량이 큰 리소스를 모두 받아오면, 브라우저는 사진을 더 큰 용량으로 교체하여  
+  보여줄 것이다. 이렇게 서버와 클라이언트가 각각의 Flow Control을 정의할 수 있는 것은 웹 애플리켘이션에서  
+  성능을 향상시킬 수 있는 요소가 된다.
+
+<hr/>
