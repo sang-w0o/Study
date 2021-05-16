@@ -202,3 +202,18 @@ Host: www.example.com
   매우 큰 용량의 데이터를 보내는 것을 방지하기 위한 Flow Control Mechanism이 필요하다.
 
 <hr/>
+
+<h2>HTTP/1.1</h2>
+
+- HTTP/1.1에서 Flow control은 TCP Connection에 기반을 둔다.  
+  TCP Connection이 수립되면, 클라이언트와 서버가 모두 각각의 버퍼 사이즈를 시스템 설정값으로 설정하게 된다.  
+  만약 Receiver(수신자) 버퍼의 일부가 데이터로 이미 차있다면, 수신자는 발신자(Receiver)에게 자신의  
+  `Receive Window(남은 버퍼의 크기)`를 알려준다. 이 `Receive Window`는 `ACK Packet`을 통해  
+  발신자에게 알려진다. (`ACK Packet`은 Receiver가 Sender에게 요청이 왔음을 확인하는 용도로 사용된다.)  
+  만약 Sender에게 알려진 `Receive Window`의 크기가 0이면, Sender는 Receiver가 자신의 버퍼를 비우기  
+  전까지 요청을 보내지 않는다.
+
+- 이렇게 HTTP/1.1은 Transport Layer를 사용하여 Buffer Overflow를 방지하기에, 각각의 TCP Connection은  
+  각각의 Flow control mechanism이 필요하다. 이제 HTTP/2.0는 이를 어떻게 처리하는지 알아보자.
+
+<hr/>
