@@ -155,6 +155,83 @@ class JWTAuthenticationEntryPoint : AuthenticationEntryPoint {
 
 <hr/>
 
+<h3>인증 절차를 위한 클래스들 만들기</h3>
+
+- Filter를 구현하기 전에, 인증 절차에 사용될 클래스들을 먼저 만들어야 한다.  
+  우선 Spring Security에서는 `인증 성공 여부`를 개발자가 마음대로 정의할 수 있도록 하는데,  
+  그러기 위해서는 사용자를 name(이름)으로 불러오는 작업을 하는 `UserDetailsService` 인터페이스의 구현체가  
+  필요하다. 우리의 경우, accessToken 생성 시 userId를 넣어주기에 이 값을 name으로 취급하면 된다.
+
+```kotlin
+@Service
+class JWTUserDetailsService(private val authorizeUser: AuthorizeUser) : UserDetailsService {
+    override fun loadUserByUsername(username: String?): UserDetails {
+        val user = authorizeUser.apply(Integer.parseInt(username!!))
+        return UserDetailsImpl(user.id!!)
+    }
+
+    fun getAuthorities() : Set<GrantedAuthority> {
+        return mutableSetOf()
+    }
+}
+```
+
+- 참고로 위에서 사용된 `AuthorizeUser`는 함수형 인터페이스로, userId를 인자로 받아 해당 사용자(userId)가 실제로 존재하는지를  
+  파악한 후, 없다면 Spring Security에서 기본적으로 제공적하는 예외 클래스 중 하나인 `AuthenticationException`을 상속하는`UsernameNotFoundException`를 발생시킨다.
+
+```kotlin
+@Component
+class AuthorizeUser : Function<Int, User>{
+
+    @Autowired
+    private lateinit var userRepository: UserRepository
+
+    override fun apply(userId: Int): User {
+        return userRepository.findById(userId).orElseThrow { UsernameNotFoundException("잘못된 userId 값입니다.") }
+    }
+}
+```
+
+- 다음으로, 위의 `JWTUserDetailsService`에서 사용된 `UserDetailsImpl`을 보자.  
+  Spring Security에서는 인증이 수행되면, 사용자의 정보를 `SecurityContextHolder`라는 객체의 `SecurityContext`내에  
+  한 request가 끝날 때까지 저장한다. 이 때, `SecurityContext`에 저장되는 객체는 `Authentication` 객체이다.  
+  `UserDetailsImpl`은 `Authentication`객체에 사용자 정보를 저장하기 위해 제공되는 `UserDetail` 인터페이스의 구현체이다.
+
+```kotlin
+class UserDetailsImpl(
+    private val id: Int
+): UserDetails {
+
+    override fun isEnabled(): Boolean {
+        return true
+    }
+
+    override fun getPassword(): String {
+        return ""
+    }
+
+    override fun getUsername(): String {
+        return id.toString()
+    }
+
+    override fun isAccountNonExpired(): Boolean {
+        return true
+    }
+
+    override fun isAccountNonLocked(): Boolean {
+        return true
+    }
+
+    override fun isCredentialsNonExpired(): Boolean {
+        return true
+    }
+
+    override fun getAuthorities(): MutableCollection<out GrantedAuthority> {
+        return mutableListOf()
+    }
+}
+```
+
 <h3>JWT 인증을 하는 Filter 만들기</h3>
 
 - `Filter`를 만들 때에는 `org.springframework.web.filter` 패키지에 있는 클래스의 구현체를  
@@ -230,3 +307,26 @@ class JWTRequestFilter(private val jwtTokenUtil: JwtTokenUtil,
 - 인증 과정에서 예외(`AuthenticationException`)이 발생한다면, catch 블록으로 이동하고 `authenticationEntryPoint.commence()`를  
   호출한다. 그러면 위에서 컴포넌트로 등록한 `JWTAuthenticationEntryPoint#commence()`가 호출되어 클라이언트에게  
   401(UNAUTHORIZED)의 상태 코드와 함께 정보성 메시지를 전달할 것이다.
+
+- 또한, 인증이 성공했을 때 `JwtTokenUtil#getAuthentication()`을 호출하여 받은 값을 `SecurityContextHolder`의  
+  `SecurityContext`의 authentication에 저장하는 부분을 보자. 이 메소드는 아래와 같다.
+
+```kotlin
+@Component
+class JwtTokenUtil {
+
+    // Other methods
+
+    fun getAuthentication(token: String): UsernamePasswordAuthenticationToken {
+        val userDetails = UserDetailsImpl(extractUserId(token))
+        return UsernamePasswordAuthenticationToken(userDetails, "", userDetails.authorities)
+    }
+}
+```
+
+- `UsernamePasswordAuthenticationToken`은 `Authentication` 인터페이스의 구현체로,  
+  principal, credentials, authorities를 필드로 가진다.  
+  위의 `JwtTokenUtil#getAuthentication()`에서는 principal에 `UserDetailsImpl` 인스턴스를 전달하고,  
+  credentials과 authorities로는 아무런 값도 (빈 값) 주지 않았다.
+
+<hr/>
