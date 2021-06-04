@@ -330,3 +330,79 @@ class JwtTokenUtil {
   credentials과 authorities로는 아무런 값도 주지 않았다.
 
 <hr/>
+
+<h3>적용하기</h3>
+
+- 이제 인증을 위해 필요한 클래스들을 모두 만들었으니, 설정 클래스에 알맞게 설정만 해주면 된다.  
+  코드로 먼저 보자.
+
+```kotlin
+@Configuration
+@EnableWebSecurity
+class SecurityConfig(
+    private val jwtTokenUtil: JwtTokenUtil,
+    private val authenticationEntryPoint: AuthenticationEntryPoint,
+): WebSecurityConfigurerAdapter() {
+
+    override fun configure(http: HttpSecurity?) {
+        http!!
+        http
+            .httpBasic().disable()
+            .headers().frameOptions().disable()
+            .and()
+            .csrf().disable()
+            .cors().configurationSource(corsConfigurationSource())
+            .and()
+            .logout().disable()
+            .formLogin().disable()
+            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            .and()
+            .authorizeRequests()
+            .antMatchers("/v1/**")
+            .authenticated()
+            .and()
+            .addFilterBefore(JWTRequestFilter(jwtTokenUtil, authenticationEntryPoint), UsernamePasswordAuthenticationFilter::class.java)
+            .exceptionHandling().authenticationEntryPoint(authenticationEntryPoint)
+    }
+
+    override fun configure(web: WebSecurity?) {
+        web?.ignoring()
+            ?.mvcMatchers(HttpMethod.POST, "/v1/user/**")
+            ?.mvcMatchers(HttpMethod.GET, "/v1/blog/**")
+            ?.mvcMatchers(HttpMethod.POST, "/v1/auth/update-token")
+    }
+
+    @Bean
+    fun corsConfigurationSource(): CorsConfigurationSource {
+        val configuration = CorsConfiguration()
+        configuration.addAllowedOriginPattern("*")
+        configuration.addAllowedHeader("*")
+        configuration.addAllowedMethod("*")
+        configuration.allowCredentials = true
+
+        val source = UrlBasedCorsConfigurationSource()
+        source.registerCorsConfiguration("/**", configuration)
+        return source
+    }
+}
+```
+
+- 맨 아래에 있는 `corsConfigurationSource()` Spring Bean은 CORS 설정을 위한 Bean이다.
+
+- `WebSecurity`를 매개변수로 가지는 `configure()` 메소드는 인증에서 제외할 엔드포인트들을 지정할 수 있는 메소드이다.
+
+- 마지막으로 `HttpSecurity`를 매개변수로 가지는 `configure()` 메소드가 있는데, 여기서 Spring Security 설정을 진행한다.  
+  우선 우리는 직접 구현한 인증 방식을 사용하기 위해 `httpBasic().disable()`을 호출하여 HTTP의 Basic authentication을  
+  비활성화시키고, XFrameOptionsHeaderWriter를 커스터마이징 하지 않기에 이를 `headers().frameOptions().disable()`로  
+  설정한다. 다음으로 기본적으로 활성화 되는 CSRF 설정을 사용하지 않기에 `csrf().disable()`로 비활성화한다.  
+  또한 Spring Security는 기본적으로 form login 방식을 통해 인증을 진행하며, 로그아웃을 지원하기에 이 둘을 각각 명시적으로  
+  비활성화해야 한다.(`logout().disable().formLogin().disable()`). 또한 JWT를 사용한 인증 방식은 Stateless하게  
+  진행되므로 이를 `sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)`로 명시해줬다.  
+  이제 엔드포인트에 인증에 대한 부분인데, 나는 `/v1/`으로 시작하는 엔드포인트들에 대해 JWT 인증을 부여하고 싶었다.  
+  따라서 `/v1/**`의 패턴을 만족하는 엔드포인트에 대해 인증이 필요함을 `authorizeRequests().antMatchers("/v1/**").authenticated()`로  
+  설정했고, `addFilterBefore(JWTRequestFilter(jwtTokenUtil, authenticationEntryPoint), UsernamePasswordAuthenticationFilter::class.java)`로  
+  `UsernamePasswordAuthenticationFilter` 이전에 직접 만든 `JWTRequestFilter`를 추가하여 JWT 인증 과정이 수행될 순서를 정해주었다.  
+  마지막으로 인증 과정에서 발생하는 예외들의 처리를 `JWTAuthenticationEntryPoint`에서 수행하도록 하기 위해  
+  `exceptionHandling().authenticationEntryPoint(authenticationEntryPoint)`로 이를 설정해주었다.
+
+<hr/>
