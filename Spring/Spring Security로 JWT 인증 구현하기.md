@@ -11,6 +11,76 @@ implementation("org.springframework.boot:spring-boot-starter-security")
 testImplementation("org.springframework.security:spring-security-test")
 ```
 
+- 그리고 JWT 형식으로 AccessToken을 발급하고, 검증하는 기능을 하는 유틸리티 클래스를 만들어주자.
+
+```kotlin
+@Component
+class JwtTokenUtil {
+
+    @Value("\${jwt.secret}")
+    lateinit var secretKey: String
+
+    companion object {
+        private const val ACCESS_TOKEN_EXP: Int = 86400000 // 1 day
+    }
+
+    private fun getUserId(claim: Claims): Int {
+        try {
+            return claim.get("userId", Int::class.javaObjectType)
+        } catch(e: Exception) {
+            throw AuthenticateException("JWT Claim에 userId가 없습니다.")
+        }
+    }
+
+    private fun extractExp(token: String): Date {
+        return extractClaim(token, Claims::getExpiration)
+    }
+
+    private fun extractAllClaims(token: String) : Claims{
+        try {
+            return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).body
+        } catch(expiredJwtException: ExpiredJwtException) {
+            throw AuthenticateException("Jwt 토큰이 만료되었습니다.")
+        } catch(unsupportedJwtException: UnsupportedJwtException) {
+            throw AuthenticateException("지원되지 않는 Jwt 토큰입니다.")
+        } catch(malformedJwtException: MalformedJwtException) {
+            throw AuthenticateException("잘못된 형식의 Jwt 토큰입니다.")
+        } catch(signatureException: SignatureException) {
+            throw AuthenticateException("Jwt Signature이 잘못된 값입니다.")
+        } catch(illegalArgumentException: IllegalArgumentException) {
+            throw AuthenticateException("Jwt 헤더 값이 잘못되었습니다.")
+        }
+    }
+
+    private fun createToken(claims: Map<String, Any>, exp: Int): String {
+        return Jwts.builder()
+            .setClaims(claims)
+            .setIssuedAt(Date(System.currentTimeMillis()))
+            .setExpiration(Date(System.currentTimeMillis() + exp))
+            .signWith(SignatureAlgorithm.HS256, secretKey)
+            .compact()
+    }
+
+    fun <T> extractClaim(token: String, claimResolver: Function<Claims, T>): T {
+        return claimResolver.apply(extractAllClaims(token))
+    }
+
+    fun extractUserId(token: String): Int {
+        return extractClaim(token, this::getUserId)
+    }
+
+    fun isTokenExpired(token: String): Boolean {
+        return extractExp(token).before(Date())
+    }
+
+    fun generateAccessToken(userId: Int): String {
+        val claims: MutableMap<String, Any> = mutableMapOf()
+        claims["userId"] = userId
+        return createToken(claims, ACCESS_TOKEN_EXP)
+    }
+}
+```
+
 <hr/>
 
 <h2>Spring Security 작동 방식</h2>
@@ -84,3 +154,79 @@ class JWTAuthenticationEntryPoint : AuthenticationEntryPoint {
   HTTP Status Code와 함께 다른 값들을 클라이언트에게 전달해주도록 설정해주었다.
 
 <hr/>
+
+<h3>JWT 인증을 하는 Filter 만들기</h3>
+
+- `Filter`를 만들 때에는 `org.springframework.web.filter` 패키지에 있는 클래스의 구현체를  
+  만들면 된다. 여기서는 `OncePerRequestFilter`를 상속하는 Filter를 만들 것인데, 그 이유는 아래와 같다.
+
+  - `OncePerRequestFilter`는 Request가 올 때마다 어떠한 Servlet Container이든  
+    **무조건 1번 실행됨을 보장** 하기 위해 만들어진 추상 클래스이기 때문이다. 또한, `HttpServletRequest`,  
+    `HttpServletResponse`, `FilterChain`를 매개변수로 하는 `doFilterInternal()` 메소드를 제공하여  
+    해당 필터가 수행할 작업을 자유롭게 명시할 수 있다.
+
+- 우선, 코드를 보자.
+
+```kotlin
+class JWTRequestFilter(private val jwtTokenUtil: JwtTokenUtil,
+    private val authenticationEntryPoint: AuthenticationEntryPoint
+) : OncePerRequestFilter() {
+
+    companion object {
+        private const val BEARER_SCHEME = "Bearer"
+        private const val AUTHORIZATION_HEADER = "Authorization"
+    }
+
+    override fun doFilterInternal(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+        filterChain: FilterChain
+    ) {
+        try {
+            val authorizationHeader = request.getHeader(AUTHORIZATION_HEADER)
+                ?: throw AuthenticateException("Authorization Header is missing.")
+            val token = extractAccessToken(authorizationHeader)
+            if (jwtTokenUtil.isTokenExpired(token)) throw AuthenticateException("AccessToken has been expired.")
+            val authentication = jwtTokenUtil.getAuthentication(token)
+            val context = SecurityContextHolder.getContext()
+            context.authentication = authentication
+            filterChain.doFilter(request, response)
+        } catch(e: AuthenticateException) {
+            authenticationEntryPoint.commence(request, response, e)
+        }
+    }
+
+    private fun validateAuthorizationHeader(splits: List<String>) {
+        if(splits.size != 2) throw AuthenticateException("Authorization Header is malformed.")
+        val scheme = splits[0]
+        if(scheme != BEARER_SCHEME) throw AuthenticateException("Scheme is not Bearer.")
+    }
+
+    private fun extractAccessToken(authorizationHeader: String): String {
+        val splits = authorizationHeader.split(" ")
+        validateAuthorizationHeader(splits)
+        return splits[1]
+    }
+}
+```
+
+- **위 필터에 `@Component` 어노테이션이 없는 것에 유의하자.**
+
+- 우선, `validateAuthorizationHeader()`는 `Authorization`을 key로 하는 값이 헤더에 잘 왔는지 검증을 함과 동시에,  
+  value로 온 JWT가 Bearer Scheme를 사용하는지를 검증한다.
+
+- 다음으로 `extractAccessToken()`은 `validateAuthorizationHeader()`에서 나온 Authorization Header의  
+  value로부터 Access Token을 추출하여 반환한다.
+
+- 위 필터의 생성자에서 `JWTAuthenticationEntryPoint`가 아닌 `AuthenticationEntryPoint`을 자동으로 주입받도록  
+  지정했는데, `JWTAuthenticationEntryPoint`가 컴포넌트로 등록되어 있기에 이렇게 작성해도 된다.
+
+- 마지막으로 가장 중요한 `doFilterInternal()` 메소드는 try-catch로 묶여져 있다.  
+  만약 인증 과정에서 예외가 발생한다면 try 블록의 가장 마지막에 있는 `filterChain.doFilter()`가 호출되지 않는다.  
+  `filterChain.doFilter()`는 filterChain에 등록된 다음 filter를 수행하라는 뜻인데, 이 부분이 호출되지 않으면  
+  Spring 입장에서는 필터를 수행할 수 없게된 것이므로 내부적인 문제가 판단하여 500(INTERNAL_SERVER_ERROR)를  
+  반환하게 된다. 따라서 부득이하게 try-catch로 묶어준 것이다.
+
+- 인증 과정에서 예외(`AuthenticationException`)이 발생한다면, catch 블록으로 이동하고 `authenticationEntryPoint.commence()`를  
+  호출한다. 그러면 위에서 컴포넌트로 등록한 `JWTAuthenticationEntryPoint#commence()`가 호출되어 클라이언트에게  
+  401(UNAUTHORIZED)의 상태 코드와 함께 정보성 메시지를 전달할 것이다.
