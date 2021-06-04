@@ -44,3 +44,43 @@ testImplementation("org.springframework.security:spring-security-test")
   > Spring Security Configuration Class 만들기
 
 <hr/>
+
+<h3>1. 인증 예외 처리 핸들러 만들기</h3>
+
+- Spring Security의 Authentication 과정에서 발생하는 예외를 핸들링 하기 위해서는  
+  `org.springframework.security.web.AuthenticationEntryPoint` 인터페이스의 구현체를 만들어야 한다.
+
+```kotlin
+@Component
+class JWTAuthenticationEntryPoint : AuthenticationEntryPoint {
+    override fun commence(
+        request: HttpServletRequest?,
+        response: HttpServletResponse?,
+        exception: AuthenticationException?
+    ) {
+        request!!
+        val errorResponseDto = ErrorResponseDto(
+            DateConverter.convertDateWithTime(LocalDateTime.now()), HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.reasonPhrase, exception?.message!!, request.requestURI, request.remoteAddr)
+        response?.status = HttpStatus.UNAUTHORIZED.value()
+        response?.contentType = MediaType.APPLICATION_JSON_VALUE
+        response?.characterEncoding = "UTF-8"
+        response?.writer?.println(convertObjectToJson(errorResponseDto))
+    }
+
+    private fun convertObjectToJson(obj: Any): String? {
+        if (obj == null) {
+            return null;
+        }
+        val mapper = ObjectMapper()
+        return mapper.writeValueAsString(obj);
+    }
+}
+```
+
+- 위 코드처럼 `AuthenticationEntryPoint`의 `commence()` 메소드에서 예외 상황을 처리할 수 있다.  
+  `ErrorResponseDto`는 예외 상황을 처리하기 위해 만들어진 data class이며, `convertObjectToJson()`  
+  메소드는 JSON Object 형식으로 된 String을 만들어주는 메소드이다.  
+  `commence()`에서는 인증 과정에서 `AuthenticationException`이 발생하면 401(UNAUTHORIZED)의  
+  HTTP Status Code와 함께 다른 값들을 클라이언트에게 전달해주도록 설정해주었다.
+
+<hr/>
