@@ -327,6 +327,6 @@ class JwtTokenUtil {
 - `UsernamePasswordAuthenticationToken`은 `Authentication` 인터페이스의 구현체로,  
   principal, credentials, authorities를 필드로 가진다.  
   위의 `JwtTokenUtil#getAuthentication()`에서는 principal에 `UserDetailsImpl` 인스턴스를 전달하고,  
-  credentials과 authorities로는 아무런 값도 (빈 값) 주지 않았다.
+  credentials과 authorities로는 아무런 값도 주지 않았다.
 
 <hr/>
