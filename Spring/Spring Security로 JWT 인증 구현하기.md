@@ -12,3 +12,8 @@ testImplementation("org.springframework.security:spring-security-test")
 ```
 
 <hr/>
+
+<h2>Spring Security 작동 방식</h2>
+
+- Spring Security의 인증 진행 방식은 간단하게 말하면 여러 개의 `Filter`들과,  
+  그 `Filter`들을 연결해주는 `FilterChain`들의 연쇄 작용으로 진행된다.
