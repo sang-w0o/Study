@@ -17,3 +17,5 @@ testImplementation("org.springframework.security:spring-security-test")
 
 - Spring Security의 인증 진행 방식은 간단하게 말하면 여러 개의 `Filter`들과,  
   그 `Filter`들을 연결해주는 `FilterChain`들의 연쇄 작용으로 진행된다.
+- `Filter`, `FilterChain`에 대한 간략한 설명은 <a href="https://github.com/sang-w0o/Study/blob/master/Spring%20Security/2-0.%20Servlet%20Security.md">여기</a>에서 볼 수 있다.
+<hr/>
