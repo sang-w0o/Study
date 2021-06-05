@@ -15,3 +15,4 @@
 - Routing Table: 네트워크의 트래픽이 어디로 갈지를 정하는 규칙(Route)들로 정의된 테이블
 - Internet Gateway: 외부 인터넷과 정의한 VPC 내의 리소스들의 통신(Communication)을 활성화하기 위해  
   VPC에 붙히는(attach)하는 Gateway
+- CIDR(Classless Inter-Domain Routing): IP 주소와 IP Routing을 처리하기 위한 방법
