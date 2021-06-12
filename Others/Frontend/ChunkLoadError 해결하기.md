@@ -30,3 +30,93 @@ ChunkLoadError: Loading chunk [number] failed.
   꼭 해결해주어야 한다.
 
 <hr/>
+
+<h2>해결하기: react-error-boundary</h2>
+
+- 이 방법은 ChunkLoadError가 발생했을 때 무조건 페이지를 새로고침하도록 한다.  
+  만약 State등을 굳이 유지해야하는 상황이라면 이 방법을 사용하면 안된다.
+
+- 우선 에러가 발생할 수 있는 컴포넌트들을 묶어 에러를 처리할 수 있게 해주는 컴포넌트를  
+  npm의 `react-error-boundary` 패키지로 받아오자.  
+  ChunkLoadError는 모든 Route에서 발생할 수 있으므로 `App.tsx`에서 모든 컴포넌트를 묶어주자.
+
+```tsx
+// App.tsx
+
+// Other codes..
+
+return (
+  <ErrorBoundary FallbackComponent={ErrorFallback}>
+    <ComponentOne />
+    <ComponentTwo />
+    <ComponentThree />
+  </ErrorBoundary>
+);
+```
+
+- `ErrorBoundary` 컴포넌트는 prop으로 FallbackComponent를 전달할 수 있는데, 이 속성에는 에러를 처리할  
+  컴포넌트를 넘겨주면 된다.
+
+- 위에서 FallbackComponent로 넘겨준 `ErrorFallback` 컴포넌트를 보자.
+
+```ts
+// ErrorFallback.tsx
+
+// 아래는 다른 곳에서 직접 만든 에러 시에 띄워줄 ErrorComponent
+import { ErrorComponent } from "components";
+
+const CHUNK_LOAD_ERROR = "ChunkLoadError";
+const KEY = "chunk_failed";
+
+interface Item {
+  value: string;
+  expiry: number;
+}
+
+const ErrorFallback = ({ error }: { error: Error }): JSX.Element => {
+  useEffect(() => {
+    if (error?.name && error.name === CHUNK_LOAD_ERROR) {
+      if (!getWithExpiry(KEY)) {
+        setWithExpiry(KEY, "true", 10000);
+        window.location.reload();
+      }
+    }
+  }, [error]);
+
+  return <ErrorComponent error={error} />;
+};
+
+const setWithExpiry = (key: string, value: string, ttl: number) => {
+  const item: Item = {
+    value: value,
+    expiry: new Date().getTime() + ttl,
+  };
+  localStorage.setItem(key, JSON.stringify(item));
+};
+
+const getWithExpiry = (key: string): string | null => {
+  const itemString = localStorage.getItem(key);
+  if (!itemString) return null;
+  const item = JSON.parse(itemString);
+  const isExpired = new Date().getTime() > item.expiry;
+
+  if (!isExpired) {
+    localStorage.removeItem(key);
+    return null;
+  }
+  return item.value;
+};
+
+export default ErrorFallback;
+```
+
+- 이제 `App.tsx`에서 `ErrorBoundary`로 묶여진 하위의 컴포넌트들에서 에러가 발생하면  
+  위의 `ErrorFallback`으로 들어올 것이다. 그리고 만약 그 에러가 ChunkLoadError라면  
+  페이지를 `window.location.reload()`로 새로고침해 줄 것이다.
+
+- `getWithExpiry()`와 `setWithExpiry()` 함수를 만들어서 활용한 이유는 새로고침의 무한루프에 빠지는 것을  
+ 방지하기 위함이다. localStorage에 저장하는 것은 10000ms(10초)라는 value를 가진 item인데,  
+ 이 item이 있다면 10초가 지났는지를 확인하고 새로고침의 여부를 결정하기에 무한루프를 방지할 수 있다.
+<hr/>
+
+<a href="https://mitchgavan.com/code-splitting-react-safely/">참고 링크</a>
