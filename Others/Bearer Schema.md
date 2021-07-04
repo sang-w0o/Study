@@ -23,6 +23,8 @@
 - Bearer Token은 HTTP1.1의 TLS(Transport Layer Security) `RFC5246`을 이용해서  
   보호된 리소스에 접근한다. 따라서 이 인증 방식을 사용할 때 서버는 TLS를 필수적으로 구현해야 한다.
 
+<hr/>
+
 <h2>용어 정의</h2>
 
 - Bearer Token
@@ -36,5 +38,34 @@
   > party in possession of it can. Using a bearer token does not  
   > require a bearer to prove possession of cryptographic key material  
   > (proof-of-possession).
+
+<hr/>
+
+<h2>인증 과정 및 사용 예시</h2>
+
+- 인증 및 인증 후 리소스에 접근하는 과정은 잘 알고 있듯이 아래 처럼 이루어진다.
+
+![picture 1](../images/fdc746e62ae369abce2ef106c20705e9875b4e375fc86d4969ae411c7297a9a1.png)
+
+<h3>인증된 요청</h3>
+
+- Access Token은 HTTP/1.1에서 정의된 인증 방식(`RFC2617`) 중, Authorization Header를  
+  사용한다. Authorization Header는 Request Header의 Authorization 필드를 의미한다.  
+  클라이언트는 `Bearer` 인증 스키마를 통해 access token을 서버에게 전달한다.  
+  아래는 예시이다.
+
+```
+GET /resource HTTP/1.1
+Host: server.example.com
+Authorization: Bearer thisIsWhereTokenIsPut
+```
+
+- 클라이언트는 필수적으로 인증이 필요한 요청을 보낼 때, bearer token을 Authorization Request Header에  
+  `Bearer`로 시작하는 HTTP 인증 방식을 통해 전달해야 한다. 그리고 인증이 필요한 요청을 받는  
+  리소스 서버는 필수적으로 이 방식에 대한 처리를 할 수 있도록 구현되어야 한다.
+
+<hr/>
+
+- ~~HTTP 인증 표준 방식이었다. Bearer가 소지자 라는 의미를 갖는지 알게되는 계기였다.~~
 
 - 참고 문서: <a href="https://datatracker.ietf.org/doc/html/rfc6750">링크</a>
