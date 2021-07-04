@@ -36,3 +36,26 @@
 <h2>이메일</h2>
 
 - 주요 업무 변화 시 이메일로 사용자에게 통보한다.
+
+<hr/>
+
+<h2>외부 아키텍쳐 정의</h2>
+
+- 백엔드 마이크로서비스: `사용자/로그인`, `배송`, `대출`, `도서`, `도서 카탈로그`, `게시판`, `이메일`로 구성한다.  
+  사용자와 로그인은 별도의 Bounded Context로 식별했으나 구현의 편의성을 위해 하나의 서비스로 통합했다.
+
+- 프론트엔드: Vue.js
+- API Gateway: Load Balancing, Routing을 수행하며 Juul(Routing), Ribbon(Load Balancing)
+- 프론트엔드 + 사용자/로그인 백엔드 서비스 + API Gateway: 하나의 서비스에 통합되어 구현하며,  
+  API Gateway의 역할도 통합한다.
+- 서비스 저장소: 서비스의 저장소에는 관계형 데이터베이스인 MariaDB를, 카탈로그 서비스에는 읽기에 최적화된  
+  NoSQL 데이터베이스인 MongoDB를 사용한다.
+- 서비스 간의 통신: 동기 통신에는 페인을 사용하고, 비동기 통신에는 메시지 큐를 사용한다.
+- Message Queue: Kafka
+- 배포: Docker Container + K8S
+- 로그 중앙화: ELK Stack
+- 모니터링: Kiali (Monitoring + Tracing)
+- 형상 관리: Git
+- 개발 환경 구축: JHipster
+
+<hr/>
