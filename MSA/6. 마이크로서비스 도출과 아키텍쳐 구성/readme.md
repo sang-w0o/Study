@@ -71,3 +71,35 @@
 - 초기 개발 환경 구축을 위해 JHipster를 사용한다.
 
 <hr/>
+
+<h2>JHipster</h2>
+
+- JHipster는 현대 웹 애플리케이션과 마이크로서비스 아키텍쳐를 빠르게 적용, 개발, 배포할 수 있도록 도와주는  
+  오픈 소스 개발 플랫폼이며, 지원 영역은 아래와 같다.
+  - 프론트엔드: Angular, React, Vue
+  - 백엔드: Spring Boot, Micronaut, Quarkus, Node.js, .NET
+  - 배포 영역: Docker & K8S for AWS, Azure, Cloud Foundry, GCP, Heroku, OpenShift
+
+<h3>JHipster의 목적</h3>
+
+- JHipster를 사용하는 목적은 완전하고 현대적인 웹 애플리케이션과 마이크로서비스 아키텍쳐를  
+  생성하는 데 있으며, 다음와 같은 항목들을 통합하는 것이 목표이다.
+  - 광범위한 테스트를 커버할 수 있는 우수한 성능의 강력한 서버 스택
+  - 세련되고 현대적인 모바일 친화적 UI를 위한 Angular, React, Vuew + Bootstrap을 갖춘 CSS
+  - Webpack + Maven or Gradle을 사용해 애플리케이션을 빌드하는 강력한 workflow
+  - 클라우드에 빠르게 배포할 수 있는 코드 기반의 인프라
+
+<h3>JHipster 마이크로서비스 아키텍쳐</h3>
+
+![picture 2](../../images/5adcd5dd5121dcaf21a46fcf372992ad1c7ba0eb25e240dc7e6e725d042ea747.png)
+
+- 위 사진의 아키텍쳐에 대한 간단한 설명을 보자.
+
+  - JHipster Registry: MSA 디스커버리 패턴을 구현한 것으로. 다른 모든 구성요소를 서로 연결하고  
+    서로 통신할 수 있게 하는 역할을 한다. Eureka와 Spring Cloud Config를 기반으로 만들어진다.
+  - 마이크로서비스: 백엔드 코드가 들어 있고, 실행 후 도메인에 대한 API를 노출한다.  
+    여러 마이크로서비스로 구성될 수 있으며, 몇 개의 엔티티와 비즈니스 규칙이 포함된다.
+  - Gateway: 모든 프론트엔드 코드를 가지고 있으며, 전체 마이크로서비스에서 생성한 API를 사용한다.  
+    Zuul Proxy, Ribbon을 사용한다.
+  - 백엔드 소스코드: `src/main/java` 폴더에 존재한다.
+  - 프론트엔드 소스코드: `src/main/webapp` 폴더에 존재하고, 앞서 선택한 Angular로 만들어진다.
