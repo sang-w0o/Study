@@ -1,4 +1,4 @@
 .gradle
 .idea
-
+.DS_Store
 application-oauth.properties
