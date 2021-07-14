@@ -309,3 +309,27 @@ jobs:
   명령어이다.
 
 <hr/>
+
+<h2>API Gateway 연결</h2>
+
+- 배포가 성공하면 S3에 bucket이 하나 생성되어 있을 것이며 Lambda에도  
+  함수 하나가 추가되어 있을 것이다.  
+  Lambda 콘솔에서 트리거 추가를 이용하여 API Gateway를 손쉽게 구축할 수 있다.
+
+![picture 1](../../images/e65e329378c42d6c64a3002afa5f61c43520174812104d45a00f9c7c7dd86252.png)
+
+- 하위 속성은 기본값을 유지해도 된다.
+
+- API Gateway 생성 후 다시 Lambda 함수를 보면, trigger가 붙어 있다.  
+  API Gateway Trigger를 가서 API 엔드포인트를 확인해보자.  
+  그 엔드포인트에 요청을 보내면 아래와 같이 응답이 온다.
+
+```json
+{
+  "message": "Hello, Lambda!"
+}
+```
+
+<hr/>
+
+- 소스코드: <a href="https://github.com/sang-w0o/Lambda_Example">Github</a>
