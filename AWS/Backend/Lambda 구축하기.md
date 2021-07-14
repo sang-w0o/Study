@@ -19,3 +19,58 @@
 - 위 컨셉에 맞게 비용 청구 방식은 _함수가 수행된 시간_ 이다.
 
 <hr/>
+
+<h2>Starting Project</h2>
+
+- Lambda는 실행시킬 함수에 대하여 정말 많은 언어를 지원하는데, 이번 예제에서는  
+  boiler plate를 제공해주는 serverless 프레임워크를 사용해보자.  
+  언어로는 TypeScript를 선택했다.
+
+```
+npm i -g serverless
+```
+
+- 위 명령으로 전역젹으로 serverless를 설치한 후, serverless가 제공하는  
+  명령어를 통해 AWS Lambda를 위한 typescript로 된 boilerplate를 만들어보자.
+
+```
+serless create --template aws-nodejs-typescript --path ./Lambda_Example
+```
+
+- 위 명령어는 aws-nodejs-typescript의 boilerplate 코드를 Lambda_Example 폴더에  
+  생성해준다.
+
+- 생성해준 폴더를 보면 상당히 많은 라이브러리들이 들어가 있는데, 필요에 맞게 삭제해도 문제 없다.  
+  아래는 최소한의 설정만을 담은 `package.json` 이다.
+
+```json
+{
+  "name": "lambda-example",
+  "version": "1.0.0",
+  "description": "Serverless aws-nodejs-typescript template",
+  "license": "MIT",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "engines": {
+    "node": ">=14.15.0"
+  },
+  "dependencies": {
+    "aws-lambda": "^1.0.6"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.78",
+    "serverless": "^2.23.0",
+    "typescript": "^4.1.3",
+    "serverless-plugin-typescript": "^1.1.9"
+  }
+}
+```
+
+- `aws-lambda`: aws lambda의 함수 형식을 작성하기 위한 라이브러리
+- `@types/aws-lambda`: aws-lambda의 typescript 사용을 위한 라이브러리
+- `serverless`: 로컬 환경에서 serverless 배포를 테스트하기 위한 라이브러리
+- `typescript`: typescript 사용을 위한 라이브러리
+- `serverless-plugin-typescript`: typescript를 serverless와 함께 사용하기 위한 라이브러리
+
+<hr/>
