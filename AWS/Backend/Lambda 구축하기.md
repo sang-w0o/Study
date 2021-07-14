@@ -74,3 +74,44 @@ serless create --template aws-nodejs-typescript --path ./Lambda_Example
 - `serverless-plugin-typescript`: typescript를 serverless와 함께 사용하기 위한 라이브러리
 
 <hr/>
+
+<h2>Writing example code</h2>
+
+- 이제 Lambda가 trigger되면 실제로 수행될 함수를 작성해보자.  
+  `src/` 하위에 `helloWorld`라는 폴더를 만든 후, `handler.ts`를 만든다.
+
+```ts
+// handler.ts
+import { Handler } from "aws-lambda";
+
+interface Response {
+  message: string;
+}
+
+const helloLambdaWorld: Handler = async () => {
+  const response: Response = {
+    message: "Hello, Lambda new!",
+  };
+
+  return {
+    statusCode: 200,
+    body: JSON.stringify(response),
+  };
+};
+
+export { helloLambdaWorld };
+```
+
+- `helloLambdaWorld()` 함수가 바로 Lambda가 trigger되었을 때 실행될 함수이다.  
+  이 함수를 보면 `Handler` 타입을 가지는데, aws lambda가 이 함수를 직접적으로 호출하여  
+  수행할 것임을 알려준다.
+
+- 반환하는 형식을 보면 statusCode, body가 포함된 객체를 반환하는데 이는  
+  API Gateway가 반환하는 형식을 준수하여 작성한 객체이다.  
+  만약 준수하지 않는다면 코드에는 문제가 없어도 아래 에러가 나면서 500이 온다.
+
+```
+Malformed Lambda proxy response
+```
+
+<hr/>
