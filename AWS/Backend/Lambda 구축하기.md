@@ -115,3 +115,197 @@ Malformed Lambda proxy response
 ```
 
 <hr/>
+
+<h2>배포 과정 구축하기</h2>
+
+- Github Action을 사용하여 배포 과정을 구축해보자.
+
+<h3>1. IAM 계정 생성</h3>
+
+- Github Action을 통해 AWS 리소스를 사용하기 위해서는 여느때와 마찬가지로 IAM이 필요하다.  
+  프로그래밍 방식 엑세스를 선택한 후 IAM 사용자를 하나 추가해주자.  
+  이때, 이 사용자에게 부여해야할 권한이 상당히 많은데, 아래와 같다.
+
+> 참고로 기존 정책 연결 보단 새로운 정책을 직접 만들어서 전달해주자.
+
+```json
+{
+  "Statement": [
+    {
+      "Action": [
+        "apigateway:*",
+        "cloudformation:CancelUpdateStack",
+        "cloudformation:ContinueUpdateRollback",
+        "cloudformation:CreateChangeSet",
+        "cloudformation:CreateStack",
+        "cloudformation:CreateUploadBucket",
+        "cloudformation:DeleteStack",
+        "cloudformation:Describe*",
+        "cloudformation:EstimateTemplateCost",
+        "cloudformation:ExecuteChangeSet",
+        "cloudformation:Get*",
+        "cloudformation:List*",
+        "cloudformation:UpdateStack",
+        "cloudformation:UpdateTerminationProtection",
+        "cloudformation:ValidateTemplate",
+        "ec2:DeleteInternetGateway",
+        "ec2:DeleteNetworkAcl",
+        "ec2:DeleteNetworkAclEntry",
+        "ec2:DeleteRouteTable",
+        "ec2:DeleteSecurityGroup",
+        "ec2:DeleteSubnet",
+        "ec2:DeleteVpc",
+        "ec2:Describe*",
+        "ec2:DetachInternetGateway",
+        "ec2:ModifyVpcAttribute",
+        "events:DeleteRule",
+        "events:DescribeRule",
+        "events:ListRuleNamesByTarget",
+        "events:ListRules",
+        "events:ListTargetsByRule",
+        "events:PutRule",
+        "events:PutTargets",
+        "events:RemoveTargets",
+        "iam:AttachRolePolicy",
+        "iam:CreateRole",
+        "iam:DeleteRole",
+        "iam:DeleteRolePolicy",
+        "iam:DetachRolePolicy",
+        "iam:GetRole",
+        "iam:PassRole",
+        "iam:PutRolePolicy",
+        "iot:CreateTopicRule",
+        "iot:DeleteTopicRule",
+        "iot:DisableTopicRule",
+        "iot:EnableTopicRule",
+        "iot:ReplaceTopicRule",
+        "lambda:*",
+        "logs:CreateLogGroup",
+        "logs:DeleteLogGroup",
+        "logs:DescribeLogGroups",
+        "logs:DescribeLogStreams",
+        "logs:FilterLogEvents",
+        "logs:GetLogEvents",
+        "logs:PutSubscriptionFilter",
+        "s3:CreateBucket",
+        "s3:DeleteBucket",
+        "s3:DeleteBucketPolicy",
+        "s3:DeleteObject",
+        "s3:DeleteObjectVersion",
+        "s3:GetObject",
+        "s3:GetObjectVersion",
+        "s3:ListAllMyBuckets",
+        "s3:ListBucket",
+        "s3:PutBucketNotification",
+        "s3:PutBucketPolicy",
+        "s3:PutBucketTagging",
+        "s3:PutBucketWebsite",
+        "s3:PutEncryptionConfiguration",
+        "s3:PutObject",
+        "states:CreateStateMachine",
+        "states:DeleteStateMachine"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
+    }
+  ],
+  "Version": "2012-10-17"
+}
+```
+
+- lambda에 대해서는 당연히 권한을 부여하는데, 그 외의 리소스들에 대해서도  
+  권한을 부여해야 한다. 그 이유는 아래와 같다.
+
+  - S3: Lambda가 실행할 파일들을 serverless는 zip 형식으로 압축하여 S3에 업로드한다.  
+    따라서 S3를 사용하기 위한 권한이 필요하다.
+  - CloudWatch: Lambda가 수행된 로그를 자동으로 CloudWatch에 등록하여 보여준다.  
+    따라서 CloudWatch에 대한 권한이 필요하다.
+  - 그 외의 권한 목록도 최소한으로 필요하다.
+
+<h3>2. Serverless 스크립트 작성</h3>
+
+- 이후 Github Action이 수행할 스크립트는 Serverless를 사용한다.  
+  이때 serverless는 lambda에 대한 정보를 담는 스크립트를 요구하는데,  
+  프로젝트 최상단에 `serverless.yml`을 만들면 된다.
+
+```yml
+# serverless.yml
+service: LambdaExample
+plugins:
+  - serverless-plugin-typescript
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  stage: DEVELOPMENT
+  region: ap-northeast-2
+  environment:
+    TZ: "Asia/Seoul"
+
+functions:
+  sayHello:
+    handler: src/helloWorld/handler.helloLambdaWorld
+```
+
+- provider: 서비스 제공자에 대한 정보를 명시한다.
+  - name: 제공자의 이름으로, 이 경우 AWS이므로 aws를 지정한다.
+  - runtime: 코드가 실행될 런타임 환경을 지정한다.  
+    typescript로 작성했으므로 nodejs를 지정해준다.
+  - stage: 배포 단계를 의미하는데, 이 값은 자유롭게 부여가 가능하다.  
+    예시이므로 DEVELOPMENT라고 지정했다.
+  - region: AWS의 region을 지정한다.
+  - environment: 환경을 지정해준다.  
+    여기에 추가적인 환경 변수를 지정해줄 수도 있다.
+
+* functions: AWS Lambda에 대한 속성을 명시한다.
+  - sayHello: 이 Lambda가 실행할 함수명
+  - handler: 실제로 어떤 코드가 이 함수를 실행하는지를 명시한다.
+
+<h3>3. Workflow 스크립트 작성</h3>
+
+- 이제 마지막으로 Github Action이 수행할 스크립트를 작성해보자.
+
+```yml
+# .github/workflows/deploy.yml
+name: Deploy Lambda
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  Deploy:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [14.x]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install Packages Node ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - run: yarn install --frozen-lockfile
+
+      - name: Serverless Deploy
+        uses: serverless/github-action@v2.1.0
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        with:
+          args: deploy
+```
+
+- `actions/setup-node@v1`: node 환경을 사용하기 위한 스크립트
+- `yarn install --frozen-lockfile`: `npm ci`와 같은 역할을 해주는 명령어이다.
+  - <a href="https://www.geeksforgeeks.org/difference-between-npm-i-and-npm-ci-in-node-js/">npm install과 npm ci의 차이점</a>
+- `serverless/github-action@v2.1.0`: serverless가 제공하는 github action 스크립트이다.  
+  환경변수(env)로 `AWS_ACCESS_KEY_ID`와 `AWS_SECRET_ACCESS_KEY`는 이 workflow가  
+  수행될 때 사용할 AWS IAM의 정보이다. 위에서 IAM을 생성할 때 가져온 값을 사용한다.  
+  가장 아래에 `with: args: deploy`가 있는데, 이는 serverless가 배포할 때 사용하는  
+  명령어이다.
+
+<hr/>
