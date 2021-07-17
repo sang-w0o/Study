@@ -18,3 +18,23 @@
 - 참고로 이 과정에서 백엔드 서비스는 생략한다.
 
 <hr/>
+
+<h2>Lambda 구축</h2>
+
+- Lambda가 수행할 것은 매우 간단한데, 이미지를 받은 다음 해당 이미지를 압축한 후, S3에 업로드하는 것이다.  
+  Lambda의 배포 과정 개발에 대한 것은 <a href="https://github.com/sang-w0o/Study/blob/master/AWS/Backend/Lambda%20%EA%B5%AC%EC%B6%95%ED%95%98%EA%B8%B0.md">여기</a>에서 확인할 수 있다.
+
+- 아래는 Lambda의 함수가 특정 로직을 처리하는 pseudo code이다.
+
+```ts
+const upload: Handler = async (event: APIGatewayProxyEvent) => {
+  const file = await parseFile(event);  // 파일을 받아온다.
+  const response = await uploadToS3(file);  // S3에 업로드한다.
+  return Response;  // 응답 반환
+  };
+};
+```
+
+- 이제 하나씩 구현해보자.
+
+<h3>
