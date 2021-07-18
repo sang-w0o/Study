@@ -1,6 +1,6 @@
 # Apache Kafka 사용하기
 
-<h2>Apache Kafka</h2>
+# Apache Kafka
 
 - Apache Kafka는 간단히 말해 이벤트 기반으로 비동기 작업을 처리할 수 있게 해주는 도구이다.  
   MSA 구조에서 각 마이크로서비스 끼리 소통할 때 자주 사용되며, 데이터의 결과적 일관성을 추구할 때에도  
@@ -29,7 +29,9 @@
   TOPIC은 이벤트의 주제를 의미하며, 이벤트를 Consumer가 식별하여 적절하게 처리하기 위해 사용된다.  
   Value에는 Consumer가 해당 event를 처리하기 위해 필요한 적절한 정보들이 들어간다.
 
-<h2>Spring Boot에서 사용하기</h2>
+<hr/>
+
+# Spring Boot에서 사용하기
 
 - Spring Boot에서 Kafka를 사용하기 위해 아래의 의존성 패키지를 추가해주자.
 
@@ -47,7 +49,9 @@ implementation("com.fasterxml.jackson.core:jackson-core:2.11.4")
 
 > `./gradlew dep | grep jackson`
 
-<h2>Producer</h2>
+<hr/>
+
+# Producer
 
 - Kafka에서 이벤트를 발행하는 부분을 **Producer** 라고 부른다.  
   Producer는 적절한 Topic과 해당 Topic을 가진 이벤트의 정보를 포함하는 객체를 만들어서  
@@ -169,7 +173,9 @@ class SampleController(private val sampleService: SampleService) {
 }
 ```
 
-<h2>Consumer</h2>
+<hr/>
+
+# Consumer
 
 - 이제 위 코드에서 Producer가 Topic이 `TOPIC_MESSAGE`이면서, value가 `SampleEvent`인  
   이벤트를 발행하므로, 이를 받아서 처리할 Kafka Consumer를 생성해야 한다.
@@ -303,4 +309,31 @@ class SampleService {
 - 단순한 예시이므로 많은 시간이 소모되는 작업처럼 작동시키기 위해 Thread를 10초 동안 일시 중지시키고,  
   콘솔에 찍도록 했다.
 
-<h2>실행 방법</h2>
+<hr/>
+
+# Usage
+
+- Kafka Provider와 Consumer가 작동하려면 Kafka Message Broker가 있어야 한다.  
+  로컬 머신에서 위의 3개를 모두 실행하기 위해, Producer Repository를 clone하여  
+  아래의 명령을 수행하자.
+
+```sh
+docker-compose -f src/main/docker/kafka.yml up -d
+```
+
+- 이 명령어는 2개의 Docker Container를 실행하는데, 하나는 Zookeeper Container, 다른 하나는 Kafka Container이다.  
+  Zookeeper는 간단히 말해 Kafka Broker, Cluster들을 관리하는 서비스인데, 한 가지 주의할 점은 Kafka Container는  
+  Zookeeper Container에 의존성을 가진다. 즉, Zookeeper Container가 완전히 실행된 후에 Kafka Container를  
+  실행해야 정상적으로 실행된다는 것이다.
+
+- 두 개의 Docker Container가 실행되었으면, Producer와 Consumer를 각각 실행해주자.  
+  Producer는 8081, Consumer는 8082번 포트에서 실행된다.
+
+- 이제 실제로 메시지가 가는지를 테스트하기 위해 Producer에 있는 `/v1/sample/kafka`를 호출해보자.
+
+![picture 2](../images/f25ec821d6b7a4638422b09473da267217ff3b1862c8cd909671399e662bd7b2.png)
+
+- 위 처럼 응답은 195ms만에 클라이언트에게 도착한다. 하지만 Consumer 쪽의 콘솔을 보면, 10초 후에 콘솔에  
+  메시지가 찍히게 된다.
+
+![picture 3](../images/8e4a4ed79ff5d21f6800a529ab9b7da527120efde6fe6dbaf42442c5916e0dcc.png)
