@@ -45,9 +45,129 @@ implementation("com.fasterxml.jackson.core:jackson-core:2.11.4")
   버전은 Spring Boot가 가진 버전과 동일하게 설정해줘야 한다.  
   Spring Boot가 가진 jackson의 버전을 알기 위해서는 아래의 명령어를 수행하면 된다.
 
-> ./gradlew dep | grep jackson
+> `./gradlew dep | grep jackson`
 
 <h2>Producer</h2>
+
+- Kafka에서 이벤트를 발행하는 부분을 **Producer** 라고 부른다.  
+  Producer는 적절한 Topic과 해당 Topic을 가진 이벤트의 정보를 포함하는 객체를 만들어서  
+  Kafka Message Broker에 전달한다.
+
+- 우선 Producer와 Consumer 각각에 필요한 Kafka에 대한 설정 정보를 담는 `KafkaProperties`를 보자.
+
+```kt
+@Configuration
+class KafkaProperties {
+
+    private val bootStrapServer = "localhost:9092"
+    private val producer = mutableMapOf<String, String>()
+
+    fun getProducerProps(): Map<String, Any> {
+        val properties = this.producer
+        properties.putIfAbsent("bootstrap.servers", this.bootStrapServer)
+        properties.putIfAbsent("key.serializer", "org.apache.kafka.common.serialization.StringSerializer")
+        properties.putIfAbsent("value.serializer", "org.apache.kafka.common.serialization.StringSerializer")
+        return properties
+    }
+}
+```
+
+- `getProducerProps()`는 Map에 3개의 키와 값을 저장하는데, 각각에 대한 설명은 아래와 같다.
+
+  - `bootstrap.servers`: Message Broker 서버의 주소
+  - `key.serializer`: 이벤트의 Key(topic)을 직렬화할 때 사용할 유틸리티 클래스
+  - `value.serializer`: 이벤트의 value를 직렬화할 때 사용할 유틸리티 클래스
+
+- 실제로 Kafka Message Broker로 이벤트를 전송하는 `SampleKafkaProducer`, `SampleKafkaProducerImpl`
+
+```kt
+// SampleKafkaProducer: 내부 영역이 사용할 추상화된 인터페이스
+interface SampleKafkaProducer {
+    fun sendEvent(dto: SampleRequestDto)
+}
+
+// SampleKafkaProducerImpl: 실제 SampleKafkaProducer를 구현한 구현체
+
+@Service
+class SampleKafkaProducerImpl(kafkaProperties: KafkaProperties): SampleKafkaProducer {
+
+    private val logger = LoggerFactory.getLogger(SampleKafkaProducerImpl::class.java)
+
+    companion object {
+        private const val TOPIC_MESSAGE = "TOPIC_MESSAGE"
+    }
+
+    private val objectMapper: ObjectMapper = ObjectMapper()
+    private var producer = KafkaProducer<String, String>(kafkaProperties.getProducerProps())
+    @PostConstruct
+    fun initialize() {
+        logger.info("Kafka Producer initializing..")
+        Runtime.getRuntime().addShutdownHook(Thread(this::shutdown))
+    }
+
+    @PreDestroy
+    fun shutdown() {
+        logger.info("Shutting down Kafka Producer..")
+        producer.close()
+    }
+
+    override fun sendEvent(dto: SampleRequestDto) {
+        val sampleEvent = SampleEvent(dto.messageOne, dto.messageTwo)
+        val message = objectMapper.writeValueAsString(sampleEvent)
+        producer.send(ProducerRecord(TOPIC_MESSAGE, message)).get()
+    }
+}
+```
+
+- 위 코드에서는 `SampleEvent`, `SampleRequestDto`를 사용하는데, 이들은 시연을 위한  
+  간단한 클래스이다. `SampleEvent`는 Kafka Producer가 발행할 이벤트의 value를 담은  
+  클래스이며, `SampleRequestDto`는 클라이언트가 Restful API를 호출할 때 request body로  
+  전달할 내용을 담는 클래스이다.
+
+```kt
+// SampleEvent
+
+class SampleEvent(
+    val messageOne: String,
+    val messageTwo: String
+)
+
+// SampleRequestDto
+
+data class SampleRequestDto(
+    val messageOne: String = "",
+    val messageTwo: String = ""
+)
+```
+
+- 클라이언트가 실제로 호출할 Restful API와 이로 인해 실행되는 서비스 코드는 아래와 같다.  
+  우선 서비스 코드 부터 보자.
+
+```kt
+@Service
+class SampleService(private val kafkaProducer: SampleKafkaProducer) {
+
+    fun sendMessage(dto: SampleRequestDto): SimpleResponseDto {
+        kafkaProducer.sendEvent(dto)
+        return SimpleResponseDto("Message successfully sent!")
+    }
+}
+
+// SimpleResponseDto는 message를 가지는 간단한 DTO 이다.
+```
+
+- 마지막으로 Restful API를 노출시키는 컨트롤러는 아래와 같다.
+
+```kt
+@RestController
+class SampleController(private val sampleService: SampleService) {
+
+    @PostMapping("/v1/sample/kafka")
+    fun sendEvent(@RequestBody dto: SampleRequestDto): SimpleResponseDto {
+        return sampleService.sendMessage(dto)
+    }
+}
+```
 
 <h2>Consumer</h2>
 
