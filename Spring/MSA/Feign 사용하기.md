@@ -15,14 +15,16 @@
 
 - 우선, 이 예시에서는 아래의 명칭을 사용하겠다.
 
-  - `SampleServer`: 요청을 받아서 응답을 반환하는 서버 애플리케이션
-  - `SampleFeignClient`: 클라이언트로부터 요청을 받아 `SampleServer`에 요청을 보낸 후, 응답을 하는 서버 애플리케이션
+  - `SampleServer(:8082)`: 요청을 받아서 응답을 반환하는 서버 애플리케이션
+  - `SampleFeignClient(:8081)`: 클라이언트로부터 요청을 받아 `SampleServer`에 요청을 보낸 후, 응답을 하는 서버 애플리케이션
 
 <hr/>
 
 <h2>SampleServer 구축하기</h2>
 
-- `SampleServer`는 단순히 요청을 받아서 적절한 응답을 반환해주는 매우 간단한 서버 애플리케이션이다.
+- `SampleServer`는 단순히 요청을 받아서 적절한 응답을 반환해주는 매우 간단한 서버 애플리케이션이다.  
+  API로는 `POST` 방식으로 호출할 수 있는 `/v1/sample`이 있다.  
+  이 API의 명세를 보자.
 
 - 아래는 클라이언트가 보내는 요청의 Request Body 예시이다.
 
@@ -48,4 +50,59 @@
 
 <hr/>
 
-<h2>
+<h2>SampleFeignClient 구축하기</h2>
+
+- 이 예시 상황은 클라이언트가 `SampleFeignClient`가 요청을 받으면 `SampleServer`에 요청을 보낸 후  
+  그 응답을 클라이언트에게 그대로 반환해주는 상황이다.
+
+- 우선 `SampleFeignClient`가 `/v1/send-feign-api-call`이라는 `POST` 방식으로 호출할 수 있는  
+  REST API가 있다고 하자. 이 API를 처리하는 서비스 로직에서는 Feign을 사용해 `localhost:8082/v1/sample`로  
+  요청을 보내야 한다.
+
+- 이 상황에 사용하는 것을 `FeignClient`라고 한다. 아래 코드를 보자.
+
+<h3>Feign Client 작성하기</h3>
+
+```kt
+// SampleClient.kt
+
+@FeignClient(name = "sampleServer", configuration = [FeignConfig::class], url = "http://localhost:8082")
+interface SampleClient {
+    @PostMapping("/v1/sample")
+    fun makeApiCall(@RequestBody dto: SampleRequestDto): SampleResponseDto
+}
+```
+
+- `SampleClient`라는 인터페이스에 `@FeignClient` 어노테이션을 적용하여 이 인터페이스가 Feign을 사용해  
+  동기 호출을 할 것 임을 선언했다. `@FeignClient`에는 name, configuration, url의 속성들이 지정되어 있는데  
+  name은 이 Feign Client의 이름, configuration은 Feign 관련 설정 정보를 담는 클래스, 그리고 url은  
+  이 Feign Client가 호출할 API의 base url을 담는다.
+
+> 참고로 Eureka로 Service Registry Pattern을 구현하면 name으로 서비스를 찾아주기에  
+> url을 지정하지 않아도 된다.
+
+- `SampleClent`에 있는 `makeApiCall()` 메소드를 보자.  
+  컨트롤러에 Api Endpoint를 생성할 때의 코드와 매우 유사한데, 간단하게 아래의 내용을 의미한다.
+
+  - `http://localhost:8082/v1/sample`로 요청을 보내는데, 요청의 Request Body에는  
+    `SampleRequestDto`가 들어갈 것이며, 이 요청의 Response Body를 `SampleResponseDto`에  
+    매핑하여 담을 것이다.
+
+<h3>Application 설정</h3>
+
+```kt
+// SampleFeignClientApplication.kt
+
+@SpringBootApplication
+@EnableFeignClients
+open class SampleFeignClientApplication
+
+fun main(args: Array<String>) {
+    runApplication<SampleFeignClientApplication>(*args)
+}
+```
+
+- `@EnableFeignClients` 어노테이션은 이 애플리케이션에서 사용되는 `@FeignClient` 어노테이션이 적용된  
+  인터페이스들을 모두 찾아 컴포넌트로 등록시켜준다. 이 어노테이션이 없다면 애플리케이션은 실행조차 되지 않는다.
+
+<hr/>
