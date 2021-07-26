@@ -106,3 +106,47 @@ fun main(args: Array<String>) {
   인터페이스들을 모두 찾아 컴포넌트로 등록시켜준다. 이 어노테이션이 없다면 애플리케이션은 실행조차 되지 않는다.
 
 <hr/>
+
+<h2>시연 해보기</h2>
+
+- 정말로 `SameFeignClient`가 `SampleServer`에 Feign을 사용하여 요청을 보내는지 확인해보자.  
+  우선 `SampleServer`가 `/v1/sample`을 통해 반환하는 Response body에는 아래의 필드가 있었다.
+
+```json
+"messageFromServer": "This message is created by a server that Feign has called."
+```
+
+- `SampleServer`가 아닌 `SampleFiegnClient`가 실행하는 `localhost:8081/v1/send-feign-api-call`로  
+  요청을 보내면 아래의 응답이 온다.
+
+```json
+{
+  "requestMessages": ["MESSAGE 1", "MESSAGE 2", "MESSAGE 3"],
+  "messageFromServer": "This message is created by a server that Feign has called."
+}
+```
+
+- 이로써 실제로 `FiegnClient`가 `SampleServer`로 요청을 보내는 것을 확인할 수 있다.  
+  그렇다면 정상적이지 않은 경우를 테스트 해보자.
+
+- (1) `SampleServer`로부터 받는 Response Body를 담는 dto가 잘못된 경우
+
+  - 기존에 `FeignClient`의 `SampleResponseDto`는 아래처럼 작성되어 있었다.
+
+  ```kt
+  data class SampleResponseDto(
+      val requestMessages: List<String>,
+      val messageFromServer: String
+  )
+  ```
+
+  - 만약 messageFromServer 필드명을 message로 바꾸면 어떻게 될까?
+
+    - `feign.codec.DecodeException`이 발생하며 json 파싱에 실패했음을 알 수 있다.
+
+- (2) `SampleFeignClient`가 요청을 보내는 `SampleServer`가 꺼져 있는 경우
+
+  - 바로 `feign.RetryableException`이 발생하며, `http://localhost:8082/v1/sample`에 POST 요청을 보내는데에  
+    실패했음을 알 수 있다.
+
+<hr/>
