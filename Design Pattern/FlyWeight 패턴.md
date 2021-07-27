@@ -75,6 +75,19 @@ public class VehicleFactory {
 
 <h2>결론</h2>
 
+- 간단하게 FlyWeight 패턴을 구현해 보았는데, 이 패턴의 가장 자주 사용되는 Use Case는 아래와 같다.
+
+  - 데이터 압축
+
+    - FlyWeight 패턴의 목표는 최대한 기존 데이터를 공유(활용)하여 메모리 사용을 줄이는 것이다.  
+      이는 압축 알고리즘에서 적절하게 사용될 수 있다.
+
+  - 데이터 캐싱
+
+    - 많은 현대 애플리케이션은 응답 시간을 줄이기 위해 cache를 사용한다.  
+      FlyWeight 패턴은 cache의 근본 개념과 매우 유사한 속성을 가진다.  
+      물론 일반적인 목적을 가진 cache와 FlyWeight는 복잡도나 구현 방식에 차이점이 존재한다.
+
 </hr>
 
 - 참고 문서: <a href="https://www.baeldung.com/java-flyweight">링크</a>
