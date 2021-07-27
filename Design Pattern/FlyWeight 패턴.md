@@ -22,6 +22,55 @@
 
 <h2>예시</h2>
 
+- 우선 `Vehicle`이라는 인터페이스를 만들어보자. 이 인터페이스는 우리가 이후에 볼 팩토리의 반환 타입이 된다.
+
+```java
+public interface Vehicle {
+	public void start();
+	public void stop();
+	public Color getColor();
+}
+```
+
+- 다음으로 위 `Vehicle` 인터페이스의 구현체를 만들어보자.
+
+```java
+public class Car implements Vehicle {
+	private Engine engine;
+	private Color color;
+	public void start() {
+		System.out.println("Car start");
+	}
+	public void stop() {
+		System.out.println("Car stop");
+	}
+	public Color getColor() {
+		System.out.println("Car color is " + color);
+	}
+```
+
+- `Car`는 `Engine`, `Color`의 2개 상태(state)를 가진다.
+
+- 이제 마지막으로 `Vehicle` 타입의 객체들의 인스턴스를 관리하는 팩토리를 만들어보자.
+
+```java
+public class VehicleFactory {
+	private static Map<Color, Vehicle> vehiclesCache = new HashMap<>();
+
+	public static Vehicle createVehicle(Color color) {
+		Vehicle newVehicle = vehiclesCache.computeIfAbsent(color, newColor -> {
+			Engine newEngine = new Engine();
+			return new Car(newEngine, newColor);
+		});
+		return newVehicle;
+	}
+}
+```
+
+- 클라이언트는 `VehicleFactory#createVehicle()`을 사용하여 `Vehicle` 타입의 인스턴스를 받아올 수 있다.  
+  `VehicleFactory#createVehicle()`은 인자로 들어온 `Color`를 기준으로 기존에 생성된 인스턴스가 있다면  
+  그것을 반환하고, 없다면 새로운 것을 만들고 저장한 후 반환한다.
+
 <hr/>
 
 <h2>결론</h2>
