@@ -104,3 +104,5 @@ ALTER TABLE this_is_table_name DROP INDEX this_is_index_name;
   - 자주 값 또는 속성 자체가 변경되는 컬럼
 
 <hr/>
+
+- 참고 링크: <a href="https://medium.com/javarevisited/indexes-when-to-use-and-when-to-avoid-them-39c56e5a7329">Medium</a>
