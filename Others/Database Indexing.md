@@ -37,3 +37,59 @@
   따라서 index를 무조건 사용하지 말고, 적절하게 사용할 수 있어야 한다.
 
 <hr/>
+
+<h2>Index를 생성하는 방법</h2>
+
+<h3>CREATE_INDEX</h3>
+
+- `CREATE INDEX` 절은 this_is_index_name이라는 index를 this_is_table_name이라는 테이블에 생성한다.  
+  하나의 index는 여러 개의 컬럼을 참조할 수 있다. 또한 기본적으로 하나의 index가 참조하는 컬럼을  
+  다른 index가 동시에 참조할 수도 있다.
+
+```sql
+CREATE INDEX this_is_index_name
+	ON this_is_table_name (this_is_column_name, this_is_column_name, ...);
+```
+
+<h3>CREATE UNIQUE INDEX</h3>
+
+- `CREATE UNIQUE INDEX` 절은 unique한 index를 생성한다. Unique index는 중복 값을 가질 수 없다.
+
+```sql
+CREATE UNIQUE INDEX this_is_index_name
+	ON this_is_table_name (this_is_column_name, this_is_column_name, ...);
+```
+
+<h3>DROP INDEX</h3>
+
+- `DROP INDEX`절은 테이블의 index를 제거할 때 사용한다.  
+  아래 구문은 MySQL의 경우에 사용할 수 있는 구문이다.
+
+```sql
+ALTER TABLE this_is_table_name DROP INDEX this_is_index_name;
+```
+
+<hr/>
+
+<h2>Index가 몇 개의 컬럼을 참조하도록 해야할까?</h2>
+
+- 하나의 컬럼만을 참조하는 Single-Column Index를 생성할지, 아니면 여러 개의 컬럼을 참조하는  
+  Multi-Column Index를 생성할지는 상황에 따라 결정해야 한다.  
+  고려해야할 요소는 역시 `SELECT` 절의 사용이다.
+
+- `SELECT`절을 사용할 때, 대부분의 경우에는 특정 *조건*에 맞는 데이터들만을 가져오기 위해  
+  `WHERE`절을 사용한다. 이때, `WHERE`절에 자주 사용되는 컬럼이 기준이 된다.  
+  만약 `WHERE`절에서 하나의 컬럼에 대한 조건만을 명시한다면 Single-Column Index를 사용하는 것이  
+  좋으며, 여러 개의 컬럼에 대한 조건을 명시하는 경우가 많다면 Multi-Column Index를 사용하는 것이  
+  가장 효과적이다.
+
+<hr/>
+
+<h2>Implicit Index</h2>
+
+- 위에서 `CREATE INDEX` 또는 `CREATE UNIQUE INDEX`를 통해 만드는 index는  
+  명시적(Explicit) index이다. 반면, 데이터베이스에 의해 테이블이 생성될 때 같이 생성되는 index도 있는데,  
+  이들을 Implicit Index라 한다. 자동으로 생성되는 implicit index는 primary key와 unique 제약이  
+  있는 컬럼들에 대해 생성된다.
+
+<hr/>
