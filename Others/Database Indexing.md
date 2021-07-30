@@ -43,8 +43,7 @@
 <h3>CREATE_INDEX</h3>
 
 - `CREATE INDEX` 절은 this_is_index_name이라는 index를 this_is_table_name이라는 테이블에 생성한다.  
-  하나의 index는 여러 개의 컬럼을 참조할 수 있다. 또한 기본적으로 하나의 index가 참조하는 컬럼을  
-  다른 index가 동시에 참조할 수도 있다.
+  하나의 index는 여러 개의 컬럼을 참조할 수 있다.
 
 ```sql
 CREATE INDEX this_is_index_name
@@ -53,7 +52,8 @@ CREATE INDEX this_is_index_name
 
 <h3>CREATE UNIQUE INDEX</h3>
 
-- `CREATE UNIQUE INDEX` 절은 unique한 index를 생성한다. Unique index는 중복 값을 가질 수 없다.
+- `CREATE UNIQUE INDEX` 절은 unique한 index를 생성한다. Unique index는 중복 값을 가질 수 없다.  
+  중복 값을 가질 수 없다는 것은 해당 column(들)이 각각 unique 제약을 가진다는 것을 의미한다.
 
 ```sql
 CREATE UNIQUE INDEX this_is_index_name
@@ -89,7 +89,18 @@ ALTER TABLE this_is_table_name DROP INDEX this_is_index_name;
 
 - 위에서 `CREATE INDEX` 또는 `CREATE UNIQUE INDEX`를 통해 만드는 index는  
   명시적(Explicit) index이다. 반면, 데이터베이스에 의해 테이블이 생성될 때 같이 생성되는 index도 있는데,  
-  이들을 Implicit Index라 한다. 자동으로 생성되는 implicit index는 primary key와 unique 제약이  
-  있는 컬럼들에 대해 생성된다.
+  이들을 Implicit Index라 한다. 자동으로 생성되는 implicit index는 **primary key와 unique 제약이**  
+  **있는 컬럼들** 에 대해 생성된다.
+
+<hr/>
+
+<h2>Index 사용을 피해야하는 경우</h2>
+
+- Index를 사용하는 목적은 데이터베이스의 성능을 위함인데, 특정 경우에는 index를 사용하는 것을 지양해야 한다.
+
+  - 레코드 개수가 적은 테이블
+  - 큰 범위의 batch UPDATE, INSERT 연산이 자주 수행되는 테이블
+  - `NULL` 값이 많이 들어가는 컬럼
+  - 자주 값 또는 속성 자체가 변경되는 컬럼
 
 <hr/>
