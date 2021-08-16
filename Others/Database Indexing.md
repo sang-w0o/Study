@@ -105,4 +105,52 @@ ALTER TABLE this_is_table_name DROP INDEX this_is_index_name;
 
 <hr/>
 
+<h2>테스트 해보기</h2>
+
+- 간단하게 Spring으로 데이터베이스에 100만개의 데이터를 넣는 코드를 작성하고, 실행해보았습니다.  
+  ~~(10만개 넣어보고 유의미한 차이를 못 느껴서 100만개로 한건 비밀..)~~
+
+![picture 1](../images/c7fc42b72672455f5a3ba94cffcc3217abf7d954aa4ae8d7205be1189674b714.png)
+
+> 열심히 쿼리를 수행하는 중..
+
+- API 호출 후 응답 올 때까지 13분이 걸렸네요..
+
+- 참고로 테스트용 테이블 생성 구문은 아래와 같습니다.
+
+```sql
+CREATE TABLE users(
+    user_id integer auto_increment primary key,
+    email varchar(45) not null unique,
+    name varchar(45) not null,
+    created_at datetime not null default now(),
+    deleted_at datetime null
+);
+```
+
+- 이제 Implicit index가 없는 데이터를 하나 찾아보겠습니다.
+
+```sql
+SELECT * FROM users WHERE name = "NAME_45555";
+```
+
+- 대충 평균적으로 240ms가 소요되었습니다. 다음으로는 하나의 INSERT문을 수행해보겠습니다.
+
+```sql
+INSERT INTO users VALUES(DEFAULT, 'user100001@test.com', 'NAME_100001', DEFAULT, NULL);
+```
+
+- 대충 평균적으로 60ms가 소요되는 것 같습니다.
+
+- 이제 아무런 Index가 적용되어 있지 않는 name 컬럼에 index를 만들어보겠습니다.
+
+```sql
+CREATE INDEX idx_user_name
+	ON users (name);
+```
+
+- index 생성 쿼리 자체는 474ms가 소요되었습니다.  
+  이제 WHERE절에 name이 들어간 쿼리를 수행할 때의 대충 평균치는 150~170ms가 되는 것 같습니다.  
+  데이터 크기가 막 크지는 않은지 INSERT 쿼리는 수행 시간이 index가 없을 때와 유사했습니다.
+
 - 참고 링크: <a href="https://medium.com/javarevisited/indexes-when-to-use-and-when-to-avoid-them-39c56e5a7329">Medium</a>
