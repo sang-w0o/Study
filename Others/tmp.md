@@ -80,7 +80,7 @@
 
 <h2>서비스 추상화는 왜 할까?</h2>
 
-- DI의 4개 클래스 설명과 중복
+- DI의 4개 클래스 설명 + 의존성 역전과 중복
 
 <h2>OOP에서의 객체의 책임, 역할, 협력 및 객체 간의 메시지가 무엇일까</h2>
 
@@ -94,17 +94,19 @@
 
 <h2>layered architecture는 왜 필요할까</h2>
 
-- a
-
 <h2>Shell Script의 return vs 다른 언어의 return</h2>
 
 <h2>JPA N + 1 문제 및 해결법</h2>
 
-<h2>HTTP란 무엇일까?</h2>
+<h2>HTTP Header vs Body</h2>
+
+- 메타데이터 또는 전체 애플리케이션에서 동일하게 사용될 수 있는 정보를 Header에 넣자.  
+  예를 들어, JWT Token같이 전체 애플리케이션에서 사용되는 것이 있고, `Content-Type`과 같은  
+  메타 데이터가 있을 것이다.
+
+- 반면, Body는 특정 API에 정보 전달이 필요할 때 사용하자.
 
 <h2>단방향 vs 양방향 데이터 바인딩</h2>
-
-<h2>HTTP Session, Cookie는 HTTP의 어디에 저장될까?</h2>
 
 <h2>Promise가 무엇이며 비동기 처리는 어떻게 할까?</h2>
 
