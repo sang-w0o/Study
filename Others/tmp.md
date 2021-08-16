@@ -138,8 +138,7 @@ line 7: return: A: numeric argument required
 ```
 
 - 기본적으로 쉘 스크립트는 return value가 해당 shell script가 실행된 프로세스의 exit 코드 값이다.  
-  0은 정상 종료, 그 외의 값(1~255)는 오류의 상태를 나타낸다.  
-  1은 STD_OUT, 2는 ERR_OUT 스트림을 나타낸다.
+  0은 정상 종료, 그 외의 값(1~255)는 오류의 상태를 나타낸다.
 
 <h2>JPA N + 1 문제 및 해결법</h2>
 
@@ -150,6 +149,74 @@ line 7: return: A: numeric argument required
   메타 데이터가 있을 것이다.
 
 - 반면, Body는 특정 API에 정보 전달이 필요할 때 사용하자.
+
+<h3>HEAD</h3>
+
+- `HEAD` method는 특정 리소스를 `GET` method로 요청했을 때 돌아올 **헤더만을 요청** 한다.  
+  `HEAD` method에 대한 응답은 본문을 가져서는 안되며, 본문이 존재하더라도 부시해야 한다.  
+  그러나 `Content-Length` 처럼 본문 컨텐츠에 대한 정보를 가리키는 *개체 헤더*는 포함될 수 있다.
+
+<h3>OPTIONS</h3>
+
+- `OPTIONS` method는 **목표 리소스와의 통신 옵션**을 설명하기 위해 사용된다. 아래 요청 예시를 보자.
+
+```
+curl -X OPTIONS http://example.org -i
+```
+
+- 이에 대한 응답으로 아래와 같이 올 수 있다.
+
+```
+HTTP/1.1 200 OK
+Allow: OPTIONS, GET, HEAD, POST
+Cache-Control: max-age=604800
+Date: Tue, 17 Aug 2021 11:45:00 GMT
+Expires: Tue, 24 Aug 2021 11:45:00 GMT
+Server: EOS (lax004/2813)
+x-ec-custom-error: 1
+Content-Length: 0
+```
+
+- `Allow` 헤더 부분을 통해 허용되는 HTTP Method를 확인할 수 있다.
+
+- 이 메소드는 CORS의 Preflight Request에도 사용되는데, 서버에게 *사전 요청*을 보내 서버가 해당  
+  파라미터들을 포함한 요청을 보내도 되는지에 대한 응답을 줄 수 있게 한다.  
+  예를 들어, 아래 요청에서 `Access-Control-Request-Method`는 Preflight Request의 일부분으로,  
+  서버에게 실제 요청이 전달될 때는 `POST` method를 사용할 것임을 명시한다.  
+  `Access-Control-Request-Headers` 헤더는 서버에게 실제 요청이 전달될 때 `X-PINGOTHER`와  
+  `Content-Type`이라는 커스텀 헤더와 함께 전달할 것임을 명시한다.  
+  서버는 그럼 이러한 요구 사항들을 보고, 요청의 수락 여부를 결정할 수 있다.
+
+```
+OPTIONS /resources/post-here/ HTTP/1.1
+Host: bar.other
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: en-us,en;q=0.5
+Accept-Encoding: gzip,deflate
+Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7
+Connection: keep-alive
+Origin: http://foo.example
+Access-Control-Request-Method: POST
+Access-Control-Request-Headers: X-PINGOTHER, Content-Type
+```
+
+- 서버는 `Access-Control-Allow-Methods` 헤더로 `POST`, `GET`, `OPTIONS` method가 지원됨을 알려준다.
+
+```
+HTTP/1.1 200 OK
+Date: Mon, 01 Dec 2008 01:15:39 GMT
+Server: Apache/2.0.61 (Unix)
+Access-Control-Allow-Origin: http://foo.example
+Access-Control-Allow-Methods: POST, GET, OPTIONS
+Access-Control-Allow-Headers: X-PINGOTHER, Content-Type
+Access-Control-Max-Age: 86400
+Vary: Accept-Encoding, Origin
+Content-Encoding: gzip
+Content-Length: 0
+Keep-Alive: timeout=2, max=100
+Connection: Keep-Alive
+Content-Type: text/plain
+```
 
 <h2>단방향 vs 양방향 데이터 바인딩</h2>
 
