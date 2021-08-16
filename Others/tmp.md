@@ -94,7 +94,52 @@
 
 <h2>layered architecture는 왜 필요할까</h2>
 
+- 백엔드 코드 내에서는 주로 `Presentation` - `Business` - `Persistance` - `Database`의 총 4개 layer가 사용된다.
+
+  - `Presentation Layer`: 클라이언트에게 view 또는 응답을 보내주는 layer
+  - `Business Layer`: 비즈니스 로직이 위치하는 Layer
+  - `Persistence Layer`: ORM 등 데이터베이스와 연관된 작업을 수행하는 layer
+  - `Database Layer`: 데이터가 저장되는 곳
+
+<h3>장점</h3>
+
+- 각 layer가 뚜렷한 책임을 가지게 된다. 따라서 layer 단위의 단일 책임 원칙을 만족한다.
+- 코드의 가독성도 올라가며 layer별로 테스트를 수행하기가 쉽다.
+
+<h3>단점</h3>
+
+- 하나의 요청이 불필요하게 많은 layer를 왔다가면서 데이터 오버헤드가 발생할 수 있다.
+- layer가 많아질 수록 관리하기 힘들어진다.
+
 <h2>Shell Script의 return vs 다른 언어의 return</h2>
+
+- 아래 스크립트를 보자.
+
+```sh
+#!/bin/bash
+
+function add()
+{
+	sum=$(($1 + $2))
+	echo "Sum = $sum"
+	return "A"
+}
+
+a=10
+b=20
+
+add $a $b
+```
+
+- 위 스크립트를 실행하면 아래의 오류가 뜬다.
+
+```
+line 7: return: A: numeric argument required
+```
+
+- 기본적으로 쉘 스크립트는 return value가 해당 shell script가 실행된 프로세스의 exit 코드 값이다.  
+  0은 정상 종료, 그 외의 값(1~255)는 오류의 상태를 나타낸다.  
+  1은 STD_OUT, 2는 ERR_OUT 스트림을 나타낸다.
 
 <h2>JPA N + 1 문제 및 해결법</h2>
 
@@ -108,6 +153,18 @@
 
 <h2>단방향 vs 양방향 데이터 바인딩</h2>
 
-<h2>Promise가 무엇이며 비동기 처리는 어떻게 할까?</h2>
-
 <h2>ES6의 주요 기능</h2>
+
+- <a href="http://es6-features.org/#Constants">Link</a>
+- `const` keyword => constants
+- `let` keyword => block-scoped variables
+- arrow functions
+- default parameter values
+- spread operator
+- rest parameter
+- template literal
+- object property shorthand
+- object, array destructuring
+- Iterator, For-Of operator
+- generator functinos, iterator protocol
+- Promise reject, resolve
