@@ -99,16 +99,20 @@ ALTER TABLE this_is_table_name DROP INDEX this_is_index_name;
 - Index를 사용하는 목적은 데이터베이스의 성능을 위함인데, 특정 경우에는 index를 사용하는 것을 지양해야 한다.
 
   - 레코드 개수가 적은 테이블
-  - 큰 범위의 batch UPDATE, INSERT 연산이 자주 수행되는 테이블
+    - 레코드 개수가 적은 테이블은 간단한 테이블 스캔(일반적 SELECT)보다 오히려 index를 가지고 데이터를 순회하는게 더 오래 걸릴 수도 있다.
+  - 큰 범위의 batch UPDATE, INSERT, DELETE 연산이 자주 수행되는 테이블
+    - Index를 사용하면 UPDATE, INSERT, DELETE 연산이 단순히 값을 수정하는 데에 그치지 않고, index의 lookup table 또한 수정해야 하기에  
+      큰 범위의 연산이 수행되는 테이블에는 적합하지 않다.
   - `NULL` 값이 많이 들어가는 컬럼
+    - RDBMS에서는 NULL 값을 _값이 없다_ 고 판단하기에, NULL값은 indexing의 대상이아니다. 따라서 사실상 index를 만들어도 의미가 없다.
   - 자주 값 또는 속성 자체가 변경되는 컬럼
 
 <hr/>
 
 <h2>테스트 해보기</h2>
 
-- 간단하게 Spring으로 데이터베이스에 100만개의 데이터를 넣는 코드를 작성하고, 실행해보았습니다.  
-  ~~(10만개 넣어보고 유의미한 차이를 못 느껴서 100만개로 한건 비밀..)~~
+- 간단하게 Spring으로 데이터베이스에 50만개의 데이터를 넣는 코드를 작성하고, 실행해보았습니다.  
+  ~~(10만개 넣어보고 유의미한 차이를 못 느껴서 50만개로 한건 비밀..)~~
 
 ![picture 1](../images/c7fc42b72672455f5a3ba94cffcc3217abf7d954aa4ae8d7205be1189674b714.png)
 
