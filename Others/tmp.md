@@ -142,6 +142,8 @@ line 7: return: A: numeric argument required
 
 <h2>JPA N + 1 문제 및 해결법</h2>
 
+- <a href="https://github.com/sang-w0o/Study/blob/master/JPA/12.%20JPQL.md#n1-query%EC%99%80-%EC%A1%B0%ED%9A%8C-%EC%A0%84%EB%9E%B5">Link</a>
+
 <h2>HTTP Header vs Body</h2>
 
 - 메타데이터 또는 전체 애플리케이션에서 동일하게 사용될 수 있는 정보를 Header에 넣자.  
