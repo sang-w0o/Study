@@ -142,7 +142,159 @@ line 7: return: A: numeric argument required
 
 <h2>JPA N + 1 문제 및 해결법</h2>
 
-- <a href="https://github.com/sang-w0o/Study/blob/master/JPA/12.%20JPQL.md#n1-query%EC%99%80-%EC%A1%B0%ED%9A%8C-%EC%A0%84%EB%9E%B5">Link</a>
+- 게시글(posts)와 댓글(comments) 테이블이 있다고 하자.  
+   하나의 게시글에는 여러 개의 댓글들이 달릴 수 있으므로 posts와 comments의 관계는 1:N이 될 것이다.  
+   이 관계를 JPA 로 표현해보자.
+  j
+
+```kotlin
+// Post.kt
+@Entity
+@Table(name = "posts")
+data class Post(
+
+  @Id
+  @Column(name = "post_id")
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  var id: Int? = null,
+
+  @Column
+  val title: String,
+
+  @OneToMany(mappedBy = "post", cascade = [CascadeType.ALL])
+  val comments: List<Comment> = mutableListOf()
+)
+
+// Comment.kt
+@Entity
+@Table(name = "comments")
+data class Comment(
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = "comment_id")
+  val id: Int? = null,
+
+  @Column
+  val content: String,
+
+  @ManyToOne
+  @JoinColumn(name = "post_id")
+  val post: Post
+)
+```
+
+- 이제 아래와 같은 레포지토리 코드가 있다고 해보자.
+
+```kt
+@Repository
+interface PostRepository : JpaRepository<Post, Int>
+```
+
+- 이때, 아래와 같이 모든 post들을 가져와서 각 post의 comments를 읽어오는 코드가 있다고 하자.
+
+```kt
+@Service
+class TestService {
+  private fun logAllComments(posts: List<Post>)  {
+    for(post in posts) {
+      post.comments.stream().forEach { c -> print(c.id!!)}
+    }
+  }
+
+  @Transactional(readOnly = true)
+  fun nPlusOneProblem(): BasicMessageDto {
+    val posts = postRepository.findAll()
+    logAllComments(posts)
+    return BasicMessageDto("Done!")
+  }
+}
+```
+
+- posts 테이블에 4개의 데이터가 저장되어 있다고 할 때, 아래와 같은 SQL이 수행된다.
+
+```sql
+## posts에서 모든 데이터 가져옴
+select p0.post_id as post_id1_1_, p0.title as title2_1_ from posts p0;
+
+select c0.post_id as post_id3_0_0_, c0.comment_id as comment_1_0_0_, c0.comment_id as comment_1_0_1_, c0.content as content2_0_1_, c0.post_id as post_id3_0_1_ from comments c0 where c0.post_id=1;
+
+select c0.post_id as post_id3_0_0_, c0.comment_id as comment_1_0_0_, c0.comment_id as comment_1_0_1_, c0.content as content2_0_1_, c0.post_id as post_id3_0_1_ from comments c0 where c0.post_id=2;
+
+select c0.post_id as post_id3_0_0_, c0.comment_id as comment_1_0_0_, c0.comment_id as comment_1_0_1_, c0.content as content2_0_1_, c0.post_id as post_id3_0_1_ from comments c0 where c0.post_id=3;
+
+select c0.post_id as post_id3_0_0_, c0.comment_id as comment_1_0_0_, c0.comment_id as comment_1_0_1_, c0.content as content2_0_1_, c0.post_id as post_id3_0_1_ from comments c0 where c0.post_id=4;
+```
+
+- 바로 위에서 N + 1 문제가 발생한 것이다. N은 각 post에 대한 comment들을 가져오는 쿼리(post가 4개이므로 N = 4),  
+  1은 전체 posts를 가져오는 부분이다.
+
+- `@OneToMany`의 fetch 속성 기본 값은 `FetchType.LAZY`이다. 하지만 fetch를 `FetchType.EAGER`로  
+  설정해주는 것으로는 이 문제를 해결할 수 없다.
+
+<h3>FETCH JOIN</h3>
+
+- JPA의 `@Query` 어노테이션에 JPQL 쿼리를 직접 작성하여 해결할 수 있다.  
+  우리의 경우, 아래 처럼 작성할 수 있다.
+
+```kt
+@Repository
+interface PostRepository : JpaRepository<Post, Int>  {
+
+  @Query("SELECT p FROM Post p JOIN FETCH p.comments")
+  fun findAllFetchJoin(): List<Post>
+}
+```
+
+- 위와 같이 가져올 엔티티에 대해 `JOIN FETCH` 키워드를 지정하면, 아래의 쿼리가 수행된다.
+
+```sql
+select
+  p0.post_id as post_id1_1_0_, c1.comment_id as comment_1_0_1_,
+  p0.title as title2_1_0_, c1.content as content2_0_1_,
+  c1.post_id as post_id3_0_1_,
+  c1.post_id as post_id3_0_0__,
+  c1.comment_id as comment_1_0_0__
+from posts p0
+inner join comments c1 on p0.post_id=c1.post_id;
+```
+
+- 위처럼 Fetch Join을 사용하면 INNER JOIN을 사용하여 한 번의 쿼리로  
+  필요한 모든 정보를 가져오는 것을 확인할 수 있다.
+
+<h3>@EntityGraph</h3>
+
+- Repository 인터페이스의 메소드에 `@EntityGraph` 어노테이션을 적용해서 해결할 수도 있다.  
+  이 어노테이션은 attributes 속성을 받는데, 이 속성값에 수행시 바로 가져올 필드를 지정하면 된다.
+
+```kt
+@Repository
+interface PostRepository : JpaRepository<Post, Int>  {
+
+  @EntityGraph(attributePaths = ["comments"])
+  override fun findAll(): List<Post>
+}
+```
+
+- 수행된 쿼리는 아래와 같다.
+
+```sql
+select
+  p0.post_id as post_id1_1_0_,
+  c1.comment_id as comment_1_0_1_,
+  p0.title as title2_1_0_,
+  c1.content as content2_0_1_,
+  c1.post_id as post_id3_0_1_,
+  c1.post_id as post_id3_0_0__,
+  c1.comment_id as comment_1_0_0__
+from posts p0
+left outer join comments c1 on p0.post_id=c1.post_id
+```
+
+<h3>결론</h3>
+
+- Fetch Join 방식은 `INNER JOIN`으로, `@EntityGraph` 방식은 `LEFT OUTER JOIN`을 사용함을 주의하자.
+
+<hr/>
 
 <h2>HTTP Header vs Body</h2>
 
