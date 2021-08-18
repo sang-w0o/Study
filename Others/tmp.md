@@ -145,7 +145,6 @@ line 7: return: A: numeric argument required
 - 게시글(posts)와 댓글(comments) 테이블이 있다고 하자.  
    하나의 게시글에는 여러 개의 댓글들이 달릴 수 있으므로 posts와 comments의 관계는 1:N이 될 것이다.  
    이 관계를 JPA 로 표현해보자.
-  j
 
 ```kotlin
 // Post.kt
