@@ -257,6 +257,9 @@ from posts p0
 inner join comments c1 on p0.post_id=c1.post_id;
 ```
 
+- 부모 테이블(posts)의 데이터가 4개, 자식 테이블(comments)의 데이터가 22개였을 때  
+  `INNER JOIN`을 사용했으므로 위 쿼리의 결과는 22개가 된다.
+
 - 위처럼 Fetch Join을 사용하면 INNER JOIN을 사용하여 한 번의 쿼리로  
   필요한 모든 정보를 가져오는 것을 확인할 수 있다.
 
@@ -288,6 +291,10 @@ select
 from posts p0
 left outer join comments c1 on p0.post_id=c1.post_id
 ```
+
+- 부모 테이블(posts)의 데이터가 5개, 자식 테이블(comments)의 데이터가 22개였을 때  
+  부모 테이블의 데이터 중 자식 테이블에서 참조하지 않는 데이터가 1개 있다면,  
+  `LEFT OUTER JOIN`을 사용했으므로 위 쿼리의 결과는 23개가 된다.
 
 <h3>결론</h3>
 
