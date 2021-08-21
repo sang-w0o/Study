@@ -9,7 +9,7 @@
 - 이 글에서는 Apache Kafka를 Spring Boot와 함께 사용하여 간단한 프로젝트를 작성해 보도록 하겠다.  
   구현할 프로젝트의 아키텍쳐는 아래와 같다.
 
-  ![picture 1](../images/4277c4adb29c0f60a5763b129bc6b7059a377241491548cf5c73b29b3be7e67e.png)
+  ![picture 1](../../../images/4277c4adb29c0f60a5763b129bc6b7059a377241491548cf5c73b29b3be7e67e.png)
 
 - 여기서 주의할 점은 Kafka Producer가 Client에 Response를 보낼 때, Kafka Consumer가 받은 이벤트에 대한 처리를  
   완료하는 것을 기다리지 않고 바로 Response를 보낸다는 점이다.
@@ -331,9 +331,9 @@ docker-compose -f src/main/docker/kafka.yml up -d
 
 - 이제 실제로 메시지가 가는지를 테스트하기 위해 Producer에 있는 `/v1/sample/kafka`를 호출해보자.
 
-![picture 2](../images/f25ec821d6b7a4638422b09473da267217ff3b1862c8cd909671399e662bd7b2.png)
+![picture 2](../../../images/f25ec821d6b7a4638422b09473da267217ff3b1862c8cd909671399e662bd7b2.png)
 
 - 위 처럼 응답은 195ms만에 클라이언트에게 도착한다. 하지만 Consumer 쪽의 콘솔을 보면, 10초 후에 콘솔에  
   메시지가 찍히게 된다.
 
-![picture 3](../images/8e4a4ed79ff5d21f6800a529ab9b7da527120efde6fe6dbaf42442c5916e0dcc.png)
+![picture 3](../../../images/8e4a4ed79ff5d21f6800a529ab9b7da527120efde6fe6dbaf42442c5916e0dcc.png)

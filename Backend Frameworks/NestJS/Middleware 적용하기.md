@@ -4,7 +4,7 @@
   호출되는 것이다. 이 Middleware는 `Request(요청)` 객체와 `Response(응답)`객체에  
   접근을 할 수 있으며, 이 Middleware내에 있는 `next()` 함수에도 접근할 수 있다.
 
-![picture 1](../images/9482f67f52fb1e2f57a9e20aadf1a0a9cd13c2b84af7d0d78a32227e4a975995.png)
+![picture 1](../../images/9482f67f52fb1e2f57a9e20aadf1a0a9cd13c2b84af7d0d78a32227e4a975995.png)
 
 - NestJS에서도 개발자가 직접 작성한 Middleware를 적용할 수 있는데, 해당 Middleware는  
   함수 또는 `@Injectable()` 데코레이터가 적용된 클래스여야 한다.  

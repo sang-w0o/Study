@@ -12,7 +12,7 @@
 
 - Bridge Pattern을 사용해보기 위해 2 단계로 추상화된 클래스가 있다고 해보자.
 
-![picture 1](../images/44baa3e810877ebfcd6b20ae6323ccc198e3273e7b0c9e14eaa30687b0a6a739.png)
+![picture 1](../../images/44baa3e810877ebfcd6b20ae6323ccc198e3273e7b0c9e14eaa30687b0a6a739.png)
 
 - 우선 `Color` 인터페이스를 보자.
 

@@ -8,7 +8,7 @@
 
 - 참고로 Github의 `OAuth Apps` 설정은 아래와 같다.
 
-![picture 1](../images/96df25f1d82f1e1d6be6982aa6b380c17497947b9b3c780c56147a27bcc6480f.png)
+![picture 1](../../images/96df25f1d82f1e1d6be6982aa6b380c17497947b9b3c780c56147a27bcc6480f.png)
 
 <h2>Spring Security 도입하기</h2>
 

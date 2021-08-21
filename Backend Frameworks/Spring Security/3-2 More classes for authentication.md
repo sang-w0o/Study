@@ -66,7 +66,7 @@
 
 - 아래 그림은 `ProviderManager`와 `AuthenticationManager`들의 관계를 나타낸 그림이다.
 
-![picture 2](../images/fa6f9ed85d6b184c14846ce3aa9352dab1cbb977ed1666af2a3bc60c903eb6e0.png)
+![picture 2](../../images/fa6f9ed85d6b184c14846ce3aa9352dab1cbb977ed1666af2a3bc60c903eb6e0.png)
 
 - 실제로 각 `AuthenticationProvider`는 특정 형식의 인증을 어떻게 처리해야 할지 알고 있다.  
    예를 들어, 하나의 `AuthenticationProvider`는 username/password 형식의 인증을 처리할 수 있는 반면에  
@@ -79,14 +79,14 @@
   `AuthenticationProvider`가 없다면 수행될 부모 클래스인 `AuthenticationManager`를 설정할 수도 있다.  
   부모 클래스는 `AuthenticationManager`의 구현체이기만 하면 되는데, 대부분의 경우 `ProviderManager`의 인스턴스가 사용된다.
 
-![picture 3](../images/e35f905238ad07606d69b88b03cc2e435b74f20a4f33553c1f160f4502855cf6.png)
+![picture 3](../../images/e35f905238ad07606d69b88b03cc2e435b74f20a4f33553c1f160f4502855cf6.png)
 
 - 동일한 `AuthenticationManager`의 구현체를 부모 클래스를 두는 `ProviderManager` 인스턴스들이 다중으로 있을 수도 있다.  
   예를 들어 여러 개의 `SecurityFilterChain` 인스턴스들이 동일한 인증 방식을 사용한다면 공통적인 인증 방식을  
   부모 클래스인 `AuthenticationManager`의 구현체에 정의하면 되고, 각자 다른 인증 방식들에 대해서는  
   각각의 `ProviderManager` 인스턴스 내에 정의하면 된다.
 
-![picture 4](../images/be555234fafb4b9419e69a67ca6208f9cdd19eb743d51747fc9d23503de44bc2.png)
+![picture 4](../../images/be555234fafb4b9419e69a67ca6208f9cdd19eb743d51747fc9d23503de44bc2.png)
 
 - 기본적으로 `ProviderManager`는 성공적인 인증 요청에 의해 반환되는 `Authentication`객체의 민감한 인증 정보를 지우려고 한다.  
   이는 비밀번호와 같은 비밀 정보가 `HttpSession`에 필요 이상으로 유지되는 것을 방지한다.  
@@ -128,7 +128,7 @@
 
 - 인증에 대한 정보가 정상적으로 제공되면, `AbstractAuthenticationProcessingFilter`가 인증 요청에 대한 인증 작업을 수행할 수 있다.
 
-![picture 2](../images/000f62bfa03fa56c1cff018c877e5f01efd480abbfda6f26fcff6d9b9917e983.png)
+![picture 2](../../images/000f62bfa03fa56c1cff018c877e5f01efd480abbfda6f26fcff6d9b9917e983.png)
 
 - 위 그림에 대한 순서대로의 설명은 아래와 같다.
 
