@@ -74,12 +74,46 @@ INSERT INTO users VALUES(DEFAULT, 'name1');
   우선 Session A에서는 `READ COMMITED`로 격리 수준을 맞추고, SELECT문만 실행해보자.
 
 ```sql
+# Session A
 SET TRANSACTION ISOLATION LEVEL READ COMMITED;
 BEGIN;
 SELECT * FROM users;
+
+# Session B
+INSERT INTO users VALUES(DEFAULT, 'name');
 ```
 
 - 그리고 Session B에서는 계속해서 INSERT문을 수행해보자.  
   Session B의 INSERT문을 하고, 바로 Session A에서 SELECT문을 해보면,  
   Session A에서는 하나의 트랜잭션에서 동일한 SELECT문을 계속 질의하지만 결과는 달라지는 것이 확인된다.  
   이것이 `READ COMMITED` 격리 수준의 단점이다.
+
+<h3>REPEATABLE READ</h3>
+
+- `REPEATABLE READ`는 하나의 트랜잭션 내에서 동일한 SELECT문을 여러 번 질의하더라도 항상 결과가 동일함을 보장한다.  
+  이 격리 수준에서는 처음으로 SELECT 쿼리를 수행한 시점을 저장한 후, 이후에는 모두 이 시점을 기준으로 Consistent Read를 수행한다.  
+  따라서 트랜잭션 도중 다른 트랜잭션에서 COMMIT으로 인해 데이터가 수정되거나 추가되더라도 변경된 사항이 이 트랜잭션에는  
+  반영되지 않는다.
+
+  > Consistent Read: SELECT 연산을 수행할 때 실제 DB의 실시간 값이 아닌, 특정 시점의 DB에 대한  
+  > Snapshot을 읽어오는 것이다. 이 Snapshot은 COMMIT된 변화만이 적용된 상태이다.
+
+- Session A에서 격리 수준을 `REPEATABLE READ`로 맞추고, SELECT문을 실행해보자.  
+  이때, Session A에서는 SELECT를, Session B에서는 INSERT를 한 번씩 번갈아가며 수행해보자.
+
+```sql
+# Session A
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+BEGIN;
+SELECT * FROM users;
+
+# Session B
+INSERT INTO users VALUES(DEFAULT, 'name');
+```
+
+- Session B에서 값을 추가, 수정, 삭제하더라도 Session A는 이미 처음 SELECT를 질의한 시점에 Snapshot을 만들고,  
+  트랜잭션 내에서는 그 Snapshot에 대해서만 질의를 하기 때문에 Session B에서 만든 변경 사항이 Session A에는 반영되지 않는다.
+
+<h3>SERIALIZABLE</h3>
+
+# TODO:
