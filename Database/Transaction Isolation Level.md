@@ -63,3 +63,23 @@ INSERT INTO users VALUES(DEFAULT, 'name1');
   여기서는 SELECT문을 해보자. 진행한다면 Session B의 SELECT 결과에는 아직 Session A의  
   트랜잭션 결과가 COMMIT되기 전인데도 Session A에서 INSERT한 데이터가 조회된다.  
   이때, Session A에서 ROLLBACK처리를 해주면, Session B의 SELECT 결과에는 아무런 값도 나오지 않는다.
+
+<h3>READ COMMITED</h3>
+
+- `READ COMMITED`는 RDB에서 기본값으로 많이 사용되는 격리 수준이다. 이 격리 수준에서는 COMMIT이 완료된 데이터만  
+  조회할 수 있다. `READ UNCOMMITED`에서 발생하는 Dirty Read가 발생하지 않지만, 이 격리 수준의 단점은  
+  하나의 트랜잭션 내에서 동일한 SELECT문을 여러번 수행하면 각 결과가 동일하다는 것이 보장되지 않는다는 것이다.
+
+- 바로 실제 쿼리문으로 확인해보자.  
+  우선 Session A에서는 `READ COMMITED`로 격리 수준을 맞추고, SELECT문만 실행해보자.
+
+```sql
+SET TRANSACTION ISOLATION LEVEL READ COMMITED;
+BEGIN;
+SELECT * FROM users;
+```
+
+- 그리고 Session B에서는 계속해서 INSERT문을 수행해보자.  
+  Session B의 INSERT문을 하고, 바로 Session A에서 SELECT문을 해보면,  
+  Session A에서는 하나의 트랜잭션에서 동일한 SELECT문을 계속 질의하지만 결과는 달라지는 것이 확인된다.  
+  이것이 `READ COMMITED` 격리 수준의 단점이다.
