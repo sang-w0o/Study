@@ -116,4 +116,50 @@ INSERT INTO users VALUES(DEFAULT, 'name');
 
 <h3>SERIALIZABLE</h3>
 
-# TODO:
+- `SERIALIZABLE`는 모든 작업을 하나의 트랜잭션에서 처리하는 것과 같은 격리 수준이다.  
+  `READ COMMITED`, `REPEATABLE READ`의 공통적인 문제점은 Phantom Read가 발생할 수 있다는 점이다.
+
+  > Phantom Read: 하나의 트랜잭션에서 UPDATE문이 유실되거나 덮어써질 수 있는, 즉 UPDATE 후  
+  > COMMIT하고 다시 조회를 했을 때 예상과는 다른 값이 보이거나 데이터가 유실되는 경우
+
+- Session A와 Session B가 서로를 업데이트하는 상황을 보자.  
+  이 상황에는 user_id가 1인 데이터가 존재한다.
+
+```sql
+# Session A
+SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+BEGIN;
+SELECT * FROM users WHERE user_id = 1;
+
+# Session B
+SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+BEGIN;
+UPDATE users SET user_name = 'new_name' WHERE user_id = 1;
+```
+
+- 위 경우에, Session B의 UPDATE문은 동작하지 않는다. 이유를 알기 위해서는 S Lock과  
+  X Lock에 대해 알아야 한다.
+
+> S Lock(Shared Lock, 공유 잠금): 읽기 잠금(Read Lock)이라고도 하며, 리소스를 다른 트랜잭션에서  
+>  동시에 읽을 수는 있게 하되, 수정하는 것은 불가하게 하는 것이다. 이미 S Lock에 걸린 리소스에 대해서는  
+>  X Lock을 걸 수 없다.
+
+> X Lock(Exclusive Lock, 전체 잠금): 쓰기 잠금(Write Lock)이라고도 하며, 어떤 트랜잭션에서  
+>  데이터를 변경하고자 할 때 해당 트랜잭션이 완료될 때 까지 다른 트랜잭션에서 읽거나 쓰지 못하게 lock을 하고  
+>  트랜잭션을 진행시키는 것이다. X Lock에 걸린 리소스에 대해서 S Lock을 걸 수도 없고, 이미 X Lock에 걸린  
+>  리소스에 대해서 다른 트랜잭션에서 또 X Lock을 걸 수도 없다.
+
+- 우선 위 쿼리문에서 SELECT문이 실행되면, `SERIALIZABLE` 격리 수준에서는 `SELECT ... FOR SHARE`로  
+  쿼리가 변경되어 user_id가 1인 행에 S Lock을 걸게 된다.
+
+- 이후에 Session B의 UPDATE문이 실행되면, S Lock에 걸려 있는 행에 대해 X Lock을 걸려고 하기에  
+  에러가 발생한다. 결국 UPDATE 문은 아래의 에러를 출력하며 작업에 실패한다.
+
+```
+Lock wait timeout exceeded;
+```
+
+- 마찬가지로 만약 Session A에서 `SELECT * FROM users;`를 실행하여 users 테이블의  
+  모든 데이터에 대해 S Lock이 걸리게 되면, Session B에서는 INSERT가 수행되지 않는다.
+
+<hr/>
