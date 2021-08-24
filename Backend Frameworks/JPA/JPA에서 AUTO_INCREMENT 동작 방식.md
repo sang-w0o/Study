@@ -78,7 +78,7 @@ public enum GenerationType {
 
 <hr/>
 
-<h2>GenerationType.IDENTITY</h2>
+<h2>AUTO_INCREMENT Value</h2>
 
 - 우선 AUTO_INCREMENT로 값이 채워지는 PK의 경우, 데이터를 삽입할 때 들어가게 될 PK의 값을  
   정하는 것은 **Java 코드가 아니라 데이터베이스가 수행** 한다.  
