@@ -77,3 +77,47 @@ public enum GenerationType {
   선택해야한다는 것을 의미한다.
 
 <hr/>
+
+<h2>GenerationType.IDENTITY</h2>
+
+- 우선 AUTO_INCREMENT로 값이 채워지는 PK의 경우, 데이터를 삽입할 때 들어가게 될 PK의 값을  
+  정하는 것은 **Java 코드가 아니라 데이터베이스가 수행** 한다.  
+  PostgreSQL의 경우, 이러한 일종의 시퀀스(sequence)를 저장하기 위한 별도의 테이블이 생기지만  
+  위에서의 동일한 users 테이블을 PostgreSQL에 만들어보자.
+
+```sql
+CREATE TABLE users(
+  user_id SERIAL PRIMARY KEY,
+  name VARCHAR(200) NOT NULL
+);
+```
+
+- 그리고 테이블들을 보면, `users_user_id_seq`라는 테이블이 자동으로 만들어져 있다.  
+  데이터가 4개 들어있어, 마지막에 채워진 SERIAL값이 4라고 가정했을 때, `users_user_id_seq`테이블의  
+  조회 결과는 아래와 같다.
+
+| last_value | log_cnt | is_called |
+| ---------- | ------- | --------- |
+| 4          | 29      | true      |
+
+- 다시 MySQL에 와서, 동일한 상황(데이터 4개)에서 AUTO_INCREMENT값을 보고 싶다면 아래의 쿼리를 수행하면 된다.
+
+```sql
+SHOW TABLE STATUS WHERE `name` LIKE 'users';
+```
+
+- 위 쿼리의 결과 중 `Auto_increment`를 보면 되는데, 이 값이 다음에 users 테이블에 INSERT가 일어날 때  
+  채워질 PK의 값이다.
+
+- Java(or Kotlin)코드는 Multi Thread로 동작하며, 데이터베이스에 연산을 수행할 때 마다 Connection을  
+  새로 맺는 것은 매우 비용이 큰 작업이라 보통 Connection Pool에서 Connection이 필요할 때 가져와서  
+  사용하고, 사용하지 않을 때 다시 Connection Pool에 반납한다.
+
+- 또한 데이터베이스 단에서도 최대 Connection의 개수를 지정할 수 있고, 동시에 여러 개의 Connection을  
+  다룰 수 있도록 설계되어 있다.
+
+- 즉 Application단에서 하나의 Thread가 여러 개의 Connection을 사용하지 않고, 하나의 Thread는  
+  하나의 Connection만 사용할 수 있기 때문에 Thread-Safe하다 할 수 있고, 이로 인해 여러 개의 Connection에  
+  의해 AUTO_INCREMENT 값이 잘못되는 등의 문제를 피할 수 있다.
+
+<hr/>
