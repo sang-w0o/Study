@@ -1,4 +1,4 @@
-# LocalDateTime 반환하기
+# LocalDateTime의 직렬화
 
 - Java8에 등장한 `LocalDateTime`은 특정 날짜 및 시간에 대한 정보를 담고 있는 객체이다.  
   이 객체를 그 자체로 Request Body로 반환하면 어떻게 되는지 보자.
@@ -156,6 +156,16 @@ data class SimpleRequestDto(
     val dateTime: LocalDateTime = LocalDateTime.now()
 )
 ```
+
+<hr/>
+
+<h2>@DateTimeFormat vs @JsonFormat</h2>
+
+- `@DateTimeFormat`은 Spring이 제공하는 어노테이션인 반면, `@JsonFormat`은 Jackson이 제공하는 어노테이션이다.  
+  Spring에서는 Jackson을 직렬화, 역직렬화에 사용하지만 Jackson은 꼭 Spring과 같이 사용되지 않는다.
+- 따라서 직렬화, 역직렬화가 필요한 Request Body, Response Body의 경우에는 `@JsonFormat` 어노테이션을 사용하여  
+  Jackson이 직렬화를 할 수 있도록 해주고, 반대로 URL에 전달되는 Path Variable 또는 Request Parameter는  
+  직렬화가 필요없기에 Spring이 제공하는 `@DateTimeFormat` 어노테이션을 사용하는 것이다.
 
 <hr/>
 
