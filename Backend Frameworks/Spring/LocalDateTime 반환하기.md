@@ -90,7 +90,7 @@ class TestController(
 ) {
 
     @GetMapping("/test/{localDateTime}")
-    fun printCustomValue(@PathVariable localDateTime: LocalDateTime): SimpleLocalDateTimeDto {
+    fun testGet(@PathVariable localDateTime: LocalDateTime): SimpleLocalDateTimeDto {
         return testService.test(localDateTime)
     }
 }
@@ -113,7 +113,7 @@ class TestController(
 ) {
 
     @GetMapping("/test/{localDateTime}")
-    fun printCustomValue(
+    fun testGet(
         @PathVariable
         @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
         localDateTime: LocalDateTime): SimpleLocalDateTimeDto {
@@ -123,4 +123,48 @@ class TestController(
 ```
 
 - 이렇게 하면 정상적으로 값을 `LocalDateTime`으로 받아오는 것을 확인할 수 있다.  
-  다르게
+  `@PathVariable`이 아닌 `@RequestParam`으로 값을 넘겨받아도 동일하게 `@DateTimeFormat` 어노테이션을  
+  적용해주면 값을 잘 파싱하여 가져온다.
+
+```kt
+// @RequestBody에 지정될 Dto class
+data class SimpleRequestDto(
+    val dateTime: LocalDateTime = LocalDateTime.now()
+)
+
+// Controller 코드
+@PostMapping("/test")
+fun testRequestBody(@RequestBody dto: SimpleRequestDto): SimpleLocalDateTimeDto {
+    return SimpleLocalDateTimeDto(dto.dateTime)
+}
+```
+
+- 위 API에 아래와 같이 `LocalDateTime`이 `toString()`이 호출되었을 때의 포맷을 그대로 전달하면  
+  별도의 세팅 없이 정상적으로 처리된다. 하지만 `yyyy-MM-dd HH:mm:ss` 와 같이 커스텀 포맷을 사용하면  
+  아래의 에러가 발생한다.
+
+```
+JSON parse error: Cannot deserialize value of type `java.time.LocalDateTime` from String \"2021-08-27 10:11:22\": Failed to deserialize java.time.LocalDateTime: (java.time.format.DateTimeParseException) Text '2021-08-27 10:11:22' could not be parsed at index 10; nested exception is com.fasterxml.jackson.databind.exc.InvalidFormatException: Cannot deserialize value of type `java.time.LocalDateTime` from String \"2021-08-27 10:11:22\": Failed to deserialize java.time.LocalDateTime: (java.time.format.DateTimeParseException) Text '2021-08-27 10:11:22' could not be parsed at index 10\n at [Source: (PushbackInputStream); line: 2, column: 17] (through reference chain: com.template.common.dto.SimpleRequestDto[\"dateTime\"])
+```
+
+- 이렇게 기본 `LocalDateTime` 형식이 아닌 다른 형식을 String이 아니라 `LocalDateTime`으로 `@RequestBody`가 적용된  
+  클래스에서 사용하려면 `@JsonFormat`을 사용하면 된다. 특이한 점은 `@DateTimeFormat`으로는 해결할 수 없다는 것이다.
+
+```kt
+data class SimpleRequestDto(
+    @field:JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    val dateTime: LocalDateTime = LocalDateTime.now()
+)
+```
+
+<hr/>
+
+<h2>결론</h2>
+
+- `LocalDateTime`을 String으로 변환하거나, String을 `LocalDateTime`으로 변환하지 않고 `LocalDateTime`만 사용하려면
+
+  - `GET`의 Path Variable 또는 Request Parameter에는 `@DateTimeFormat`
+  - Request Body에는 `@JsonFormat`
+  - Response Body로 줄 때는 `@JsonFormat`
+
+<hr/>
