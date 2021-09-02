@@ -22,7 +22,7 @@
 
 - 아래 그림은 same-origin과 cross-origin 요청에 대한 간략한 설명이다.
 
-![picture 1](images/cc515be9aa904229abb84fa4f35cc26645297445f34af58904c11e9e185b468e.png)
+![picture 1](../images/cc515be9aa904229abb84fa4f35cc26645297445f34af58904c11e9e185b468e.png)
 
 - CORS 메커니즘은 브라우저와 서버 사이의 cross-origin 요청과 데이터 송수신에 대한 보안을 지원한다.  
  최근, 거의 모든 브라우저들은 `XMLHttpRequest`, `Fetch`와 같은 API에서 CORS를 사용해 cross-origin HTTP 요청에 대한  
@@ -34,8 +34,8 @@
 - CORS는 요청을 보낸 브라우저가 리소스를 받아도 되는지에 대한 검증하는 정보를 담은 HTTP Header를 전송하여  
    서버로 하여금 허용 여부를 결정하도록 한다. 또한 추가적인 검증도 진행하는데, 순서는 아래와 같다.  
    (1) `GET` 요청 이외의 HTTP Method들, 특정 `MIME Type`을 포함한 `POST` 요청의 경우에 CORS Policy에 의해  
-   서버는 브라우저가 `preflight request`를 보냈을 것이라고 생각한다.
-  (2-1) 만약 `preflight request`가 없다면 이 요청은 잘못된 것으로 판단하고, 요청을 거부한다.
+   서버는 브라우저가 `preflight request`를 보냈을 것이라고 생각한다.  
+  (2-1) 만약 `preflight request`가 없다면 이 요청은 잘못된 것으로 판단하고, 요청을 거부한다.  
   (2-2) `preflight request`가 있다면 `HTTP OPTION` 요청 방식을 사용하여 허용되는 HTTP METHOD에 대한 정보를 받는다.  
   (2-3) 이후 서버에게 `승인(approval)`을 받으면, 그제서야 실제 요청이 보내진다.
 
