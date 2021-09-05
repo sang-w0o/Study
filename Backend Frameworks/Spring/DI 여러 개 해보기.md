@@ -89,3 +89,48 @@ Consider marking one of the beans as @Primary, updating the consumer to accept m
 - 위 에러 내용에서 제시하는 `@Primary`, `@Qualifier` 를 사용하여 이를 해결해보자.
 
 <hr/>
+
+<h2>@Primary</h2>
+
+- 가장 간단한 해결책으로, 주입하고 싶은 구현체에 `@Primary` 어노테이션을 적용하면 된다.  
+  `TestService`의 구현체 중 `TestServiceImplOne`을 주입하고 싶다고 하자.
+
+```kt
+// TestServiceImpleOne.kt
+@Service
+@Primary
+class TestServiceImplOne : TestService {
+    override fun doTest(): BasicMessageDto {
+        return BasicMessageDto("Test Service implementation 1.")
+    }
+}
+
+// TestServiceImpleTwo.kt
+@Service
+class TestServiceImplTwo : TestService {
+    override fun doTest(): BasicMessageDto {
+        return BasicMessageDto("Test Service implementation 2.")
+    }
+}
+```
+
+- 이렇게하면 `TestService`의 구현체를 주입받는 `TestController`에는  
+  `TestServiceImpleOne`의 구현체가 주입된다.  
+  만약 `TestServiceImpleTwo`에도 `@Primary` 어노테이션을 적용하면 처음과 마찬가지로  
+  Spring이 2개의 구현체 중 어느 것을 주입할지 모르기 때문에 빌드 시 에러가 발생한다.
+
+<h3>@Primary에 대해</h3>
+
+- `@Primary` 어노테이션은 주입될 후보가 여러개(이 경우에는 `TestServiceImplOne`, `TestServiceimplTwo`)  
+  있을 때, 어떤 것이 주입될지를 지정한다. 이러한 후보들 중 정확히 한 개의 후보에만 `@Primary` 어노테이션이  
+  적용되어 있다면 이 어노테이션이 적용된 후보가 주입된다.
+
+- 이 어노테이션은 Spring XML로 Bean을 지정할 때 사용하는 `<bean>` 태그와 동일한 성격을 띈다.
+
+- `@Component`가 적용된 클래스 또는 `@Bean`이 적용된 메소드와 함께 사용할 수 있다.
+
+- 한 가지 주의할 점은, component scanning이 사용되지 않는 상황에서 `@Primary`를 클래스에게  
+  적용하는 것은 아무런 효과를 발생시키지 않는다. 만약 `@Primary`가 적용된 클래스가 XML로 선언되어 있다면  
+  `@Primary` 어노테이션은 무시되며, `<bean primary="true|false">` 가 적용된다.
+
+<hr/>
