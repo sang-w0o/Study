@@ -134,3 +134,138 @@ class TestServiceImplTwo : TestService {
   `@Primary` 어노테이션은 무시되며, `<bean primary="true|false">` 가 적용된다.
 
 <hr/>
+
+<h2>@Qualifier</h2>
+
+- `@Qualifier`를 사용하여 어떤 구현체가 주입될지도 결정할 수 있다.  
+  빠르게 적용해보자.
+
+```kt
+// TestServiceImpleOne.kt
+@Service
+@Qualifier("testServiceImplOne")
+class TestServiceImplOne : TestService {
+    override fun doTest(): BasicMessageDto {
+        return BasicMessageDto("Test Service implementation 1.")
+    }
+}
+
+// TestServiceImpleTwo.kt
+@Service
+@Qualifier("testServiceImplTwo")
+class TestServiceImplTwo : TestService {
+    override fun doTest(): BasicMessageDto {
+        return BasicMessageDto("Test Service implementation 2.")
+    }
+}
+```
+
+- `TestService`의 구현체를 주입받을 `TestController`에도 동일한 Qualifier value를  
+  지정해줘야 한다. `@Primary`를 사용할 때도 가능하지만, 생성자 주입과 setter 주입, 그리고  
+  필드 주입 모두 가능하다.  
+  만약 주입받을 클라이언트에서 잘못된 Qualifier value를 제공하면 빌드 조차 실패한다.
+
+```kt
+// 생성자를 통한 의존성 주입
+@RestController
+class TestController(
+    @Qualifier("testServiceImplOne")
+    private val testService: TestService
+) {
+
+    @GetMapping("/test")
+    fun testServiceDI(): BasicMessageDto {
+        return testService.doTest()
+    }
+}
+
+// 필드 의존성 주입
+@RestController
+class TestController {
+    @Autowired
+    @Qualifier("testServiceImplOne")
+    private lateinit var testService: TestService
+
+    @GetMapping("/test")
+    fun testServiceDI(): BasicMessageDto {
+        return testService.doTest()
+    }
+}
+```
+
+- 이제 간단하게 `@Bean`에 대해서 이를 적용하는 예시를 살펴보자.  
+  우선 추상 클래스 `AbstractUser`가 있고, 이를 구현하는 구현 클래스인  
+  `UserOne`과 `UserTwo`가 있다.
+
+```kt
+// AbstractUser.kt
+
+abstract class AbstractUser {
+    abstract fun printName()
+}
+
+// UserOne.kt
+class UserOne(private val name: String) : AbstractUser() {
+    override fun printName() {
+        println("NAME OF USER ONE : $name")
+    }
+}
+
+// UserTwo.kt
+class UserTwo(private val name: String) : AbstractUser() {
+    override fun printName() {
+        println("NAME OF USER TWO : $name")
+    }
+}
+```
+
+- 두 개의 구현체를 반환하는 `@Bean`이 적용된 메소드를 가지는 작성해보자.  
+  이때, 이 클래스에는 꼭 `@Configuration` 어노테이션을 적용해줘야 하는데,  
+  이 어노테이션이 적용되어야 있을 때 Spring이 Component scanning을 수행할 때  
+  해당 클래스 내에 `@Bean`이 적용된 것들에 대해 Spring Bean 처리를 해주기 때문이다.  
+  만약 `@Configuration`이 없다면 Component scanning에서 제외되고, 실행이 되지 않는다.
+
+```kt
+@Configuration
+class UserConfiguration {
+
+    @Bean
+    @Qualifier("userOne")
+    fun getUserOne(): AbstractUser {
+        return UserOne("sangwoo")
+    }
+
+    @Bean
+    @Qualifier("userTwo")
+    fun getUsertwo(): AbstractUser {
+        return UserTwo("sangwoo")
+    }
+}
+```
+
+- 이제 마지막으로 `AbstractUser`의 구현체를 주입 받을 곳을 작성하자.  
+  마찬가지로 `@Qualifier`로 어떤 구현체를 주입할지 지정해야 한다.
+
+```kt
+@Service
+@Qualifier("testServiceImplOne")
+class TestServiceImplOne : TestService {
+
+    @Autowired
+    @Qualifier("userOne")
+    private lateinit var user: AbstractUser
+
+    override fun doTest(): BasicMessageDto {
+        user.printName()
+        return BasicMessageDto("Test Service implementation 1.")
+    }
+}
+```
+
+<h3>@Qualifier를 사용해야할 때</h3>
+
+- 보통 이렇게 하나의 서비스 인터페이스의 구현체가 두 개인 경우에는 내부 구현 동작이  
+  다르기 때문일 것이다. 동일한 인터페이스를 여러 개 선언하고, 구현체를 각각 따로  
+  만드는 코드는 불필요한 중복이 일어나고, 유지 보수가 훨씬 어려워질 것이다.
+
+<hr/>
