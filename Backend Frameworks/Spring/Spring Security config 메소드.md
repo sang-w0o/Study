@@ -176,4 +176,72 @@ class SecurityConfig {
 
 <h2>이 두 메소드의 차이점</h2>
 
+<h3>configure(HttpSecurity httpSecurity)</h3>
+
+- 우선 `configure(HttpSecurity httpSecurity)`는 함수 인자에 전달된 것처럼  
+  `HttpSecurity`에 대한 설정을 할 수 있는 메소드이다.
+
+- `HttpSecurity` 는 Spring Security를 XML로 정의할 때 사용하는 `<http>` 요소와 비슷하다.  
+  이는 웹 기반의 보안 설정을 특정 HTTP 요청에 대해 할 수 있도록 해준다.  
+  기본적으로는 모든 요청에 대해 인증 절차가 적용되지만, `requestMatcher()` 또는 그와 비슷한  
+  `antMatchers()` 등으로 요청마다 다르게 인증 절차를 적용할 수 있다.
+
+- 아래 예시 코드를 보자.
+
+```kt
+@Throws(Exception::class)
+    override fun configure(http: HttpSecurity) {
+        http.httpBasic().disable()
+            .cors().and()
+            .formLogin().disable()
+            .csrf().disable()
+            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            .and()
+            .authorizeRequests()
+            .antMatchers(HttpMethod.POST, "/v1/admin/**").hasRole("ADMIN")
+            .antMatchers(HttpMethod.GET, "/v1/**").permitAll()
+            .antMatchers(HttpMethod.GET, "/v2/**").permitAll()
+            .anyRequest().hasRole("USER")
+            .and()
+            .addFilterBefore(
+                JwtAuthenticationFilter(jwtTokenProvider, objectMapper),
+                UsernamePasswordAuthenticationFilter::class.java
+            )
+    }
+```
+
+- 위 `configure()` 메소드에서는 `[POST] /v1/admin/**`에 대해서는 `ADMIN` 권한을 가져야 함을  
+  지정해줬으며, `[GET] /v1/**`, `[GET] /v2/**`에 대해서는 권한에 관계 없이 접근할 수 있음을  
+  지정해주었다. 마지막에 `anyRequest().hasRole("USER")`는 위에서 지정된 3개의 API외에 다른  
+  API에 대해서는 `USER` 권한을 가져야 함을 지정한 것이다.
+
+<h3>configure(WebSecurity webSecurity)</h3>
+
+- 반면 `configure(WebSecurity webSecurity)`는 `WebSecurity`에 대한 설정을  
+  지정할 수 있는 메소드이다. `WebSecurity`는 Spring Security 중 HTTP 요청에 대한 설정을  
+  담당하는 `HttpSecurity`와는 다르게, 더 높은 레벨에서 Spring Security 자체에 대한  
+  설정을 할 수 있다.
+
+- 예를 들어, 위 코드처럼 `web?.ignoring()?.~~`에 특정 endpoint를 지정하면  
+  해당 endpoint에는 Spring Security 자체가 작동하지 않는다.  
+  간단히 말해 **더 높은 레벨에서 Spring Security를 무시하라고 지정**한 것이다.
+
+- 실제로 만약 `configure(HttpSecurity httpSecurity)`에는  
+  `antMatchers(HttpMethod.GET, "/test").hasRole("ADMIN")`이 지정되어 있고,  
+  `configure(WebSecurity webSecurity)`에는 `web.ignoring().antMatchers(HttpMethod.GET, "/test")`가  
+  지정되어 있다면 `HttpSecurity`를 설정한 것은 무시되고, 더 높은 레벨에서 설정한  
+  `WebSecurity`의 설정대로 `[GET] /test`는 Spring Security의 인증 절차가 무시된다.
+
+<hr/>
+
+<h2>결론</h2>
+
+- `configure(HttpSecurity httpSecurity)`와 `configure(WebSecurity webSecurity)`는  
+  각자 `HttpSecurity`, `WebSecurity`에 대한 설정을 지정하는 메소드이다.
+
+- `HttpSecurity`는 HTTP 요청에 대해 Spring Security가 인증을 어떻게 진행할지 등  
+  HTTP에 관련된 보안 설정만 담당하는 클래스인 반면, `WebSecurity`는 Spring Security 자체에  
+  대한 설정을 담당하는 클래스이다. 즉 `WebSecurity`가 설정하는 범위가 `HttpSecurity`보다  
+  더 넓고 클 수 밖에 없다.
+
 <hr/>
