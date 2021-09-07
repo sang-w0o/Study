@@ -424,9 +424,74 @@ public class ColorPoint {
   최신 상태로 갱신해줘야 한다.
 
 - 어떤 필드를 먼저 비교하느냐가 `equals()`의 성능을 좌우하기도 한다.  
-  최상의 성능을 바란다면 다를 가능성이 더 크거나 비교하는 비용이 싼 필드를 먼저 비교하자.  
+  최상의 성능을 바란다면 **다를 가능성이 더 크거나 비교하는 비용이 싼 필드를 먼저 비교**하자.  
   동기화용 lock 필드 같이 객체의 논리적 상태와 관련 없는 필드는 비교하면 안된다.  
   핵심 필드로부터 계산해낼 수 있는 파생 필드 역시 굳이 비교할 필요는 없지만, 파생 필드를  
   비교하는 쪽이 더 빠를 때도 있다. 파생 필드가 객체 전체의 상태를 대표하는 상황이 그렇다.  
   예를 들어 자신이 영역을 캐시해두는 `Polygon` 클래스가 있다 해보자. 그렇다면 모든 변과  
   정점을 일일이 비교할 필요 없이 캐시해둔 영역만 비교하면 결과를 바로 알 수 있다.
+
+- **`equals()`를 다 구현했다면 세 가지만 자문해보자. 대칭적인가? 추이성이 있는가? 일관적인가?**  
+  자문에서 끝내지 말고 단위 테스트를 작성해 돌려보자. 단, `equals()` 메소드를  
+  AutoValue를 이용해 작성했다면 테스트를 생략해도 안심할 수 있다.  
+  세 요건 중 하나라도 실패한다면 원인을 찾아 고치자. 물론 나머지 요건인 반사성과 null-아님도  
+  만족해야 하지만, 이 둘이 문제되는 경우는 별로 없다.
+
+- 아래는 이상의 비법에 따라 작성한 `PhoneNumber` 클래스의 `equals()`이다.
+
+```java
+public final class PhoneNumber {
+
+    private final short areaCode, prefix, lineNum;
+
+    public PhoneNumber(int areaCode, int prefix, int lineNum) {
+	this.areaCode = rangeCheck(areaCode, 999, "area code");
+	this.prefix = rangeCheck(prefix, 999, "prefix");
+	this.lineNum = rangeCheck(lineNum, 9999, "line number");
+    }
+
+    private static short rangeCheck(int val, int max, String arg) {
+	if(val < 9 || val > max) throw new IllegalAgrumentException(arg + ": " + val);
+	return (short)val;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+	if(o == this) return true;
+	if(!(o instanceof PhoneNumber)) return false;
+	PhoneNumber pn = (PhoneNumber) o;
+	return pn.lineNum == lineNum && pn.prefix == prefix && pn.areaCode == areaCode;
+    }
+
+    //..
+}
+```
+
+- 마지막 주의사항을 살펴보자.
+
+  - **`equals()`를 재정의할 땐 `hashCode()`도 반드시 재정의하자.**
+
+  - **너무 복잡하게 해결하려 들지 말자.**  
+    필드들의 동치성만 검사해도 `equals()` 규약을 어렵지 않게 지킬 수 있다.  
+    오히려 너무 공격적으로 파고들다가 문제를 일으키기도 한다. 일반적으로 별칭(alias)은  
+    비교하지 않는게 좋다. 예를 들어 `File` 클래스라면, 심볼릭 링크를 비교해 같은 파일을  
+    가리키는지를 확인하려 들면 안된다. 다행이 `File`은 이런 시도를 하지 않는다.
+
+  - **`Object`외의 타입을 매개변수로 받는 `equals()`는 선언하지 말자.**  
+    이는 `Object#equals()`를 재정의하는 것이 아니라 `equals()`를 오버로딩한 것이다.  
+    이처럼 _타입을 구제적으로 명시한_ `equals()`는 오히려 해가 된다.
+
+- `equals()`, `hashCode()`를 작성하고 테스트하는 작업은 지루하고 테스트하는 코드도 항상 뻔하다.  
+  다행이 이 작업은 구글이 만든 AutoValue라는 테스트 오픈소스로 해결할 수 있다.  
+  클래스에 어노테이션 하나만 적용해주면 AutoValue가 이 메소드들을 알아서 작성해주며, 개발자가 직접  
+  작성하는 코드와 근본적으로 동일한 코드를 만들어준다.
+
+<hr/>
+
+<h2>핵심 정리</h2>
+
+- 꼭 필요한 경우가 아니라면 `equals()`를 재정의하지 말자. 많은 경우에 `Object#equals()`가  
+  원하는 비교를 정확히 수행해준다. 재정의해야 할 때는 그 클래스의 핵심 필드 모두를 빠짐없이,  
+  다섯 가지 규약을 확실히 지켜가며 비교해야 한다.
+
+<hr/>
