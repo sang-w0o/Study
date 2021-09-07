@@ -169,6 +169,22 @@ data class SimpleRequestDto(
 
 <hr/>
 
+<h2>ObjectMapper를 사용하는 경우</h2>
+
+- `ObjectMapper` 인스턴스를 만들어 직접 사용하는 경우, 아래와 같이 `JavaTimeModule()`을  
+  추가해줘야 한다. `KotlinModule()`은 Kotlin으로 개발할 때 추가한다.
+
+```kt
+private fun convertObjectToJson(obj: Any): String? {
+    val mapper = ObjectMapper().registerModule(KotlinModule()).registerModule(JavaTimeModule())
+    return mapper.writeValueAsString(obj)
+}
+```
+
+- `JavaTimeModule()`을 추가해주지 않으면 `@JsonFormat`으로 날짜 형식을 지정해준 것이 작동하지 않는다.
+
+<hr/>
+
 <h2>결론</h2>
 
 - `LocalDateTime`을 String으로 변환하거나, String을 `LocalDateTime`으로 변환하지 않고 `LocalDateTime`만 사용하려면
