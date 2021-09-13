@@ -159,3 +159,102 @@ static class ReactorExample {
 > 살펴보는 것도 중요하다.
 
 <hr/>
+
+<h2>리액터 플로우 로깅</h2>
+
+- 리액터에서는 실행 후에 디버깅하는 것 외에 실행될 때 로그를 남길 수도 있다.  
+  리액터 코드에 `log.debug()`를 사용해보면 전통적인 명령행 코드와는 달리  
+  원하는 대로 출력하는게 쉽지 않다는 것을 알 수 있다. 이런 이슈는 리액티브 스트림이  
+  비동기라는 특성 때문이 아니라, 리액터가 적용한 함수형 프로그래밍 기법에서 비롯된  
+  문제다. 람다 함수나 메소드 레퍼런스를 사용하면 `log.debug()`문을 사용할 수 있는  
+  위치에 제한을 받는다. 아래 코드를 보자.
+
+```java
+return itemRepository.findById(id)
+    .map(Item::getPrice);
+```
+
+- 위 코드에서 리액터의 `map()` 연산은 `Item::getPrice`라는 메소드 레퍼런스를  
+  이용해서 `Item` 객체에서 price 값을 얻는다.
+
+- Java8을 사용하면 위와 같은 코드는 아주 보편적으로 사용된다.  
+  뭔가 심오한 내용을 알아야만 쓸 수 있는 특별한 코드가 아니며, 많은 개발자들에 의해  
+  사용되는 표준 Java 코드이다.
+
+- Java8의 메소드 레퍼런스를 이용하면 코드를 간결하게 줄일 수 있으며,  
+  많은 라이브러리에서 메소드 레퍼런스를 점점 더 활발히 사용해서 개발자도 단순하고  
+  간결한 코드를 작성할 수 있게 하고 있다. 하지만 로그를 찍으려면 아래와 같이 작성해야  
+  하므로 간결함을 잃게 된다.
+
+```java
+return itemRepository.findById(id)
+    .map(item -> {
+	log.debug("Found Item");
+	return item.getPrice();
+    });
+```
+
+- 메소드 레퍼런스를 썼다면 훨씬 간결했을 코드가 여러 행의 람다식을 사용하는  
+  장황한 코드로 바뀌었다. 로그를 찍게 하려면 이렇게 하는 수 밖에 없다.
+
+- 짧고 가독성 좋은 코드를 장황한 코드로 바꾸면, 코드를 읽는 데 많은 비용이 든다.  
+  가독성에 대한 견해는 주관적일 수 있지만, Java8의 Stream API, 프로젝트 리액터  
+  플로우나 Optional을 사용해보면 공감할 수 있을 것이다. 사용하면 할수록 메소드 레퍼런스와  
+  반환값이 없는 람다를 사용해서 더 가볍고 좋은 Java 코드를 작성하는 새로운 방식을  
+  점점 더 좋아하게 된다.
+
+- 그런데 그저 로깅 때문에 간결한 코드를 쓸 수 없다는건 여러모로 심각한 문제다.  
+  다행히 리액터는 이 문제에 대한 해법을 제시한다. 리액터 플로우 중에  
+  어느 단계에 있는지 알고 싶다면 아래의 코드를 추가하면 된다.
+
+```java
+Mono<Cart> addItemToCart(String cartId, String itemId) {
+    return this.cartRepository.findById(cartId)
+        .log("Found Cart")
+	.defaultIfEmpty(new Cart(cartId))
+	.log("Empty Cart")
+	.flatMap(cart -> cart.getCartItems().stream()
+	    .filter(cartItem -> cartItem.getItem().getId().equals(itemId))
+	    .findAny()
+	    .map(cartItem -> {
+		cartItem.increment();
+		return Mono.just(cart).log("New Cart Item");
+	    })
+	    .orElseGet(() -> {
+		return this.itemRepository.findById(itemId)
+		    .log("Fetched Item")
+		    .map(item -> new CartItem(item))
+		    .log("cartItem")
+		    .map(cartItem -> {
+			cart.getCartItems().add(cartItem);
+			return cart;
+		    }).log("Added Cart Item");
+	    }))
+	.log("Cart with another item")
+	.flatMap(cart -> this.cartRepository.save(cart))
+	.log("Saved Cart");
+}
+```
+
+- 위 코드에서는 여러 리액터 연산 사이에 `log(..)`문이 여러 개 있는 것이  
+  눈에 띄는데, 각 `log(..)`는 각기 다른 문자열을 포함하고 있다.
+
+- 위 메소드를 실행해보면 `log()`에 인자로 넘겨진 문자열 토큰과 함께  
+  리액티브 스트림 시그널이 모두 로그에 출력된다.
+
+- 여러 번 강조했지만, **구독하기 전까지는 아무것도 실행되지 않는다.**  
+  구독은 리액터 플로우에서 가장 마지막에 발생하는 일이지만, 신기하게도 로그에서는 맨 위에  
+  `savedCart : | onSubscribe()`와 같이 표시된다.
+
+- 로그를 계속 보면 리액터 플로우는 대체로 소스 코드상 맨 아래에 있는 것부터 시작해서  
+  위로 올라가면서 실행되고, 소스 코드에서 위에 있던 내용이 로그에서는 아래에 출력된다.
+
+- 이는 모든 요청과 구독 흐름은 아래에서 시작되어서 위로 흘러가기 때문이다.  
+  그리고 데이터가 준비되면 이번에는 반대로 `onNext()`와 `onComplete()` 시그널이  
+  위에서 아래로 발생한다. 그래서 결국 마지막에는 `savedCart : | onComplete()`로 끝난다.
+
+> `log()`의 연산에 의해 출력되는 로그 수준의 기본값은 `INFO`이다. 하지만  
+> 이 메소드의 두 번째 인자로 `LEVEL`을 넘겨주면, 원하는 로그 수준으로 출력할 수 있다.  
+> 세 번째 인자로 리액티브 스트림의 Signal을 넘겨주면, 특정 신호에 대한 로그만 출력할 수도 있다.
+
+<hr/>
