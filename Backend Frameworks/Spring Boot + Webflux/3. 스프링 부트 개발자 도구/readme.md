@@ -258,3 +258,78 @@ Mono<Cart> addItemToCart(String cartId, String itemId) {
 > 세 번째 인자로 리액티브 스트림의 Signal을 넘겨주면, 특정 신호에 대한 로그만 출력할 수도 있다.
 
 <hr/>
+
+<h2>블록하운드를 이용한 블로킹 코드 검출</h2>
+
+- 리액티브 프로그래밍은 블로킹 API를 한 번 호출하면 아무 소용이 없게 된다.  
+  단 한 코드로 시스템이 걷잡을 수 없도록 느려지는 위험을 이대로 방치해도 될까?
+
+- 절대 안되며, 블로킹 코드가 소스코드에 어디에도 없고, 관련 설정도 적절하다는 것을  
+  알아야한다. 이를 위해 `BlockHound`를 사용할 수 있다.
+
+- 블록하운드는 리액터 개발팀에 소속된 Java 챔피언인 Sergei Egorov에 의해 개발되었다.  
+  이 라이브러리는 개발자가 직접 작성한 코드 뿐만 아니라 서드파티 라이브러리에 사용된  
+  블로킹 메소드 호출을 모두 찾아내서 알려주는 Java Agent이다. 블록하운드는 JDK 자체에서  
+  호출되는 블로킹 코드까지도 찾아낸다.
+
+- 블록하운드를 사용하기 위해서는 다음 의존성을 추가해주면 된다.
+
+```gradle
+//..
+
+dependencies {
+    //..
+    implementation("io.projectreactor.tools:blockhound:1.0.3.RELEASE")
+}
+```
+
+- 블록하운드는 그 자체로는 아무 일도 하지 않는다. 하지만 애플리케이션에 적절하게  
+  설정되면 Java Agent API를 이용해서 블로킹 메소드를 검출하고, 해당 스레드가  
+  블로킹 메소드 호출을 허용하는지 검사할 수 있다. Spring Boot의 생명주기에  
+  블록하운드를 등록해보자.
+
+```java
+public class Application {
+
+    public static void main(String[] args) {
+        BlockHound.install();
+        SpringApplication.run(Application.class, args);
+    }
+}
+```
+
+- `BlockHound.install()`이 `SpringApplication.run()`보다 앞에  
+  위치하고 있는 것을 눈여겨 보자. 이렇게 하면 Spring Boot 애플리케이션을  
+  시작할 때 블록하운드가 바이트코드를 조작(instrument)할 수 있게 된다.
+
+- 블록하운드에는 여러 옵션이 있다. 특정 블로킹 호출을 문제로 인식하지 않도록  
+  허용 리스트에 등록할 수도 있고, 특정 부분을 블로킹으로 인지되도록 금지 리스트에  
+  등록할 수도 있다. 예를 들어, Thymeleaf 템플릿을 블로킹 방식으로 읽는 것은  
+  수용 가능하다고 판단되면 이 부분을 허용 리스트에 추가해서 블록하운드가  
+  이 부분을 무시하게 할 수 있다. 그렇다면 구체적으로 무엇을 허용해야 할까?
+
+- 예를 들어, `FileInputStream.readBytes()` 메소드는 JDK 소스 코드를 보면 일부가  
+  C언어로 구현된 네이티브 메소드임을 알 수 있다. 이 메소드를 허용 리스트에 추가할 수 있지만,  
+  이렇게 너무 저수준의 메소드를 허용하는 것은 좋지 않다. JDK에 포함되어 있는 이 메소드를  
+  어디에서 호출하는지 전부 파악하지 않은 상태에서 이 메소드 호출을 허용 리스ㅡ트에 추가하면,  
+  누군가 무책임하게 이 메소드를 호출하는 부분을 검출해낼 수 없게 되며, 결국 시스템의  
+  위험 요소로 남게 된다.
+
+- 범용적으로 사용되는 JDK 메소드를 허용해서 무분별하게 블로킹 코드가 사용되는 위험을  
+  감수하지 말고, 허용 범위를 좁혀서 좀 더 구체적인 일부 지점만 허용하는 것이 안전하다.
+
+```java
+public class Application {
+
+    public static void main(String[] args) {
+	// Thymeleaf 템플릿 읽는 부분을 허용
+	BlockHound.builder()
+	    .allowBlockingCallsInside(
+		TemplateEngine.class.getCanonicalName(), "process"
+	    ).install();
+        SpringApplication.run(Application.class, args);
+    }
+}
+```
+
+<hr/>
