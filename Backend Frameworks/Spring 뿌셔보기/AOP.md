@@ -155,6 +155,61 @@ fun logMessage(joinPoint: ProceedingJoinPoint): Any {
 
 <hr/>
 
+<h2>@EnableAspectJAutoProxy</h2>
+
+- Spring Boot는 기존의 Spring Framework와 달리 막강한 자동 설정을 제공한다.  
+  우리는 항상 `main()` 메소드가 붙어있는 클래스에 `@SpringBootApplication`을  
+  붙여주는데, 이 어노테이션을 보면 `@EnableAutoConfiguration` 어노테이션이 적용되어 있다.  
+  이 어노테이션의 Javadoc을 보면, 아래와 같이 써있다.
+
+> `@EnableAutoConfiguration`은 일반적인 `@Configuration`이 적용된 Spring Bean이다.  
+> 일반적으로 자동으로 설정되는 Bean들은 `@ConfitionalOnClass` 또는 `@ConditionalOnMissingBean`을  
+> 사용하는 `@Conditional` Bean이다.
+
+- `org.springframework.boot.autoconfigure.aop.AopAutoConfiguration`을 보면, 아래와 같이 되어있다.
+
+```java
+import org.aspectj.weaver.Advice;
+//..
+
+@Configuration(proxyBeanMethods = false)
+@ConditionalOnProperty(prefix = "spring.aop", name = "auto", havingValue = "true", matchIfMissing = true)
+public class AopAutoConfiguration {
+
+	@Configuration(proxyBeanMethods = false)
+	@ConditionalOnClass(Advice.class)
+	static class AspectJAutoProxyingConfiguration {
+
+		//..
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	@ConditionalOnMissingClass("org.aspectj.weaver.Advice")
+	@ConditionalOnProperty(prefix = "spring.aop", name = "proxy-target-class", havingValue = "true",
+			matchIfMissing = true)
+	static class ClassProxyingConfiguration {
+
+		//..
+
+	}
+
+}
+```
+
+- 위 `AopAutoConfiguration` 클래스에는 `@ConditionalOnProperty`가 적용되어 있다.  
+  지정된 속성들을 보면 `org.aspectj.weaver.Advice`가 사용된 곳이 있다면 `@ConditionalOnClass(Advice.class)`에  
+  의해 자동적으로 관련 설정을 담은 Spring Bean이 만들어진다.  
+  즉, `@SpringBootApplication` => `@EnableAutoConfiguration` => `@ConditionalOnClass(Advice.class)`로  
+  컴포넌트 스캐닝이 되어 Spring Bean으로 등록되어 자동 설정되는 것이다.
+
+- 따라서 Spring Boot 애플리케이션의 경우, `@Aspect`와 함께 AOP를 사용하기 위한 어노테이션인  
+  `@EnableAspectJAutoProxy`를 명시적으로 지정해줄 필요가 없다.
+
+- 하지만 일반적인 Spring Framework 애플리케이션에서는 `@Configuration`과 함께  
+  `@EnableAspectJAutoProxy`를 적용해줘야 한다.
+
+<hr/>
+
 <h2>결론</h2>
 
 - AOP를 사용하면 공통된 기능을 Aspect 클래스로 만들어서, 코드의 중복을 없애고  
