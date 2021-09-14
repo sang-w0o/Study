@@ -150,7 +150,7 @@ public final class CaseInsensitiveString {
 }
 ```
 
-- **추이성**은 첫 번째 객체가 두 번째 겍체와 같고, 두 번째 겍채와 세 번째 객체가  
+- **추이성**은 첫 번째 객체가 두 번째 객체와 같고, 두 번째 객체와 세 번째 객체가  
   같다면 첫 번째 객체와 세 번째 객체도 같아야 한다는 뜻이다. 이 요건도 간단하지만  
   자칫하면 어기기 쉽다. 상위 클래스에는 없는 새로운 필드를 하위 클래스에 추가하는  
   상황을 생각해보자. `equals()` 비교에 영향을 주는 정보를 추가한 것이다.  
@@ -200,7 +200,7 @@ public class ColorPoint extends Point {
 @Override
 public boolean equals(Object o) {
     if(!(o instanceof ColorPoint)) return false;
-    return super.equals(o) ** ((ColorPoint) o).color == color;
+    return super.equals(o) && ((ColorPoint) o).color == color;
 }
 ```
 

@@ -62,7 +62,7 @@ System.out.println(phoneNumber + "에 연결 불가");
  * 아래는 이 설명의 일반적인 형태이나,
  * 상세 형식은 미정이며 향후 변경될 수 있다.
  *
- * "[전화번호: areaCode - prefix - lineNum]
+ * "[전화번호: areaCode - prefix - lineNum]"
  *
 */
 @Override public String toString() {
