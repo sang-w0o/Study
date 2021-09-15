@@ -1,6 +1,6 @@
 # Spring Security로 JWT 인증 구현하기
 
-- Spring Security가 무엇인지에 대해서는 <a href="https://github.com/sang-w0o/Study/blob/master/Spring%20Security/1.%20%20Spring%20Boot%EC%99%80%20Security.md">여기</a>에서 볼 수 있다.
+- Spring Security가 무엇인지에 대해서는 <a href="https://github.com/sang-w0o/Study/blob/master/Backend%20Frameworks/Spring%20Security/1.%20%20Spring%20Boot%EC%99%80%20Security.md">여기</a>에서 볼 수 있다.
 
 - 우선 가장 먼저 Spring Security를 추가하자. Spring Boot와 함께 쓰기에 아래 의존성을 추가한다.
 
@@ -87,7 +87,7 @@ class JwtTokenUtil {
 
 - Spring Security의 인증 진행 방식은 간단하게 말하면 여러 개의 `Filter`들과,  
   그 `Filter`들을 연결해주는 `FilterChain`들의 연쇄 작용으로 진행된다.
-- `Filter`, `FilterChain`에 대한 간략한 설명은 <a href="https://github.com/sang-w0o/Study/blob/master/Spring%20Security/2-0.%20Servlet%20Security.md">여기</a>에서 볼 수 있다.
+- `Filter`, `FilterChain`에 대한 간략한 설명은 <a href="https://github.com/sang-w0o/Study/blob/master/Backend%20Frameworks/Spring%20Security/2-0.%20Servlet%20Security.md">여기</a>에서 볼 수 있다.
 
 - 우선, Access Token을 검증하는 작업은 컨트롤러가 요청을 받아 서비스의 알맞은 비즈니스 로직을  
   수행하기 전에 수행되어야 한다. **따라서 Authorization Header의 검증은 Filter로 동작** 해야 한다.

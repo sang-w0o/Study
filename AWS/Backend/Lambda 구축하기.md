@@ -332,4 +332,4 @@ jobs:
 
 <hr/>
 
-- 소스코드: <a href="https://github.com/sang-w0o/Lambda_Example">Github</a>
+- 소스코드: <a href="https://github.com/Example-Collection/Lambda-Example">Github</a>
