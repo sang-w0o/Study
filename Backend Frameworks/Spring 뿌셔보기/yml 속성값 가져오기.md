@@ -152,3 +152,71 @@ class TodayProperties {
   동일하게 snake case로 받아올 수도 있고, camel case로 받아올 수도 있다.
 
 <hr/>
+
+<h2>테스트 코드에서 확인하기</h2>
+
+- 간단하게 테스트하기 위한 코드를 보자.
+
+```kt
+@SpringBootTest
+class YmlValueTest {
+
+    @Autowired
+    private lateinit var myProperties: MyProperties
+
+    @Autowired
+    private lateinit var helloProperties: HelloProperties
+
+    @Autowired
+    private lateinit var todayProperties: TodayProperties
+
+    @DisplayName("yml 파일에서 값을 잘 읽어온다.")
+    @Test
+    fun readAllPropertiesCorrectly() {
+        assertEquals("HELLO", myProperties.value)
+        assertEquals("Sangwoo", helloProperties.name.get("is"))
+        assertEquals(24, helloProperties.age)
+        assertEquals("Sunny", todayProperties.weatherIs)
+    }
+}
+```
+
+- 위 테스트 클래스는 `@SpringBootTest`가 적용되어 있기에 실질적으로 테스트 코드에서  
+  사용해야 할 Spring Bean외에 모든 Bean들을 application context에 등록한다.
+
+- 좀 더 startup 시간을 단축하고 싶다면 아래처럼 해도 된다.
+
+```kt
+@ExtendWith(SpringExtension::class)
+@EnableConfigurationProperties(*[MyProperties::class, HelloProperties::class, TodayProperties::class])
+@ContextConfiguration(initializers = [ConfigDataApplicationContextInitializer::class])
+class YmlValueTest {
+
+    @Autowired
+    private lateinit var myProperties: MyProperties
+
+    @Autowired
+    private lateinit var helloProperties: HelloProperties
+
+    @Autowired
+    private lateinit var todayProperties: TodayProperties
+
+    @DisplayName("yml 파일에서 값을 잘 읽어온다.")
+    @Test
+    fun readAllPropertiesCorrectly() {
+        assertEquals("HELLO", myProperties.value)
+        assertEquals("Sangwoo", helloProperties.name.get("is"))
+        assertEquals(24, helloProperties.age)
+        assertEquals("Sunny", todayProperties.weatherIs)
+    }
+}
+```
+
+- `@ExtendWith(SpringExtention::class)` : Spring Bean들을 `@AutoWired`로 주입받기 위해 사용
+- `@EnableConfigurationProperties(..)` : 원하는 클래스들을 Spring Bean으로 등록하기 위해 사용  
+  (여기서는 `MyProperties`, `HelloProperties`, `TodayProperties`를 등록하고 있다.)
+- `@ContextConfiguration(initializers = [ConfigDataApplicationContextInitializer::class])` :  
+  application context에서 `application.properties`, `application.yml`과 같은  
+  ConfigData 파일을 불러오기 위해 사용.
+
+<hr/>
