@@ -46,7 +46,7 @@ public interface Comparable<T> {
 > 표현식의 값이 음수, 0, 양수일 때 -1, 0, 1을 반환하도록 정의했다.
 >
 > - `Comparable`을 구현한 클래스는 모든 x, y에 대해  
->   `sgn(x.compareTo(y)) === -sgn(y.compareTo(x))` 이어야 한다.  
+>   `sgn(x.compareTo(y)) == -sgn(y.compareTo(x))` 이어야 한다.  
 >   따라서 `x.compareTo(y)`는 `y.compareTo(x)`가 예외를 던질 때에 한해  
 >   예외를 던져야 한다.
 >
@@ -60,7 +60,7 @@ public interface Comparable<T> {
 >   `(x.compareTo(y) == 0) == (x.equals(y))`여야 한다. `Comparable`을  
 >   구현하고 이 권고를 지키지 않는 모든 클래스는 그 사실을 명시해야 한다.  
 >   아래와 같이 명시하면 적당할 것이다.  
->   _"주의: 이 클래스의 순서는 equals()와 일관되지 않다._
+>   _"주의: 이 클래스의 순서는 equals()와 일관되지 않다."_
 
 - 모든 객체에 대해 전역 동치 관계를 부여하는 `equals()`와 달리, `compareTo()`는  
   타입이 다른 객체를 신경쓰지 않아도 된다. 타입이 다른 객체가 주어지면 간단히 `ClassCastException`을  

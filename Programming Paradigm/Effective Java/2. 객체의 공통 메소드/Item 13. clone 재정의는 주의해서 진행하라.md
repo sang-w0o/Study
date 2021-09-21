@@ -90,7 +90,7 @@
 - `super.clone()` 호출을 try-catch 블록으로 감싼 이유는 `Object#clone()`이  
   Checked Exception인 `CloneNotSupportedException`을 던지도록 선언되었기 때문이다.  
   `PhoneNumber`가 `Clonable`을 구현하니, `super.clone()`이 성공할 것임을 안다.  
-  이 거추장스러운 코드는 `CloneNotSupportedException`이 Unchecked Exceptioin이었어야  
+  이 거추장스러운 코드는 `CloneNotSupportedException`이 Unchecked Exception이었어야  
   한다는 신호다.
 
 - 간단했던 앞서의 구현이 클래스가 가변 객체를 참조하는 순간 재앙으로 돌변한다.  
@@ -156,7 +156,7 @@ public class Stack {
 - `elements.clone()`의 결과를 `Object[]`로 형변환할 필요는 없다.  
   배열의 `clone()`은 런타임 타입과 컴파일타임 타입 모두가 원본 배열과 똑같은 배열을 반환한다.  
   따라서 배열을 복제할 때는 배열의 `clone()` 메소드를 사용하라고 권장한다.  
-  사실, 배열의 `clone()` 기능을 제대로 사용하는 유일한 예라 할 수 있다.
+  사실, 배열이 `clone()` 기능을 제대로 사용하는 유일한 예라 할 수 있다.
 
 - 한편, elements 필드가 final이었다면 앞서의 방식은 작동하지 않는다.  
   final 필드에는 새로운 값을 할당할 수 없기 때문이다. 이는 근본적인 문제로, 직렬화와 마찬가지로  
