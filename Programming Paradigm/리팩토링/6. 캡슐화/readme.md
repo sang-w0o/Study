@@ -397,3 +397,154 @@ class Person {
   또한 컬렉션을 변경할 가능성이 있는 작업을 할 때도 습관적으로 복제본을 만들어 하자.
 
 <hr/>
+
+## 기본형을 객체로 바꾸기
+
+```js
+// 리팩토링 적용 전
+orders.filter((o) => o.priority === "high" || o.priority === "rush");
+
+// 리팩토링 적용 후
+orders.filter((o) => o.priority.higherThan(new Priority("normal")));
+```
+
+### 배경
+
+- 개발 초기에는 단순한 정보를 숫자나 문자열 같은 간단한 데이터 항목으로 표현할 때가 많다.  
+  그러다 개발이 진행되면서 간단했던 이 정보들이 더 이상 간단하지 않게 변한다. 예를 들어, 처음에는  
+  전화번호를 문자열로 표현했는데, 나중에 포맷팅이나 지역 코드 추출 같은 특별한 동작이 필요해질  
+  수 있다. 이런 로직들로 금세 중복 코드가 늘어나서, 사용할 때마다 드는 노력도 늘어나게 된다.
+
+- 단순한 출력 이상의 기능이 필요해지는 순간, 그 데이터를 표현하는 전용 클래스를 정의하자.  
+  시작은 기본형 데이터를 단순히 감싼 것과 큰 차이가 없기에 효과가 미미하다.  
+  하지만 나중에 특별한 동작이 필요해지면, 이 클래스에 추가하면 되니 프로그램이 커질수록 점점  
+  유용한 도구가 된다. 그리 대단해 보이지 않을지 모르지만, 코드베이스에 미치는 효과는 놀라울만큼 크다.
+
+### 절차
+
+- (1) 아직 변수를 캡슐화하지 않았다면, 캡슐화한다.
+- (2) 단순한 값 클래스를 만든다. 생성자는 기존 값을 인수로 받아서 저장하고, 이 값을 반환하는  
+  getter를 추가한다.
+- (3) 정적 검사를 수행한다.
+- (4) 값 클래스의 인스턴스를 새로 만들어서 필드에 저장하도록 `(1)`에서 만들어진 setter를 수정한다.  
+  이미 있다면 필드의 타입을 적절히 변경한다.
+- (5) 새로 만든 클래스의 getter를 호출한 결과를 반환하도록 `(1)`에서 만들어진 getter를 수정한다.
+- (6) 테스트한다.
+- (7) 함수명을 바꾸면 원본 접근자의 동작을 더 잘 드러낼 수 있는지 검토한다.
+
+### 예시
+
+- 기존 코드이다.
+
+```js
+class Order {
+  constructor(data) {
+    this.priority = data.priority;
+  }
+  //..
+}
+```
+
+- 우선 _(1) 변수 캡슐화_ 를 진행한다.
+
+```js
+class Order {
+  //..
+  get priority() {
+    return this._priority;
+  }
+  set priority(value) {
+    this._priority = value;
+  }
+}
+```
+
+- 다음으로 _(2) 단순한 값 클래스를 만든다._  
+  갑 클래스의 getter이름을 `priority()`라 할 수도 있지만, 이 경우에서 클라이언트의 입장에서  
+  보면 속성 자체를 받은게 아니라, 해당 속성을 문자열로 표현한 값을 요청한 것이기 때문에  
+  `toString()`이라 명명했다.
+
+```js
+class Priority {
+  constructor(value) {
+    this._value = value;
+  }
+  toString() {
+    return this._value;
+  }
+}
+```
+
+- 이제 _(4, 5) 방금 만든 `Priority`를 사용하도록 `Order`를 수정_ 하자.
+
+```js
+class Order {
+  //..
+  get priority() {
+    return this._priority.toString();
+  }
+  set priority(value) {
+    this._priority = new Priority(value);
+  }
+}
+```
+
+- 이렇게 하면 `Order`의 getter가 이상해진다. 이 getter가 반환하는 값은 우선순위 자체가 아니라,  
+  우선순위를 표현하는 문자열이기 때문이다. 따라서 함수명을 `priority()`에서 `priorityString()`으로  
+  바꿔주자.
+
+- 이 아이템의 리팩토링은 여기까지인데, 조금만 더 가다듬어 보자.
+
+```js
+class Order {
+  //..
+  get priority() {
+    return this._priority;
+  }
+  get priorityString() {
+    return this._priority.toString();
+  }
+  set priority(value) {
+    this._priority = new Priority(value);
+  }
+}
+
+class Priority {
+  constructor(value) {
+    if (value instanceof Priority) return value;
+    if (Priority.legalValues().includes(value)) this._value = value;
+    else throw new Error(`Invalid priority value: ${value}`);
+  }
+
+  toString() {
+    return this._value;
+  }
+  get _index() {
+    return Priority.legalValues().findIndex((s) => s === this._value);
+  }
+  static legalValues() {
+    return ["low", "normal", "high", "rush"];
+  }
+  equals(other) {
+    return this._index === other._index;
+  }
+  higherThan(other) {
+    return this._index > other._index;
+  }
+  lowerThan(other) {
+    return this._index < other._index;
+  }
+}
+```
+
+- 위처럼 동작을 추가하도록 수정하면, 클라이언트 코드를 더 의미있게 작성할 수 있게 된다.
+
+```js
+// 리팩토링 적용 전
+orders.filter((o) => o.priority === "high" || o.priority === "rush");
+
+// 리팩토링 적용 후
+orders.filter((o) => o.priority.higherThan(new Priority("normal")));
+```
+
+<hr/>
