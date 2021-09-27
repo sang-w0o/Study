@@ -548,3 +548,159 @@ orders.filter((o) => o.priority.higherThan(new Priority("normal")));
 ```
 
 <hr/>
+
+## 임시 변수를 질의 함수로 바꾸기
+
+```js
+// 리팩토링 적용 전
+const basePrice = this._quantity * this._itemPrice;
+if(basePrice > 1000) return basePrice * 0.95;
+else return basePrice * 0.98;
+
+// 리팩토링 적용 후
+
+get basePrice() { this._quantity * this._itemPrice; }
+//..
+if(this.basePrice > 1000) return this.basePrice * 0.95;
+else return this.basePrice * 0.98;
+```
+
+### 배경
+
+- 함수 안에서 어떤 코드의 결과값을 뒤에서 다시 참조할 목적으로 임시 변수를 쓰기도 한다.  
+  임시 변수를 사용하면 값을 계산하는 코드가 반복되는 걸 줄이고, 변수명을 통해 값의 의미를  
+  설명할 수도 있어서 유용하다. 그런데, 한 걸음 더 나아가 아예 함수로 만들어서 사용하는  
+  편이 더 나을 때가 많다.
+
+- 긴 함수의 한 부분을 별도 함수로 추출하고자 할 때, 먼저 변수들을 각각의 함수로 만들면 일이  
+  수월해진다. 추출한 함수에 변수를 따로 전달할 필요가 없어지기 때문이다. 또한 이 덕분에 추출한  
+  함수와 원래 함수의 경계가 더 분명해지기도 하는데, 그러면 부자연스러운 의존 관계나 부수효과를  
+  찾고 제거하는 데 도움이 된다.
+
+- 변수 대신 함수로 만들어두면 비슷한 계산을 수행하는 다른 함수에서도 사용할 수 있어, 코드 중복이 줄어든다.  
+  그래서 저자는 여러 곳에서 똑같은 방식으로 계산되는 변수를 발견할 때마다 함수로 바꿀 수 있는지 살펴본다.
+
+- 이번 리팩토링은 클래스 안에서 적용할 때 효과가 가장 크다. 클래스는 추출할 메소드들에 공유 컨텍스트를  
+  제공하기 때문이다. 클래스 바깥의 최상위 함수로 추출하면, 매개변수가 너무 많아져서 함수를 사용하는  
+  장점이 줄어든다. 중첩 함수를 사용하면 이런 문제는 없지만, 관련 함수들과 로직을 널리 공유하는 데 한계가 있다.
+
+- 임시 변수를 무조건 질의 함수로 바꾼다고 다 좋아지는 건 아니다. 자고로 변수는 값을 한 번만 계산하고, 그 뒤로는  
+  읽기만 해야 한다. 가장 단순한 예로, 변수에 값을 한 번 대입한 뒤 더 복잡한 코드 덩어리에서 여러번 다시  
+  대입하는 경우는 모두 질의 함수로 추출해야 한다. 또한 이 계산 로직은 변수가 다음번에 사용될 때 수행해도  
+  똑같은 결과를 내야 한다. 그래서 _옛날 주소_ 처럼 snapshot 용도로 쓰이는 변수에는 이 리팩토링을  
+  적용하면 안된다.
+
+### 절차
+
+- (1) 변수가 사용되기 전에 값이 확실히 결정되는지, 변수를 사용할 때마다 계산 로직이 매번 다른 결과를  
+  내지는 않는지 확인한다.
+
+- (2) 읽기 전용으로 만들 수 있는 변수는 읽기 전용으로 만든다.
+
+- (3) 테스트한다.
+
+- (4) 변수 대입문을 함수로 추출한다. 변수와 함수가 같은 이름을 가질 수 없다면 함수명을 임시로 짓는다.  
+  또한, 추출한 함수가 부수 효과를 일으키지는 않는지 확인한다. 부수효화가 있다면 **질의함수와 변경함수 분리하기**로  
+  대처한다.
+
+- (5) 테스트한다.
+
+- (6) **변수 인라인하기**로 임시 변수를 제거한다.
+
+### 예시
+
+- 간단한 `Order` 클래스를 보자.
+
+```js
+class Order {
+  constructor(quantity, item) {
+    this._quantity = quantity;
+    this._item = item;
+  }
+
+  get price() {
+    var basePrice = this._item.price * this._quantity;
+    var discountFactor = 0.98;
+
+    if (basePrice > 1000) discountFactor -= 0.03;
+    return basePrice * discountFactor;
+  }
+}
+```
+
+- 위 코드에서 임시변수인 basePrice와 discountFactor를 메소드로 바꿔보자.
+
+- _(2) 읽기 전용으로 만들기 위해_ basePrice를 const 키워드로 선언하고,  
+  _(4) 변수 대입문을 함수로 추출_ 해보자.
+
+```js
+class Order {
+  //..
+  get price() {
+    const basePrice = this.basePrice;
+    var discountFactor = 0.98;
+    if (basePrice > 1000) discountFactor -= 0.03;
+    return basePrice * discountFactor;
+  }
+
+  get basePrice() {
+    return this._item.price * this._quantity;
+  }
+}
+```
+
+- _(5) 테스트하고_, _(6) 변수를 인라인_ 해보자.
+
+```js
+class Order {
+  //..
+  get price() {
+    // const basePrice = this.basePrice;
+    var discountFactor = 0.98;
+    if (this.basePrice > 1000) discountFactor -= 0.03;
+    return this.basePrice * discountFactor;
+  }
+}
+```
+
+- discountFactor 또한 _(4) 변수 대입문을 함수로 추출_ 해보자.
+
+```js
+class Order {
+  //..
+  get price() {
+    const discountFactor = this.discountFactor;
+    return this.basePrice * discountFactor;
+  }
+
+  get discountFactor() {
+    var discountFactor = 0.98;
+    if (this.basePrice > 1000) discountFactor -= 0.03;
+    return discountFactor;
+  }
+}
+```
+
+- 이번에는 discountFactor에 값을 대입하는 문장이 둘인데, 모두 추출한 함수에 넣어줘야 한다.  
+  마지막으로 변수를 인라인하여 마무리하자.
+
+```js
+class Order {
+  //..
+  get price() {
+    return this.basePrice * this.discountFactor;
+  }
+
+  get basePrice() {
+    return this._item.price * this._quantity;
+  }
+
+  get discountFactor() {
+    var discountFactor = 0.98;
+    if (this.basePrice > 1000) discountFactor -= 0.03;
+    return discountFactor;
+  }
+}
+```
+
+<hr/>
