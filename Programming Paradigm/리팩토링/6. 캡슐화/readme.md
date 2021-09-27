@@ -1064,3 +1064,106 @@ class Shipment {
 ```
 
 <hr/>
+
+## 위임 숨기기
+
+```js
+// 리팩토링 적용 전
+manager = person.department.manager;
+
+// 리팩토링 적용 후
+class Person {
+  get manager() {
+    return this.department.manager;
+  }
+}
+```
+
+### 배경
+
+- 모듈화 설계를 제대로 하는 핵심은 캡슐화다. 어쩌면 가장 중요한 요소일 수도 있다. 캡슐화는  
+  모듈들이 시스템의 다른 부분에 대해 알아야 할 내용을 줄여준다. 캡슐화가 잘 되어 있다면  
+  무언가를 변경해야 할 때 함께 고려해야 할 모듈 수가 적어져서 코드를 변경하기가 훨씬 쉽다.
+
+- 객체지향을 처음 접할 때는 캡슐화란 필드를 숨기는 것이라 배운다. 그러나 이후에는 캡슐화의  
+  역할이 그보다 많다는 사실을 알게 된다.
+
+- 예를 들어, 제공자(server) 객체의 필드가 가리키는 객체(위임 객체)의 메소드를 호출하려면 클라이언트는 이  
+  모든 위임 객체들을 알아야 한다. 위임 객체의 인터페이스가 바뀌면 이 인터페이스를 사용하는  
+  모든 클라이언트가 코드를 수정해야 한다. 이러한 의존성을 없애려면 제공자 클래스 자체에 위임 메소드를  
+  만들어서 위임 객체의 존재를 숨기면 된다. 그러면 위임 객체가 수정되더라도 제공자 코드만 고치면 되며,  
+  클라이언트는 아무런 영향도 받지 않는다.
+
+### 절차
+
+- (1) 위임 객체의 각 메소드에 해당하는 위임 메소드를 재공자 클래스에 생성한다.
+- (2) 클라이언트가 위임 객체 대신 제공자를 호출하도록 수정한다.  
+  하나씩 바꿀 때마다 테스트한다.
+- (3) 모두 수정했다면, 제공자로부터 위임 객체를 얻는 접근자를 제거한다.
+- (4) 테스트한다.
+
+### 예시
+
+- `Person`과 `Department`를 아래처럼 정의했다 해보자.
+
+```js
+class Person {
+  constructor(name) {
+    this._name = name;
+  }
+  get name() {
+    return this._name;
+  }
+  get department() {
+    return this._department;
+  }
+  set department(value) {
+    this._department = value;
+  }
+}
+
+class Department {
+  get chargeCode() {
+    return this._chargeCode;
+  }
+  set chargeCode(value) {
+    this._chargeCode = value;
+  }
+  get manager() {
+    return this._manager;
+  }
+  set manager(value) {
+    this._manager = value;
+  }
+}
+```
+
+- 클라이언트가 어떤 person이 속한 department의 manager를 알고 싶다고 하자.  
+  그러기 위해서는 아래처럼 할 것이다.
+
+```js
+const manager = person.department.manager;
+```
+
+- 보다시피 클라이언트는 `Department`의 작동 방식, 다시 말해 `Department`가 manager 정보를  
+  제공한다는 사실을 알고 있어야 한다. 이러한 의존성을 줄이기 위해 _(1)클라이언트가 `Department`를_  
+  _볼 수 없게 숨기고, 대신 `Person`에 간단한 위임 메소드를 만들면 된다._
+
+```js
+class Person {
+  //..
+  get manager() {
+    return this._department.manager;
+  }
+}
+```
+
+- 이제 _(2) 모든 클라이언트가 위임 객체 대신 제공자를 사용하도록 고치자._
+
+```js
+const manager = person.manager;
+```
+
+- _(3) 클라이언트 코드를 모두 수정했다면, `Person`의 `department()` 접근자를 삭제_ 한다.
+
+<hr/>
