@@ -910,3 +910,157 @@ class TelephoneNumber {
 ```
 
 <hr/>
+
+## 클래스 인라인하기
+
+```js
+// 리팩토링 적용 전
+class Person {
+  get officeAreaCode() {
+    return this._telephoneNumber.areaCode;
+  }
+  get officeNumber() {
+    return this._telephoneNumber.number;
+  }
+}
+
+class TelephoneNumber {
+  get areaCode() {
+    return this._areaCode;
+  }
+  get officeNumber() {
+    return this._number;
+  }
+}
+
+// 리팩토링 적용 후
+class Person {
+  get officeAreaCode() {
+    return this._telephoneNumber.areaCode;
+  }
+  get officeNumber() {
+    return this._telephoneNumber.number;
+  }
+}
+```
+
+- ### 배경
+
+- **클래스 인라인하기**는 **클래스 추출하기**를 거꾸로 돌리는 리팩토링이다. 예를 들어, 더 이상  
+  제 역할을 못해서 그대로 두면 안되는 클래스들을 인라인할 수 있다. 역할을 옮기는 리팩토링을 하고 나니,  
+  특정 클래스에 남은 역할이 거의 없을 때 이런 현상이 자주 발생한다. 이럴 땐 이 불상한 클래스를 가장  
+  많이 사용하는 클래스로 흡수시키자.
+
+- 두 클래스의 기능을 지금과 다르게 분배하고 싶을 때도 클래스를 인라인한다. 클래스를 인라인해서 하나로  
+  합친 다음, 새로운 클래스를 추출하는게 쉬울 수도 있기 때문이다. 이는 코드를 재구성할 때 흔히 사용하는  
+  방식이기도 하다. 상황에 따라 한 컨텍스트의 요소들을 다른 쪽으로 하나씩 옮기는게 쉬울 수도 있고, 인라인  
+  리팩토링으로 하나로 합친 후 추출하기 리팩토링으로 다시 분리하는게 쉬울 수도 있다.
+
+### 절차
+
+- (1) 소스 클래스의 각 public 메소드에 대응하는 메소드들을 타킷 클래스에 생성한다.  
+  이 메소드들은 단순히 작업을 소스 클래스로 위임해야 한다.
+
+- (2) 소스 클래스의 메소드를 사용하는 코드를 모두 타깃 클래스의 위임 메소드를 사용하도록 바꾼다.  
+  하나씩 바꿀 때마다 테스트한다.
+
+- (3) 소스 클래스의 메소드와 필드를 모두 타깃 클래스로 옮긴다. 하나씩 옮길 때마다 테스트한다.
+
+- (4) 소스 클래스를 삭제한다.
+
+### 예시
+
+- 배송 추적 정보를 표현하는 `TrackingInformation` 클래스를 보자.
+
+```js
+class TrackingInformation {
+  get shippingCompany() {
+    return this._shippingCompany;
+  }
+  set shippingCompany(value) {
+    this._shippingCompany = value;
+  }
+  get trackingNumber() {
+    return this._trackingNumber;
+  }
+  set trackingNumber(value) {
+    this._trackingNumber = value;
+  }
+  get display() {
+    return `${this.shippingCompany}:  ${this.trackingNumber}`;
+  }
+}
+```
+
+- 이 클래스는 `Shipment` 클래스의 일부처럼 사용된다.
+
+```js
+class Shipment {
+  get trackingInfo() {
+    return this._trackingInformation.display;
+  }
+  get trackingInformation() {
+    return this._trackingInformation;
+  }
+  set trackingInformation(value) {
+    this._trackingInformation = value;
+  }
+}
+```
+
+- `TrackingInformation`이 예전에는 유용했을지 몰라도, 현재는 제 역할을 못하고 있으니  
+  `Shipment` 클래스로 인라인하려 한다 하자.
+
+- 먼저 `TrackingInformation`의 메소드를 호출하는 부분을 찾자.
+
+```js
+shipment.trackingInformation.shippingCompany = request.vendor;
+```
+
+- _(1) 소스 클래스인 `TrackingInformation`의 public 메소드를 모두 타깃 클래스인 `Shipment`로_  
+  _옮기자._ 이때, 보통 때의 **함수 옮기기**와는 약간 다르게, 먼저 `Shipment`에 위임 함수를 만들고,  
+  _(2) 클라이언트가 타깃 클래스의 위임 메소드를 사용하도록 바꾸자_.
+
+```js
+class Shipment {
+  //..
+  set shippingCompany(value) {
+    this._trackingInformation.shippingCompany = value;
+  }
+}
+
+// 클라이언트
+shipment.shipmentCompany = request.vendor;
+```
+
+- 클라이언트에서 사용하는 `TrackingInformation`의 모든 요소를 이런 식으로 처리하자.  
+  다 처리했다면 _(3) 소스 클래스인 `TrackingInformation`의 메소드와 필드를 모두 타깃 클래스인_  
+  _`Shipment`로 옮기자._
+
+```js
+class Shipment {
+  //..
+  get trackingInfo() {
+    return `${this._trackingInformation.shippingCompany}: ${this._trackingInformation.trackingNumber}`;
+  }
+  get shippingCompany() {
+    return this._shippingCompany;
+  }
+  set shippingCompany(value) {
+    this._shippingCompany = value;
+  }
+}
+```
+
+- 이 과정을 반복하고, _(4) 소스 클래스를 삭제하자._
+
+```js
+class Shipment {
+  //..
+  get trackingInfo() {
+    return `${this.shippingCompany}: ${this.trackingNumber}`;
+  }
+}
+```
+
+<hr/>
