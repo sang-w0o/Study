@@ -704,3 +704,209 @@ class Order {
 ```
 
 <hr/>
+
+## 클래스 추출하기
+
+```js
+// 리팩토링 적용 전
+class Person {
+  get officeAreaCode() {
+    return this._officeAreaCode;
+  }
+  get officeNumber() {
+    return this._officeNumber;
+  }
+}
+
+// 리팩토링 적용 후
+class Person {
+  get officeAreaCode() {
+    return this._telephoneNumber.areaCode;
+  }
+  get officeNumber() {
+    return this._telephoneNumber.number;
+  }
+}
+
+class TelephoneNumber {
+  get areaCode() {
+    return this._areaCode;
+  }
+  get number() {
+    return this._number;
+  }
+}
+```
+
+### 배경
+
+- 클래스는 반드시 명확하게 추상화하고, 소수의 주어진 역할만 처리해야 한다는 가이드라인을 들어봤을 것이다.  
+  하지만 실무에서는 몇 가지 연산을 추가하고 데이터도 보강하면서 클래스가 점점 비대해지곤 한다.  
+  기존 클래스를 굳이 쪼갤 필요까지는 없다고 생각하여 새로운 역할을 덧씌우기 쉬운데, 역할이 갈수록  
+  많아지고 새끼를 치면서 클래스가 굉장히 복잡해진다.
+
+- 메소드와 데이터가 너무 많은 클래스는 이해하기가 쉽지 않으니, 잘 살펴보고 적절히 분리해야 한다.  
+  특히 일부 데이터와 메소드를 따로 묶을 수 있다면 어서 분리하라는 신호다. 함께 변경되는 일이 많거나  
+  서로 의존하는 데이터들도 분리한다. 특정 데이터나 메소드 일부를 제거하면 어떤 일이 일어나는지  
+  자문해보면 판단에 도움이 된다. 제거해도 다른 필드나 메소드들이 논리적으로 문제가 없다면  
+  분리할 수 있다는 뜻이다.
+
+- 개발 후반으로 접어들면 서브클래스가 만들어지는 방식에서 징후가 나타나기도 한다.  
+  예를 들어, 작은 일부의 기능만을 위해 서브클래스를 만들거나, 확장해야 할 기능이 무엇이냐에 따라  
+  서브클래스를 만드는 방식도 달라진다면, 클래스를 나눠야 한다는 신호다.
+
+### 절차
+
+- (1) 클래스의 역할을 분리할 방법을 정한다.
+
+- (2) 분리될 역할을 담당할 클래스를 새로 만든다.
+
+- (3) 원래 클래스의 생성자에서 새로운 클래스의 인스턴스를 생성하여 필드에 저장해둔다.
+
+- (4) 분리될 역할에 필요한 필드들을 새 클래스로 옮긴다. (**필드 옮기기**)  
+  하나씩 옮길 때마다 테스트한다.
+
+- (5) 메소드들도 새로운 클래스로 옮긴다.(**함수 옮기기**) 이때 저수준 메소드, 즉 다른 메소드를 호출하기  
+  보다는 호출을 당하는 일이 많은 메소드부터 옮긴다. 하나씩 옮길 때마다 테스트한다.
+
+- (6) 양쪽 클래스의 인터페이스를 살펴보면서 불필요한 메소드를 제거하고, 이름도 새로운 환경에 맞게 바꾼다.
+
+- (7) 새 클래스를 외부로 노출할지 결정한다. 노출하려거든 새 클래스에 **참조를 값으로 바꾸기**를 적용할지  
+  고민해본다.
+
+### 예시
+
+- `Person` 클래스를 보자.
+
+```js
+class Person {
+  get name() {
+    return this._name;
+  }
+  set name(value) {
+    this._name = value;
+  }
+  get telephoneNumber() {
+    return `(${this._telephoneNumber.areaCode}) ${this._telephoneNumber.number}`;
+  }
+  get officeAreaCode() {
+    return this._officeAreaCode;
+  }
+  set officeAreaCode(value) {
+    this._officeAreaCode = value;
+  }
+  get officeNumber() {
+    return this._officeNumber;
+  }
+  set officeNumber(value) {
+    this._officeNumber = value;
+  }
+}
+```
+
+- 우선 _(1) 클래스의 역할을 분리할 방법을 정해보자._ 여기서는 전화번호 관련 동작을 별도 클래스로 뽑아보자.  
+  _(2) 먼저 빈 전화번호를 표현하는 `TelephoneNumber` 클래스를 만든다._
+
+```js
+class TelephoneNumber {}
+```
+
+- 다음으로 _(3) 원래 클래스인 `Person`의 인스턴스를 생성할 때 새로운 클래스인 `TelephoneNumber`의_  
+  _인스턴스도 함께 생성해 필드에 저장해주자._
+
+```js
+class Person {
+  constructor() {
+    this._telephoneNumber = new TelephoneNumber();
+  }
+
+  //..
+}
+```
+
+- 그런 다음 _(4) 분리된 역할에 필요한 필드들을 새 클래스인 `Telephone`으로 옮기고,_  
+  _(5) 메소드들도 새로운 클래스로 옮기자._
+
+```js
+class TelephoneNumber {
+  //..
+  get officeNumber() {
+    return this._officeNumber;
+  }
+  set officeNumber(value) {
+    this._officeNumber = value;
+  }
+  get officeAreaCode() {
+    return this._officeAreaCode;
+  }
+  set officeAreaCode(value) {
+    this._officeAreaCode = value;
+  }
+}
+
+class Person {
+  //..
+  get officeNumber() {
+    return this._telephoneNumber.officeNumber;
+  }
+  set officeNumber(value) {
+    this._telephoneNumber.officeNumber = value;
+  }
+  get officeAreaCode() {
+    return this._telephoneNumber.officeAreaCode;
+  }
+  set officeAreaCode(value) {
+    this._telephoneNumber.officeAreaCode = value;
+  }
+}
+```
+
+- 이제 _(6) 정리_ 해보자. 새로 만든 클래스는 순수한 전화번호를 뜻하므로 office라는 단어를 쓸 이유가 없다.  
+  마찬가지로 전화번호라는 뜻도 메소드명에서 강조할 이유가 없다. 그러니 메소드명을 **함수 선언 바꾸기**로  
+  적절히 바꿔주자.
+
+```js
+class TelephoneNumber {
+  //..
+  get areaCode() {
+    return this._areaCode;
+  }
+  set areaCode(value) {
+    this._areaCode = value;
+  }
+  get number() {
+    return this._number;
+  }
+  set number(value) {
+    this._number = value;
+  }
+}
+
+class Person {
+  get officeAreaCode() {
+    return this._telephoneNumber.areaCode;
+  }
+  set officeAreaCode(value) {
+    this._telephoneNumber.areaCode = value;
+  }
+  get officeNumber() {
+    return this._telephoneNumber.number;
+  }
+  set officeNumber(value) {
+    this._telephoneNumber.number = value;
+  }
+}
+```
+
+- 마지막으로 전화번호를 출력하는 역할도 전화번호 클래스에 맡긴다.
+
+```js
+class TelephoneNumber {
+  //..
+  toString() {
+    return `(${this._areaCode}) ${this._number}`;
+  }
+}
+```
+
+<hr/>
