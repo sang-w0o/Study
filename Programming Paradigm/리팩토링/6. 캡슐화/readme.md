@@ -1167,3 +1167,89 @@ const manager = person.manager;
 - _(3) 클라이언트 코드를 모두 수정했다면, `Person`의 `department()` 접근자를 삭제_ 한다.
 
 <hr/>
+
+## 중개자 제거하기
+
+- 반대 리팩토링 기법: **위임 숨기기**
+
+```js
+// 리팩토링 적용 전
+const manager = person.manager;
+
+class Person {
+  //..
+  get manager() {
+    return this._department.manager;
+  }
+}
+
+// 리팩토링 적용 후
+const manager = person.department.manager;
+```
+
+### 배경
+
+- **위임 숨기기**를 볼 때, 객체를 캡슐화하는 이점을 알 수 있게 되었다. 하지만 그 이점이 거저 주어지는  
+  것은 아니다. 클라이언트가 위임 객체의 또 다른 기능을 사용하고 싶을 때마다 제공자 클래스에 위임 메소드를  
+  추가해야 하는데, 이렇게 기능을 추가하다보면 단순히 전달만 하는 위임 메소드들이 점점 늘어나게 된다.  
+  그러면 제공자 클래스는 그저 중개자(middle man) 역할로 전락하며, 차라리 클라이언트가 위임 객체를  
+  직접 호출하는게 나을 수도 있다.
+
+- 어느 정도까지 숨겨야 적절한지를 판단하는 것은 쉽지 않지만, 우리에게는 다행이 **위임 숨기기**와  
+  **중개자 제거하기** 리팩토링이 있으니 크게 문제되지는 않는다. 필요하면 언제든 균형점을 옮길 수 있으니 말이다.  
+  시스템이 바뀌면 _'적절하다'_ 의 기준도 바뀌기 마련이다.
+
+### 절차
+
+- (1) 위임 객체를 얻는 getter를 만든다.
+- (2) 위임 메소드를 호출하는 클라이언트가 모두 이 getter를 거치도록 수정한다.  
+  하나씩 바꿀 때마다 테스트한다.
+- (3) 모두 수정했다면 위임 메소드를 제거한다.
+
+### 예시
+
+- 방금 전 예시를 보자. 자신이 속한 `Department`를 통해 manager를 찾는 `Person`을 보자.
+
+```js
+class Person {
+  get manager() {
+    return this._department.manager;
+  }
+}
+
+class Department {
+  get manager() {
+    return this._manager;
+  }
+}
+
+// Client
+const manager = person.manager;
+```
+
+- 사용하기 쉽고, department는 캡슐화되어 있다. 하지만 이런 위임 메소드가 많아지면 `Person`  
+  클래스의 상당 부분이 그저 위임하는 데만 쓰일 것이다. 그럴 때는 중개자를 제거하는 편이 낫다.  
+  _(1) 먼저 위임 객체(`Department`)를 얻는 getter를 만들자._
+
+```js
+class Person {
+  get department() {
+    return this._department;
+  }
+}
+```
+
+- 이제 _(2) 각 클라이언트가 모두 위 getter를 직접 사용하도록 고치자._
+
+```js
+const manager = person.department.manager;
+```
+
+- _(3) 클라이언트를 모두 수정했다면 `Person#manager()`를 삭제하자._  
+  `Person`에 단순한 위임 메소드가 더는 남지 않을 때까지 이 작업을 반복한다.
+
+- **위임 숨기기**나 **중개자 제거하기**를 적절히 섞어도 된다. 자주 쓰는 위임은 그대로 두는 편이  
+  클라이언트 입장에서 편리하다. 둘 중 하나만 반드시 해야 한다는 법은 없다. 상황에 맞게  
+  처리하면 되고, 합리적인 사람이라면 어떻게 해야 가장 효과적인지 판단할 수 있을 것이다.
+
+<hr/>
