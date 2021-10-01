@@ -19,7 +19,7 @@
   그런 다음 `HashSet`에 원소를 추가하는 메소드인 `add()`와 `addAll()`을 정의했다.
 
 ```java
-public class InstrumentedHashSet<E> extends HahsSet<E> {
+public class InstrumentedHashSet<E> extends HashSet<E> {
 
     // 추가된 원소의 수
     private int addCount = 0;
