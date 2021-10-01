@@ -10,3 +10,21 @@
   방법을 알아보자.
 
 <hr/>
+
+- 자주 사용되는 용어들
+
+| 한글 용어                | 영문 용어               | 예시                      | 아이템 |
+| :----------------------- | :---------------------- | :------------------------ | :----- |
+| 매개변수화 타입          | parameterized type      | `List<String>`            | 26     |
+| 실제 타입 매개변수       | actual type parameter   | `String`                  | 26     |
+| 제네릭 타입              | generic type            | `List<E>`                 | 26, 29 |
+| 정규 타입 매개변수       | formal type parameter   | `E`                       | 26     |
+| 비한정적 와일드카드 타입 | unbounded wildcard type | `List<?>`                 | 26     |
+| raw 타입                 | raw type                | `List`                    | 26     |
+| 한정적 타입 매개변수     | bounded type parameter  | `List<E extends Number>`  | 29     |
+| 재귀적 타입 한정         | recursive type bound    | `List<E extends List<E>>` | 31     |
+| 한정적 와일드카드 타입   | bounded wildcard type   | `List<? extends Number>`  | 31     |
+| 제네릭 메소드            | generic method          | `List<E>.add(E)`          | 30     |
+| 타입 토큰                | type token              | `String.class`            | 33     |
+
+<hr/>
