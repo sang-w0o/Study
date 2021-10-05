@@ -74,7 +74,7 @@ public static <T> UnaryOperator<T> identityFunction() {
   `T`가 어떤 타입이든 `UnaryOperator<Object>`는 `UnaryOperator<T>`가 아니기 때문이다.  
   하지만 항등함수란 입력 값을 수정 없이 그대로 반환하는 특별한 함수이므로, `T`가 어떤 타입이든  
   `UnaryOperator<T>`를 사용해도 타입 안전하다. 우리는 이 사실을 알고 있으니, 이 메소드가  
-  내보내는 비감서 형변환 경고는 숨겨도 안심할 수 있다.
+  내보내는 비검사 형변환 경고는 숨겨도 안심할 수 있다.
 
 - 다음 코드는 위 코드의 제네릭 싱글턴을 `UnaryOperator<String>`과 `UnaryOperator<Number>`로  
   사용하는 모습이다. 지금까지와 마찬가지로 형변환을 하지 않아도 컴파일 오류나 경고가 발생하지 않는다.
@@ -90,7 +90,7 @@ public static void main(String[] args) {
 	System.out.println(sameString.apply(s));
     }
 
-    Number[] numbers = [1, 2.0, 3L];
+    Number[] numbers = {1, 2.0, 3L};
     UnaryOperator<Number> sameNumber = identityFunction();
     for(Number n: numbers) {
 	System.out.println(sameNumber.apply(n));
@@ -99,7 +99,7 @@ public static void main(String[] args) {
 ```
 
 - 상대적으로 드물기는 하지만, 자기 자신이 들어간 표현식을 사용하여 타입 매개변수의  
-  허용 범위를 줄일 수 있다. 로 **재귀적 타입 한정(recursive type bound)** 을 사용하면  
+  허용 범위를 줄일 수 있다. 바로 **재귀적 타입 한정(recursive type bound)** 이다.  
   재귀적 타입 한정은 주로 타입의 자연적 순서를 정해야 하는 `Comparable`와 함께 쓰인다.  
   예시를 보자.
 
@@ -124,7 +124,7 @@ public static <E extends Comparable<E>> E max(Collection<E> c);
 ```
 
 - 타입 한정인 `<E extends Comparable<E>>`라는 것은 _'모든 타입 `E`는 자신과 비교할 수 있다.'_ 고  
-  읽을 수 있다. 상호 비교 가능하단 뜻을 아주 정확헤게 표현할 수 있다.
+  읽을 수 있다. 상호 비교 가능하단 뜻을 아주 정확하게 표현할 수 있다.
 
 - 아래는 방금 선언한 메소드의 구현이다. 컬렉션에 담긴 원소의 자연적 순서를 기준으로  
   최대값을 계산하며, 컴파일 오류나 경고 메시지는 발생하지 않는다.
