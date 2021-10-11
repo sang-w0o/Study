@@ -33,7 +33,7 @@ public class Client {
 	    plantsByLifeCycle[i] = new HashSet<>();
 	}
 	for(Plant p : garden) {
-	    plansByLifeCycle[p.lifeCycle.ordinal()].add(p);
+	    plantsByLifeCycle[p.lifeCycle.ordinal()].add(p);
 	}
     }
 }
@@ -173,7 +173,7 @@ public enum Phase {
 ```
 
 - 상태 전이 맵을 초기화하는 코드는 제법 복잡하다. 이 맵의 타입인 `Map<Phase, Map<Phase, Transition>>`은  
-  _"이전 상태에서 '이후 상테에서 전이로의 맵'에 대응시키는 맵"_ 이라는 뜻이다. 이러한 맵의 맵을 초기화하기  
+  _"이전 상태에서 '이후 상태에서 전이로의 맵'에 대응시키는 맵"_ 이라는 뜻이다. 이러한 맵의 맵을 초기화하기  
   위해 `Collector` 2개를 차례로 이용했다. 첫 번째 `Collector`인 `groupingBy()`에서는 전이를  
   이전 상태를 기준으로 묶고, 두 번째 `Collector`인 `toMap()`에서는 이후 상태를 전이에 대응시키는  
   `EnumMap`을 생성한다. `toMap()`의 병함 함수인 `(x, y) -> y`는 선언한 하고 실제로는 쓰이지 않는데,  

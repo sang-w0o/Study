@@ -195,7 +195,7 @@ public enum Operation {
 
 - 다행이 열거 타입은 상수별로 다르게 동작하는 코드를 구현하는 더 나은 수단을 제공한다.  
   열거 타입에 `apply()`라는 추상 메소드를 선언하고, 각 상수별 클래스 몸체(constant-specific class body),  
-  즉 각 상수에서 자신에 맞게 재정의하는 방법이다. 이를 상수별 메소드 구현(constant-specific method implementation)  
+  즉 각 상수에서 자신에 맞게 재정의하는 방법이다. 이를 **상수별 메소드 구현(constant-specific method implementation)**  
   이라 한다.
 
 ```java
@@ -210,7 +210,7 @@ public enum Operation {
 ```
 
 - 위 코드에서 보다시피 `apply()`가 상수 선언 바로 옆에 붙어 있으니 새로운 상수를 추가할 때  
-  `apply()`도 재정의해야 한다는 사실을 깜딱하기에는 어려울 것이다. 그뿐만 아니라 `apply()`가  
+  `apply()`도 재정의해야 한다는 사실을 깜빡하기에는 어려울 것이다. 그뿐만 아니라 `apply()`가  
   추상 메소드이므로 재정의하지 않았다면 컴파일 오류로 알려준다.
 
 - 상수별 메소드 구현을 상수별 데이터와 결합할 수도 있다. 예를 들어 아래는 `Operation`의  
@@ -240,7 +240,7 @@ public enum Operation {
 
 ```java
 private static final Map<String, Operation> stringToEnum =
-    Stream.of(values()).collect(toMap(Object::toString, e-> e));
+    Stream.of(values()).collect(toMap(Object::toString, e -> e));
 
 public static Optional<Operation> fromString(String symbol) {
     return Optional.ofNullable(stringToEnum.get(symbol));
@@ -376,7 +376,7 @@ public class SomeClass {
   초기화하는 시간이 들긴 하지만, 체감될 정도는 아니다.
 
 - 그래서 열거 타입을 과연 언제 써야 할까?  
-  **필요한 원소를 컴파일타입에 다 알 수 있는 상수 집합이라면 항상 열거 타입을 사용하자.**  
+  **필요한 원소를 컴파일타임에 다 알 수 있는 상수 집합이라면 항상 열거 타입을 사용하자.**  
   태양계 행성, 한 주의 요일 등 본질적으로 열거 타입인 타입들은 당연히 포함된다.  
   그리고 메뉴 아이템, 연산 코드, 명령줄 플래그 등 허용하는 값 모두를 컴파일타임에 이미  
   알고 있을 때도 쓸 수 있다. **열거 타입에 정의된 상수의 개수가 영원히 고정 불변일 필요는 없다.**  
@@ -388,7 +388,7 @@ public class SomeClass {
 
 - 열거 타입은 확실히 정수 상수보다 뛰어나다. 더 읽기 쉽고 안전하며 강력하다.  
   대다수의 열거 타입이 명시적 생성자나 메소드 없이 쓰이지만, 각 상수를 특정 데이터와 연결짓거나  
-  상수마다 다르게 동작하게 할 땐느 필요하다. 드물게는 하나의 메소드가 상수별로 다르게 동작해야  
+  상수마다 다르게 동작하게 할 때는 필요하다. 드물게는 하나의 메소드가 상수별로 다르게 동작해야  
   할 때도 있다. 이런 열거 타입에서는 switch문 대신 상수별 메소드 구현을 사용하자.  
   열거 타입 상수 일부가 같은 동작을 공유한다면 전략 열거 타입 패턴을 사용하자.
 

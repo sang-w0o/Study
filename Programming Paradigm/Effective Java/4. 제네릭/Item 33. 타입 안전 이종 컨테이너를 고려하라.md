@@ -12,7 +12,7 @@
   제공하면 된다. 이렇게 하면 제네릭 타입 시스템이 값의 타입이 key와 같음을 보장해줄 것이다. 이러한 설계 방식을  
   **타입 안전 이종 컨테이너 패턴(Type safe Heterogeneous Container Pattern)** 이라고 한다.
 
-- 간단한 예시로 타입벼로 즐겨 찾는 인스턴스를 저장하고 검색할 수 있는 `Favorites`클래스를 생각해보자.  
+- 간단한 예시로 타입별로 즐겨 찾는 인스턴스를 저장하고 검색할 수 있는 `Favorites`클래스를 생각해보자.  
   각 타입의 `Class` 객체를 매개변수화한 key 역할로 사용하면 되는데, 이 방식이 동작하는 이유는 class의  
   클래스가 제네릭이기 때문이다. class 리터럴의 타입은 `Class`가 아닌 `Class<T>`이다.  
   예를 들어, `String.class`의 타입은 `Class<String>`이고, `Integer.class`의 타입은  
@@ -155,7 +155,7 @@ public class Favorites {
   한정적 타입 토큰을 활용하면 가능하다. 한정적 타입 토큰이란 단순히 한정적 타입 매개변수나 한정적  
   와일드카드를 사용하여 표현 가능한 타입을 제한하는 타입 토큰이다.
 
-- 어노세이션 API는 한정적 타입 토큰을 적극적으로 사용한다. 예를 들어, 아래 코드는 `AnnotatedElement`  
+- 어노테이션 API는 한정적 타입 토큰을 적극적으로 사용한다. 예를 들어, 아래 코드는 `AnnotatedElement`  
   인터페이스에 선언된 메소드로, 이 메소드는 리플렉션의 대상이 되는 타입들, 즉 `java.lang.Class<T>`,  
   `java.lang.reflect.Method`, `java.lang.reflect.Field`와 같이 프로그램 요소를 표현하는  
   타입들에서 구현한다.
