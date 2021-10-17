@@ -384,11 +384,11 @@ public class UserController {
 
 - Annotation Processing은 Java5에 등장한 개념으로, **컴파일타임에 코드를 생성해주는 기능** 입니다.
 
-  예를 들어, 롬복의 어노테이션들이 코드로 바뀌는 것도 Annotation Processing의 단계를 거치기 때문입니다.
+  예를 들어, 롬복의 어노테이션들이 각각 적절한 코드로 바뀌는 것도 Annotation Processing의 단계를 거치기 때문입니다.
 
 - Annotation Processing의 단계를 하나씩 보겠습니다.
 
-  1. Javac로 인한 빌드 시작
+  1. Javac를 통한 빌드 시작
   2. 실행할 AnnotationProcessor 를 검색하고, 하나씩 실행합니다.
   3. 각 Processor는 1개 이상의 어노테이션에 대한 작업을 수행할 수 있으며, `javax.annotation.processing.AbstractProcessor` 를 상속받아 작성합니다.
   4. Processor 내에 해당 Processor가 처리할 어노테이션이 적용된 대상들을 모두 찾습니다.
@@ -409,8 +409,10 @@ public class UserController {
 
   ![picture 7](../../images/ANNOTATION_META_INF.png)
 
-- 첫 번째 줄에 있는 클래스를 타고 들어가면, 아래와 같이 `AbstractProcessor` 를 상속합니다.
+- 첫 번째 줄에 있는 클래스를 타고 들어가면, 아래와 같이 `AbstractProcessor` 를 상속하는 클래스가 있습니다..
 
 ![picture 8](../../images/LOMBOK_ABSTRACT_PROCESSOR.png)
 
 > 이 개념을 실제로 사용한 [예시 코드](https://www.logicbig.com/tutorials/core-java-tutorial/java-se-annotation-processing-api/annotation-processor-generate-code.html)를 발견했습니다.
+
+<hr/>
