@@ -98,7 +98,7 @@ public class RunTests {
 }
 ```
 
-- 이 테스트 러너는 명령불로부터 완전 정규화된 클래스명을 받아, 그 클래스에서 `@Test` 어노테이션이 달린  
+- 이 테스트 러너는 명령줄로부터 완전 정규화된 클래스명을 받아, 그 클래스에서 `@Test` 어노테이션이 달린  
   메소드들을 차례로 호출한다. `isAnnotationPresent()`가 실행할 메소드를 찾아주는 메소드다. 테스트 메소드가  
   예외를 던지면 Reflection 메커니즘이 `InvocationTargetException`으로 감싸서 다시 던진다.  
   그래서 이 프로그램은 `InvocationTargetException`을 잡아 원래 예외에 담긴 실패 정보를 추출해(`getCause()`)  

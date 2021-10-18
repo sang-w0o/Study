@@ -104,7 +104,7 @@ public class Client {
 ```
 
 - `main()`에서는 `test()`에 `ExtendedOperation`의 Class 리터럴을 넘겨 확장된 연산들을 알려준다.  
-  여기서 Class 리터럴은 한정된 타입 토큰 역학을 한다. opEnumType 매개변수의 선언 `<T extends Enum<T> & Operation> Class<T>`는  
+  여기서 Class 리터럴은 한정된 타입 토큰 역할을 한다. opEnumType 매개변수의 선언 `<T extends Enum<T> & Operation> Class<T>`는  
   복잡한데, _`Class` 객체가 열거 타입인 동시에 `Operation`의 하위 타입이어야 한다._ 는 뜻이다.  
   열거 타입이어야 원소를 순회할 수 있고, `Operation`이어야 원소가 뜻하는 연산을 수행할 수 있기 때문이다.
 

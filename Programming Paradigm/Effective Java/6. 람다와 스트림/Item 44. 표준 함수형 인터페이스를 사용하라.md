@@ -9,8 +9,8 @@
 - `LinkedHashMap`을 생각해보자. 이 클래스의 protected 메소드인 `removeEldestEntry()`를 재정의하면  
   캐시로 사용할 수 있다. Map에 새로운 key를 추가하는 `put()` 메소드는 이 메소드를 호출하여 true가  
   반환되면 Map에서 가장 오래된 원소를 제거한다. 예를 들어, `removeEldestEntry()`를 아래처럼 재정의하면  
-  Map에 원소가 100개가 될 때까지 커지다가, 그 이상이 되q면 새로운 key가 더해질 때마다 가장 오래된 원소를  
-  하나씩 제고한다. 즉, 가장 최근 원소 100개를 유지한다.
+  Map에 원소가 100개가 될 때까지 커지다가, 그 이상이 되면 새로운 key가 더해질 때마다 가장 오래된 원소를  
+  하나씩 제거한다. 즉, 가장 최근 원소 100개를 유지한다.
 
 ```java
 public class LinkedHashMapChild extends LinkedHashMap {
