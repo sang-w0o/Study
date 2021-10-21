@@ -16,7 +16,7 @@
 
 - API 문서의 메소드 설명 끝에서 종종 "Implementation Requirements"로 시작하는 절을  
   볼 수 있는데, 그 메소드의 내부 동작 방식을 설명하는 부분이다. 이 절은 메소드의 주석에  
-  `@impleSpec` 태그를 붙여주면 Javadoc 도구가 생성해준다.  
+  `@implSpec` 태그를 붙여주면 Javadoc 도구가 생성해준다.  
   아래는 `java.util.AbstractCollection`에서 발췌한 예시이다.
 
 ```java

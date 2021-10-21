@@ -72,7 +72,7 @@ public static <E> Stream<E> streamOf(Iterable<E> iterable) {
   스트림을 반환하게 해줘도 된다. 반대로 반환된 객체들이 반복문에서만 쓰일 것을 안다면 `Iterable`을  
   반환하자. 하지만 공개 API를 작성할 때는 이 두가지 경우 모두를 배려해야 한다.
 
-- `Collection` 인터페이스는 `Iterable`의 하위 타입이고 `stream()` 메소드도 제공하기 반복과  
+- `Collection` 인터페이스는 `Iterable`의 하위 타입이고 `stream()` 메소드도 제공하기에 반복과  
   스트림을 동시에 지원한다. 따라서 **원소 시퀀스를 반환하는 공개 API의 반환 타입에는 `Collection`이나**  
   **그 하위 타입을 쓰는 것이 일반적으로 최선이다.** `Arrays` 역시 `Arrays.asList()`와  
   `Stream.of()`메소드로 쉽게 반복과 스트림을 지원할 수 있다. 반환하는 시퀀스의 크기가 메모리에 올려도  
@@ -93,7 +93,7 @@ public class PowerSet {
     public static final <E> Collection<Set<E>> of(Set<E> s) {
 	List<E> src = new ArrayList<>(s);
 	if(src.size() > 30) {
-	    throw new IllegalArgumentException("To many elements in set(max: 32)");
+	    throw new IllegalArgumentException("To many elements in set(max: 30)");
 	}
 	return new AbstractList<Set<E>>() {
 	    @Override public int size() {
@@ -106,7 +106,7 @@ public class PowerSet {
 
 	    @Override public Set<E> get(int index) {
 		Set<E> result = new HashSet<>();
-		for(int i = 0; i != 0; i++, index >> = 1) {
+		for(int i = 0; i != 0; i++, index >>= 1) {
 		    if((index & 1) == 1) {
 			result.add(src.get(i));
 		    }
@@ -119,11 +119,11 @@ public class PowerSet {
 ```
 
 > 입력 집함의 원소 개수를 30개로 제한한 이유는 `Collection.size()`가 int값을 반환하므로 `PowerSet.of()`가  
->  반환해야 할 시퀀스의 최대 길이는 `Integer.MAX_SIZE` 혹은 2^31-1` 로 제한된다.
+>  반환해야 할 시퀀스의 최대 길이는 `Integer.MAX_SIZE` 혹은 2^31-1 로 제한된다.
 
 - `AbstractCollection`을 활용해 `Collection` 구현체를 작성할 때는 `Iterable`용 메소드 외에  
   2개만 더 구현하면 된다. 바로 `contains()`와 `size()`이다. 반복이 시작되기 전까지는 시퀀스의 내용을  
-  확정할 수 없는 등의 사유로 `contains()`와 `size()`를 구현하는 게 불가능해 보일 대는 컬렉션보다는  
+  확정할 수 없는 등의 사유로 `contains()`와 `size()`를 구현하는 게 불가능해 보일 때는 컬렉션보다는  
   스트림이나 `Iterable`을 반환하는 편이 낫다. 원한다면 별도의 메소드를 두어 두 방식을 모두 제공해도 된다.
 
 - 때로는 단순히 구현하기 쉬운 쪽을 선택하기도 한다. 예를 들어 입력 리스트의 연속적인 부분리스트를 모두  
