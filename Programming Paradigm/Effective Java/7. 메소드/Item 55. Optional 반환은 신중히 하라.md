@@ -164,7 +164,7 @@ streamOfOptionals
   클래스들을 준비해놨다. 바로 `OptionalInt`, `OptionalLong`, `OptionalDouble`이다.  
   이 `Optional`들도 `Optional<T>`가 제공하는 메소드를 거의 다 제공한다.  
   이렇게 대체제까지 있으니 **Boxing된 기본 타입을 담은 `Optional`을 반환하는 일은 없도록 하자.**  
-  단, _"덜 중요한 기본 타입"_ 용인 `Boolean`, `Bute`, `Character`, `Short`, `Float`는  
+  단, _"덜 중요한 기본 타입"_ 용인 `Boolean`, `Byte`, `Character`, `Short`, `Float`는  
   예외일 수 있다.
 
 - 지금까지 `Optional`을 반환하고, 반환된 `Optional`을 처리하는 내용을 다뤘다.  

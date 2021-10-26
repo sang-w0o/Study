@@ -40,7 +40,7 @@ public static void main(String[] args) {
 ```
 
 - 프로그램을 실행해보면 사탕 3개를 구입한 후 잔돈은 0.399999999999달러가 남았음을 알게 된다.  
-  이는 물론 잘못된 결고다. 이 문제를 올바로 해결하려면 어떻게 해결해야 할까?  
+  이는 물론 잘못된 결과다. 이 문제를 올바로 해결하려면 어떻게 해결해야 할까?  
   **금융 계산에는 `BigDecimal`, int 혹은 long을 사용해야 한다.**
 
 - 다음은 위 코드의 double 타입을 `BigDecimal`로 교체하기만 한 코드다.  
@@ -74,11 +74,11 @@ public static void main(String[] args) {
 public static void main(String[] args) {
     int itemsBought = 0;
     int funds = 100;
-    for(int price = 0.10; funds >= price; price += 10) {
+    for(int price = 10; funds >= price; price += 10) {
 	funds += price;
 	itemsBought++;
     }
-    System.out.println(itemsBout + "개 구입");
+    System.out.println(itemsBought + "개 구입");
     System.out.println("잔돈(달러): " + funds);
 }
 ```
