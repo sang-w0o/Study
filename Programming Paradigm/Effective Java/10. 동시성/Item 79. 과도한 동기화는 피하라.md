@@ -22,36 +22,36 @@ public class ObservableSet<E> extends ForwardingSet<E> {
     private final List<SetObserver<E>> observers = new ArrayList<>();
 
     public void addObserver(SetObserver<E> observer) {
-	      synchronized(observers) {
-	          observers.add(observer);
-	      }
+      synchronized(observers) {
+        observers.add(observer);
+      }
     }
 
     public boolean removeObserver(SetObserver<E> observer) {
-	      synchronized(observers) {
-	          return observers.remove(observer);
-	      }
+	    synchronized(observers) {
+	      return observers.remove(observer);
+	    }
     }
 
     private void notifyElementAdded(E element) {
-	      synchronized(observers) {
-	          for(SetObserver<E> observer : observers)
-	              observer.added(this, element);
-	      }
+	    synchronized(observers) {
+	        for(SetObserver<E> observer : observers)
+	            observer.added(this, element);
+	    }
     }
 
     @Override public boolean add(E element) {
-	      boolean added = super.add(element);
-	      if(added) notifyElementAdded(element);
-	      return added;
+	    boolean added = super.add(element);
+	    if(added) notifyElementAdded(element);
+	    return added;
     }
 
     @Override public boolean addAll(Collection<? extends E> c) {
-	      boolean result = false;
-	      for(E element : c) {
-	          result |= add(element);
-	      }
-	      return result;
+	    boolean result = false;
+	    for(E element : c) {
+	        result |= add(element);
+	    }
+	    return result;
     }
 }
 ```
@@ -62,8 +62,8 @@ public class ObservableSet<E> extends ForwardingSet<E> {
 ```java
 @FunctionalInterface
 public interface SetObserver<E> {
-    // ObservableSet에 원소가 더해지면 호출된다.
-    void added(ObservableSet<E> set, E element);
+  // ObservableSet에 원소가 더해지면 호출된다.
+  void added(ObservableSet<E> set, E element);
 }
 ```
 
@@ -76,10 +76,10 @@ public interface SetObserver<E> {
 
 ```java
 public static void main(String[] args) {
-    ObservableSet<Integer> set = new ObservableSet<>(new HashSet<>());
-    set.addObserver((s, e) -> System.out.println(e));
-    for(int i = 0; i < 100; i++)
-	      set.add(i);
+  ObservableSet<Integer> set = new ObservableSet<>(new HashSet<>());
+  set.addObserver((s, e) -> System.out.println(e));
+  for(int i = 0; i < 100; i++)
+	  set.add(i);
 }
 ```
 
@@ -88,16 +88,16 @@ public static void main(String[] args) {
 
 ```java
 public static void main(String[] args) {
-    ObservableSet<Integer> set = new ObservableSet<>(new HashSet<>());
-    set.addObserver(new SetObserver<>() {
-	      public void added(ObservableSet<Integer> set, Integer element) {
-	          System.out.println(element);
-	          if(element == 23)
-	              set.removeObserver(this);
-	      }
-    });
-    for(int i = 0; i < 100; i++)
-	      set.add(i);
+  ObservableSet<Integer> set = new ObservableSet<>(new HashSet<>());
+  set.addObserver(new SetObserver<>() {
+	  public void added(ObservableSet<Integer> set, Integer element) {
+	    System.out.println(element);
+	    if(element == 23)
+	      set.removeObserver(this);
+	    }
+  });
+  for(int i = 0; i < 100; i++)
+	  set.add(i);
 }
 ```
 
@@ -119,24 +119,24 @@ public static void main(String[] args) {
 
 ```java
 public static void main(String[] args) {
-    ObservableSet<Integer> set = new ObservableSet<>(new HashSet<>());
-    set.addObserver(new SetObserver<>() {
-	      public void added(ObservableSet<Integer> set, Integer element) {
-	          System.out.println(element);
-	          if(element == 23) {
-		              ExecutorService exec = Executors.newSingleThreadExecutor();
-		              try {
-		                  exec.submit(() -> set.removeObserver(this)).get();
-		              } catch(ExecutionException | InterruptedException ex) {
-		                  throw new AssertionError(ex);
-		              } finally {
-		                  exec.shutdown();
-		              }
-	          }
+  ObservableSet<Integer> set = new ObservableSet<>(new HashSet<>());
+  set.addObserver(new SetObserver<>() {
+	  public void added(ObservableSet<Integer> set, Integer element) {
+	    System.out.println(element);
+	      if(element == 23) {
+		      ExecutorService exec = Executors.newSingleThreadExecutor();
+		        try {
+		          exec.submit(() -> set.removeObserver(this)).get();
+		        } catch(ExecutionException | InterruptedException ex) {
+		          throw new AssertionError(ex);
+		        } finally {
+		          exec.shutdown();
+		        }
 	      }
-    });
-    for(int i = 0; i < 100; i++)
-        set.add(i);
+	  }
+  });
+  for(int i = 0; i < 100; i++)
+    set.add(i);
 }
 ```
 
@@ -168,27 +168,27 @@ public static void main(String[] args) {
 ```java
 public class ObservableSet<E> extends ForwardingSet<E> {
 
-    //..
+  //..
 
-    // 기존 코드
-    private void notifyElementAdded(E element) {
-	      synchronized(observers) {
-	          for(SetObserver<E> observer : observers)
-	              observer.added(this, element);
-	      }
-    }
+  // 기존 코드
+  private void notifyElementAdded(E element) {
+	  synchronized(observers) {
+	    for(SetObserver<E> observer : observers)
+	      observer.added(this, element);
+	  }
+  }
 
-    // 바뀐 코드
-    private void notifyElementAdded(E element) {
-	      List<SetObserver<E>> snapshot = null;
-	      synchronized(observers) {
-	          snapshot = new ArrayList<>(observers);
-	      }
-	      for(SetObserver<E> observer : snapshot)
-	          observer.added(this, element);
-    }
+  // 바뀐 코드
+  private void notifyElementAdded(E element) {
+	  List<SetObserver<E>> snapshot = null;
+	  synchronized(observers) {
+	    snapshot = new ArrayList<>(observers);
+	  }
+	  for(SetObserver<E> observer : snapshot)
+	    observer.added(this, element);
+  }
 
-    //..
+  //..
 }
 ```
 
@@ -209,36 +209,36 @@ public class ObservableSet<E> extends ForwardingSet<E> {
 
 ```java
 public class ObservableSet<E> extends ForwardingSet<E> {
-    public ObservableSet(Set<E> set) { super(set); }
+  public ObservableSet(Set<E> set) { super(set); }
 
-    private final List<SetObserver<E>> observers = new CopyOnWriteArrayList<>();
+  private final List<SetObserver<E>> observers = new CopyOnWriteArrayList<>();
 
-    public void addObserver(SetObserver<E> observer) {
-	      observers.add(observer);
-    }
+  public void addObserver(SetObserver<E> observer) {
+	  observers.add(observer);
+  }
 
-    public boolean removeObserver(SetObserver<E> observer) {
-	      return observers.remove(observer);
-    }
+  public boolean removeObserver(SetObserver<E> observer) {
+	  return observers.remove(observer);
+  }
 
-    private void notifyElementAdded(E element) {
-	      for(SetObserver<E> observer : observers)
-	          observer.added(this, element);
-    }
+  private void notifyElementAdded(E element) {
+	  for(SetObserver<E> observer : observers)
+	    observer.added(this, element);
+  }
 
-    @Override public boolean add(E element) {
-	      boolean added = super.add(element);
-	      if(added) notifyElementAdded(element);
-	      return added;
-    }
+  @Override public boolean add(E element) {
+	  boolean added = super.add(element);
+	  if(added) notifyElementAdded(element);
+	  return added;
+  }
 
-    @Override public boolean addAll(Collection<? extends E> c) {
-	      boolean result = false;
-	      for(E element : c) {
-	          result |= add(element);
-	      }
-	      return result;
-    }
+  @Override public boolean addAll(Collection<? extends E> c) {
+	  boolean result = false;
+	  for(E element : c) {
+	    result |= add(element);
+	  }
+	  return result;
+  }
 }
 ```
 
@@ -250,7 +250,7 @@ public class ObservableSet<E> extends ForwardingSet<E> {
   낮아져 왔지만, 과도한 동기화를 피하는 일은 과거 어느 때보다 중요하다. 멀티코어가 일반화된 오늘날, 과도한  
   동기화가 초래하는 진짜 비용은 lock을 얻는 데 드는 CPU Time이 아니다. 바로 경쟁하느라 낭비하는 시간,  
   즉 병렬로 실행할 기회를 잃고, 모든 코어가 메모리를 일관되게 보기 위한 지연시간이 진짜 비용이다.  
-  가상머신의 코드 최적화를 제한한다는 점도 과도한 동기화의 또 다른 숨인 비용이다.
+  가상머신의 코드 최적화를 제한한다는 점도 과도한 동기화의 또 다른 숨은 비용이다.
 
 - 가변 클래스를 작성하려거든 아래의 두 선택지 중 하나를 따르자.
 
@@ -279,10 +279,10 @@ public class ObservableSet<E> extends ForwardingSet<E> {
   nextSerialNumber 필드가 바로 이런 사례다.
 
 ```java
-private static  int nextSerialNumber = 0;
+private static int nextSerialNumber = 0;
 
 public static synchronized int generateSerialNumber() {
-    return nextSerialNumber++;
+  return nextSerialNumber++;
 }
 ```
 
