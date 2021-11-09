@@ -143,7 +143,7 @@ public final class StringList implements Serializable {
 - `StringList`의 필드 모두가 transient이더라도 `writeObject()`와 `readObject()`는 각각 가장 먼저  
   `defaultWriteObject()`와 `defaultReadObject()`를 호출한다. 클래스의 인스턴스 필드 모두가 transient면  
   `defaultWriteObject()`와 `defaultReadObject()`를 호출하지 않아도 된다고 들었을지 모르지만, 직렬화 명세는  
-  이 작업을 무조건 하라고 요구한다. 이렇게 해야 향후 릴리즈에서 transient가 아닌 인스턴스 필드가 초가되더라도 상호  
+  이 작업을 무조건 하라고 요구한다. 이렇게 해야 향후 릴리즈에서 transient가 아닌 인스턴스 필드가 추가되더라도 상호  
   호환되기 때문이다. 신버전 인스턴스를 직렬화한 후 구버전으로 역직렬화하면 새로 추가된 필드들은 무시될 것이다.  
   구버전 `readObject()` 메소드에서 `defaultReadObject()`를 호출하지 않는다면 역직렬화할 때  
   `StreamCorruptedException`이 발생할 것이다.
@@ -199,7 +199,7 @@ private synchronized void writeObject(ObjectOutputStream out) throws IOException
 - Serial Version UID 선언은 각 클래스에 아래 같은 한 줄만 추가해주면 끝이다.
 
 ```java
-private static final long serialVersionUID = /* 무작위로 로근 long 값 */;
+private static final long serialVersionUID = /* 무작위로 고른 long 값 */;
 ```
 
 - 새로 작성하는 클래스에서는 어떤 long 값을 선택하든 상관없다. 클래스 일련 번호를 생성해주는 serialver  

@@ -42,7 +42,7 @@ private synchronized FieldType getField() {
   물론 필드와 접근자 메소드 선언에 static 한정자를 추가해야 한다.
 
 - **성능 때문에 정적 필드를 지연 초기화해야 한다면, 지연 초기화 홀더 클래스(Lazy Initialization Holder Class)**  
-  **관용구를 사용하자.** 클래스는 클래스가 처음 쓰일 때 비로소 초기화된다는 특성을 이용한 관용구다.
+  **관용구를 사용하자.** 이는 클래스가 처음 쓰일 때 비로소 초기화된다는 특성을 이용한 관용구다.
 
 ```java
 private static class FieldHolder {
