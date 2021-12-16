@@ -130,7 +130,7 @@ fun logMessage(joinPoint: ProceedingJoinPoint): Any {
 - 참고로 `@Around`가 적용된 `logMessage()`에서 `joinPoint.proceed()`를  
   호출하지 않으면 이 메소드가 작업을 한 후 추후 작업이 실행되지 않으므로  
   프로그램이 비정상적으로 실행된다.  
-  (이 경우에는 response body가 없이 200_OK 만ㅇ 응답으로 온다.)  
+  (이 경우에는 response body가 없이 200_OK 만이 응답으로 온다.)  
   `joinPoint.proceed()`는 사실상 `TestApiController#testApi()`를  
   호출하는 것과 같으니 `BasicMessageResponseDto`를 반환하게 된다.  
   만약 `logMessage()`에서 `return false`를 해주면 당연히 오류가 난다.
