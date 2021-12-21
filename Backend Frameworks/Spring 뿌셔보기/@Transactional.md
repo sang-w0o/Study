@@ -29,7 +29,7 @@ public interface PlatformTransactionManager extends TransactionManager {
 
 - 위 메소드들에 대한 공식 문서의 요약은 아래와 같다.
 
-![picture 2](../../../images/SPRING_PLATFORMTRANSACTIONMANAGER.png)
+![picture 2](../../images/SPRING_PLATFORMTRANSACTIONMANAGER.png)
 
 - Spring은 위 인터페이스를 구현한 트랜잭션 관리자를 Spring Bean으로 등록한다.  
   아래는 JDBC 관련 트랜잭션을 관리하는 `DatasourceTransactionManager`이다.
