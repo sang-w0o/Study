@@ -17,7 +17,7 @@
   만약 테이블 내의 레코드들이 특정 속성을 기준으로 정렬되어 있다면, 이또한 레코드를 빠르게 찾는 데에  
   큰 도움이 된다.
 
-![picture 1](../images/d5d87051446a8f68970d7df3bb75d35b8c851e1b7cf5f241ea35514342d7faff.png)
+![picture 1](../../../images/d5d87051446a8f68970d7df3bb75d35b8c851e1b7cf5f241ea35514342d7faff.png)
 
 - 위 사진 처럼 테이블이 구성되어 있다고 하자. 오른쪽의 테이블 내의 레코드들은 id를 기준으로 정렬되어 있다.  
   이 테이블에서 특정 name을 가지는 레코드를 찾으려면 데이터베이스 엔진은 첫 번째 레코드부터 하나씩  
@@ -138,7 +138,7 @@ SELECT * FROM users WHERE name = "NAME_1000000";
 INSERT INTO users VALUES(DEFAULT, 'user100001@test.com', 'NAME_100001', DEFAULT, NULL);
 ```
 
-- 10번 쿼리를 각각 수행한 후 평균치는 107ms 였습다.
+- 10번 쿼리를 각각 수행한 후 평균치는 107ms 였다.
 
 - 이제 아무런 Index가 적용되어 있지 않는 name 컬럼에 index를 만들어보았다.
 
