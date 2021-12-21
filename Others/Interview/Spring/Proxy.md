@@ -73,7 +73,7 @@ public class Proxy implements java.io.Serializable {
 
 - 아래는 실제 프로젝트의 오류 로그인데, 보면 나는 작성한 적이 없는 `invoke()`가 나와있는 것을 확인할 수 있다.
 
-![picture 1](../../images/SPRING_PROXY_INVOKE_ERROR_LOG.png)
+![picture 1](../../../images/SPRING_PROXY_INVOKE_ERROR_LOG.png)
 
 ### CGLib Proxy
 
