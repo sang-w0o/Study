@@ -64,7 +64,7 @@ public class JpaTransactionManager extends AbstractPlatformTransactionManager im
   코드들을 삽입해준다. 대략적으로 아래와 같은 역할의 코드들이 삽입된다.
 
   - 데이터베이스 커넥션 획득
-  - 트랜잭션 시잭 (`transaction.begin()`)
+  - 트랜잭션 시작 (`transaction.begin()`)
   - 정상 처리되면 commit (`transaction.commit()`)
   - 예외 발생 시 rollback (`transaction.rollback()`)
 
