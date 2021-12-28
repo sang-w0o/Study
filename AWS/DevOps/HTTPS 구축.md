@@ -28,7 +28,7 @@
 
 - `Viewer Protocol Policy`는 `Redirect HTTP to HTTPS`를 선택했다.
 
-- 배포가 완료되면, `clodufront.XXX.net`의 주소를 확인할 수 있다.
+- 배포가 완료되면, `cloudfront.XXX.net`의 주소를 확인할 수 있다.
 
 4. Route53에 `단순 레코드 정의`를 통해 레코드를 만들자.  
    원하는 가용 영역을 선택한 후 `단순 레코드 생성`을 통해 레코드를 만든다.  
