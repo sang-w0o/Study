@@ -343,3 +343,169 @@ func main() {
 ---
 
 </p></details>
+
+<details><summary>Slices</summary>
+
+<p>
+
+- `Slice`는 Go의 주요 데이터 타입 중 하나로, 배열보다 연속적인 작업에 대해 더 많은 기능을 제공한다.
+
+- 배열과 다르게 `Slice`는 크기가 선언된 원소 개수가 아닌, 가진 원소의 실제 크기로 결정된다.  
+  0이 아닌 길이의 `Slice`를 만들기 위해선 내장 함수인 `make()`를 사용하면 된다.  
+  아래 예시에서는 3개의 문자열을 가진 `Slice`를 만들었다.  
+  배열과 마찬가지로 `arr[index]` 형식으로 값을 가져오거나 설정할 수 있다.
+
+```go
+func main() {
+	s := make([]string, 3)
+	fmt.Println("emp:", s) // emp: [  ]
+	s[0] = "a"; s[1] = "b"; s[2] = "c"
+	fmt.Println("set:", s) // set: [a b c]
+	fmt.Println("get:", s[2]) // get: c
+
+}
+```
+
+- 배열에는 없는 기능으로, 내장 함수인 `append()`를 사용해 `Slice`에 값을 추가할 수 있다.
+
+```go
+func main() {
+	s := make([]string, 1)
+	s[0] = "a"
+	fmt.Println(s) // [a]
+	s = append(s, "b")
+	s = append(s, "c", "d", "e")
+	fmt.Println(s) // [a b c d e]
+}
+```
+
+- `Slice`는 `copy()`를 사용해 복사할 수 있다.
+
+```go
+func main() {
+	original := make([]string, 3)
+	original[0] = "a";
+	original[1] = "b";
+	original[2] = "c"
+	fmt.Println(original) // [a b c]
+
+	copied := make([]string, len(original))
+	copy(copied, original)
+	fmt.Println(copied) // [a b c]
+
+	copied[0] = "x";
+	copied[1] = "y";
+	copied[2] = "z"
+	fmt.Println(original) // [a b c]
+	fmt.Println(copied) // [x y z]
+}
+```
+
+- `Slice`는 slice 연산자도 제공하는데, `slice[low:high]` 형식으로 사용할 수 있다.  
+  예를 들어, 아래 코드는 `s[2], s[3], s[4]`를 담는 `Slice`를 반환한다.
+
+```go
+func main() {
+	s := make([]string, 6)
+	s[0] = "a"
+	s[1] = "b"
+	s[2] = "c"
+	s[3] = "d"
+	s[4] = "e"
+	s[5] = "f"
+	slice := s[2:5]
+	fmt.Println(slice) // [c d e]
+	slice2 := s[:3]
+	fmt.Println(slice2) // [a b c]
+	slice3 := s[1:]
+	fmt.Println(slice3) // [b c d e f]
+}
+```
+
+- 배열과 마찬가지로 `Slice`도 다차원 데이터를 담을 수 있다.  
+  다만 길이가 정해진 배열과 달리, 원소의 개수에 따라 길이가 달라지는 `Slice`의 특성 상  
+  내부 데이터(`Slice`)의 길이는 달라질 수 있다.
+
+```go
+func main() {
+	twoDimensionalSlice := make([][]int, 3)
+	for i := 0; i < 3; i++ {
+		innerLen := i + 1
+		twoDimensionalSlice[i] = make([]int, innerLen)
+		for j := 0; j < innerLen; j++ {
+			twoDimensionalSlice[i][j] = i + j
+		}
+	}
+	fmt.Println(twoDimensionalSlice) // [[0] [1 2] [2 3 4]]
+}
+```
+
+---
+
+</p></details>
+
+<details><summary>Maps</summary>
+
+<p>
+
+- `Map`은 다른 언어들에서 _hashes_, _dict_ 라고 불리는 자료형과 비슷한 데이터 타입이다.
+
+- 빈 `Map`을 만들기 위해서는 아래처럼 `make(map[key-type] value-type)` 구문을 사용한다.  
+  값을 설정하기 위해서는 `name[key] = val` 형식을 사용하면 된다.  
+  값을 가져올 때도 `name[key]` 형식을 사용한다.
+
+```go
+func main() {
+
+	m := make(map[string]int)
+	m["key1"] = 1
+	m["key2"] = 2
+	fmt.Println(m) // map[key1:1 key2:2]
+}
+```
+
+- `len()` 내장함수를 `Map`에 대해 사용하면, key-value 쌍의 개수를 반환한다.
+
+- `delete()` 내장함수를 사용하면 `Map`의 key-value pair를 제거한다.
+
+```go
+func main() {
+
+	m := make(map[string]int)
+	m["key1"] = 1
+	m["key2"] = 2
+	delete(m, "key1")
+	fmt.Println(m) // map[key2:2]
+}
+```
+
+- `name[key]` 형식으로 `Map`에서 value를 가져올 때는 해당 key가 존재하는지를  
+  알려주는 2번째 반환값도 있다.
+
+```go
+func main() {
+
+	m := make(map[string]int)
+	m["key1"] = 1
+	m["key2"] = 2
+	value1, isPresent1 := m["key1"]
+	fmt.Println(value1) // 1
+	fmt.Println(isPresent1) // true
+
+	value3, isPresent3 := m["key3"]
+	fmt.Println(value3) // 0
+	fmt.Println(isPresent3) // false
+}
+```
+
+- 마지막으로 아래처럼 `Map`을 선언함과 동시에 key-value pair를 지정해 초기화할 수 있다.
+
+```go
+func main() {
+
+	m := map[string]int{"key1": 1, "key2": 2}
+	fmt.Println(m) // map[key1:1 key2:2]
+}
+```
+
+</p></details>
