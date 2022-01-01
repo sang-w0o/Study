@@ -2,7 +2,10 @@
 
 - [Go By Example](https://gobyexample.com/) 정리본
 
-## Hello, World!
+<details>
+<summary>Hello, World!</summary>
+
+<p>
 
 ```go
 package main
@@ -29,9 +32,15 @@ ls # main, main.go
 ./main # Hello, World!
 ```
 
-<hr/>
+---
 
-## Values
+</p>
+</details>
+
+<details>
+<summary>Values</summary>
+
+<p>
 
 - Go는 문자열, 정수형, 실수형, boolean 등 많은 값 타입을 가진다.
 
@@ -50,7 +59,13 @@ func main() {
 
 ---
 
-## Variables
+</p>
+</details>
+
+<details>
+<summary>Variables</summary>
+
+<p>
 
 - Go에서는 변수를 명시적으로 선언해야 하고, 이런 정보들은 컴파일러가 사용한다.  
   (타입 체크, 함수 호출 등)
@@ -94,7 +109,13 @@ func main() {
 
 ---
 
-## Constants
+</p>
+</details>
+
+<details>
+<summary>Constants</summary>
+
+<p>
 
 - Go는 문자, 문자열, boolean, 숫자형 값들에 대해 상수를 지원한다.  
   상수는 `const` 키워드를 사용해 선언한다.
@@ -116,3 +137,148 @@ func main() {
 - `const` 키워드는 `var` 키워드가 쓰이는 곳 어디서든 쓰일 수 있다.
 
 ---
+
+</p>
+</details>
+
+<details>
+<summary>For</summary>
+
+<p>
+
+- `for`는 Go에서 유일한 반복문이다.
+
+```go
+func main() {
+	i := 1
+	for i <= 3 {
+		fmt.Print(i, " ")
+		i = i + 1
+	}
+
+	// "1 2 3"
+
+	for j := 7; j <= 9; j++ {
+		fmt.Println(j, " ")
+	}
+
+	// "7 8 9"
+
+	for {
+		fmt.Println("LOOP")
+		break
+	}
+
+	// "LOOP"
+
+	for n := 0; n <= 5; n++ {
+		if n%2 == 0 {
+			continue
+		}
+		fmt.Print(n, " ")
+	}
+
+	// "1 3 5"
+}
+```
+
+---
+
+</p>
+</details>
+
+<details>
+<summary>If, Else</summary>
+
+<p>
+
+- Go에서는 다른 언어와 if, else 구문이 동일하고, else문 없이 if문만 있을 수도 있다.  
+  단, if else block에서의 `{ }`는 필수적으로 필요하다.
+
+```go
+func main() {
+	if 7%2 == 0 {
+		println("7 is even")
+	} else {
+		println("7 is odd")
+	}
+
+	if num := 9; num < 0 {
+		println(num, "is negative")
+	} else if num < 10 {
+		println(num, "has 1 digit")
+	} else {
+		println(num, "has multiple digits")
+	}
+}
+
+// "7 is odd"
+// "9 has 1 digit"
+```
+
+---
+
+</p>
+</details>
+
+<details>
+<summary>Switch</summary>
+
+<p>
+
+- `switch`문 또한 다른 언어와 비슷하다.
+
+```go
+func main() {
+	i := 2
+	switch i {
+	case 1:
+		println("one")
+	case 2:
+		println("two")
+	default:
+		println("wrong")
+	}
+}
+// "two"
+```
+
+- `case` 절에서는 `,`를 구분자로 해서 여러 조건을 하나의 case 절에 대해 적용할 수 있다.
+
+```go
+func main() {
+	switch time.Now().Weekday() {
+	case time.Saturday, time.Sunday:
+		println("Weekend!")
+	default:
+		println("Weekday :(")
+	}
+}
+// "Weekend!"
+```
+
+- switch 문에는 조건이 들어가지 않을 수도 있는데, 이는 if/else 문을 나타내는 또다른 방법 중 하나다.
+
+```go
+func main() {
+	now := time.Now()
+	switch {
+	case now.Hour() < 12:
+		println("Before noon.")
+	default:
+		println("After noon.")
+	}
+
+	// 위 switch-case는 아래의 if-else와 동일
+	if now.Hour() < 12 {
+		println("Before noon.")
+	} else {
+		println("After noon.")
+	}
+}
+```
+
+---
+
+</p>
+</details>
