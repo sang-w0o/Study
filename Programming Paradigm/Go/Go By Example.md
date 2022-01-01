@@ -508,4 +508,78 @@ func main() {
 }
 ```
 
+---
+
+</p></details>
+
+<details><summary>Range</summary>
+
+- `range`는 여러 종류의 자료구조를 순회(iterate)할 때 사용한다.
+
+- 아래는 `range`를 사용해 `Slice`에 있는 숫자들을 합치는 예시이다.
+
+```go
+func main() {
+	nums := []int{1, 2, 3}
+	sum := 0
+	for _, num := range nums {
+		sum += num
+	}
+	println(sum) // 6
+}
+```
+
+- 배열, `Slice`에 대한 `range`는 index, value를 함께 반환하며 순회한다.  
+  위 예시에서는 index의 자리에 `_`를 사용했다.
+
+> 관례적으로 사용하지 않는 변수가 있다면, `_`로 네이밍한다.
+
+- `Map`에 대한 `range`는 key, value pair를 순회한다.
+
+```go
+func main() {
+	m := map[string]int{"key1": 1, "key2": 2}
+	for key, value := range m {
+		fmt.Println(key, " -> ", value)
+	}
+	// key1 -> 1
+	// key2 -> 2
+
+	// key만 순회
+	for k := range m {
+		print(k, " ") // key1 key2
+	}
+}
+```
+
+- 마지막으로 문자열에 대한 `range`는 각 문자의 unicode를 순회한다.
+
+```go
+func main() {
+	str := "abcdefg"
+	for index, value := range str {
+		fmt.Println(index, value)
+	}
+	/*
+		0 97
+		1 98
+		2 99
+		3 100
+		4 101
+		5 102
+		6 103
+	*/
+}
+```
+
+---
+
+<p>
+
+</p></details>
+
+<details><summary>Functions</summary>
+
+<p>
+
 </p></details>
