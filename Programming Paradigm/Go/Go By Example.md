@@ -282,3 +282,64 @@ func main() {
 
 </p>
 </details>
+
+<details><summary>Arrays</summary>
+
+<p>
+
+- 아래 코드는 5개의 원소를 가지는 int형 배열을 선언한다. 변수 선언 시와 마찬가지로  
+  선언된 배열 a는 모두 int의 기본값인 0을 5개 갖고 있다.
+
+```go
+func main() {
+	var a [5]int
+	fmt.Println(a)
+}
+
+// "[0 0 0 0 0]"
+```
+
+- 배열의 값은 `array[index]` 구문으로 설정할 수 있고, 가져올 때도 `array[index]` 구문을 사용한다.
+
+```go
+a[0] = 1
+a[1] = 2
+fmt.Println(a[0], a[1]) // "1 2"
+```
+
+- 아래 구문을 통해 배열을 선언함과 동시에 초기화할 수도 있다.
+
+```go
+func main() {
+	a := [5]int{1, 2, 3, 4, 5}
+	fmt.Println(a)
+}
+
+// "[1 2 3 4 5]"
+```
+
+- 내장 함수인 `len()`을 사용해 배열의 길이를 알아낼 수 있다.
+
+```go
+fmt.Println(len(a)) // "5"
+```
+
+- `Array` 타입은 1차원이지만, 이들을 조합해 n차원의 배열을 만들어낼 수 있다.
+
+```go
+func main() {
+	var twoDimensionalArray [2][3]int
+	for i := 0; i < 2; i++ {
+		for j := 0; j < 3; j++ {
+			twoDimensionalArray[i][j] = i + j
+		}
+	}
+	fmt.Println(twoDimensionalArray)
+}
+
+// "[[0 1 2] [1 2 3]]"
+```
+
+---
+
+</p></details>
