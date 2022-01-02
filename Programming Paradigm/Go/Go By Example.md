@@ -763,3 +763,42 @@ func main() {
 ---
 
 </p></details>
+
+<details><summary>Pointers</summary>
+
+<p>
+
+- Go는 포인터를 지원한다.
+
+- 아래의 `zeroval()`과 `zeroptr()` 함수를 통해 포인터와 값의 차이를 보자.  
+  `zeroval()`은 int형 _값_ 을 받아 그 값을 0으로 바꾸기만 한다.  
+  반면 `zeroptr()`는 `*int` 형 파라미터를 갖고 있으며, 이는 곧 int형 포인터를 의미한다.  
+  이 함수 내의 `*iptr`는 `int*`형을 한 차원 내려 그 포인터 주소가 가리키는 값을 가져온다.  
+  또한 `zeroptr()`에 전달할 때 `&i`는 i 변수의 포인터 주소를 전달하는 구문이다.
+
+```go
+func zeroval(ival int) {
+	ival = 0
+}
+
+func zeroptr(iptr *int) {
+	*iptr = 0
+}
+
+func main() {
+	i := 1
+	fmt.Println("Initial: ", i) // Initial:  1
+
+	zeroval(1)
+	fmt.Println("zeroval(): ", i) // zeroval():  1
+
+	zeroptr(&i)
+	fmt.Println("zeroptr(): ", i) // zeroptr():  0
+
+	fmt.Println("pointer: ", &i) // pointer:  0x140000160c8
+}
+```
+
+---
+
+</p></details>
