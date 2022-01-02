@@ -802,3 +802,92 @@ func main() {
 ---
 
 </p></details>
+
+<details><summary>Structs</summary>
+
+<p>
+
+- Go에서는 `struct` 키워드를 사용해 특정 타입들로 이뤄진 구조체를 만들어 사용할 수 있다.
+
+```go
+type person struct {
+	name string
+	age  int
+}
+
+func newPerson(name string) *person {
+	p := person{name: name, age: 25}
+	return &p
+}
+
+func newPerson2(name string) person {
+	p := person{name: name}
+	p.age = 30
+	return p
+}
+
+func main() {
+	sangwoo := newPerson("sangwoo")
+	fmt.Println(*sangwoo) // {sangwoo 25}
+	sangwoo.name = "new Sangwoo"
+	fmt.Println(*sangwoo) // {new Sangwoo 25}
+
+	sangwoo2 := newPerson2("sangwoo2")
+	fmt.Println(sangwoo2) // {sangwoo2 30}
+	sangwoo2.name = "new Sangwoo2"
+	fmt.Println(sangwoo2)
+}
+```
+
+- 위처럼 관례적으로 구조체를 생성할 때는 해당 역할을 하는 함수를 만들어 호출한다.
+
+- 구조체의 필드 접근 시에는 `.`를 사용할 수 있으며, 구조체 포인터의 필드를 접근할 때도 마찬가지로 `.`를  
+  사용해 접근한다. (자동으로 dereference 된다.)
+
+- 구조체를 만들 때는 `구조체명{필드명: 값}` 식으로 초기화를 할 수 있으며, 초기화하지 않으면 기본값이 할당된다.
+
+- 구조체는 _가변(mutable)_ 이다.
+
+---
+
+</p></details>
+
+<details><summary>Methods</summary>
+
+<p>
+
+- Go에서는 구조체에 대해 메소드를 정의할 수 있다.  
+  아래의 `area()`는 rect 구조체에 대해 정의한 메소드이다.  
+  `perim()`과 `area()`에서 알 수 있듯이 구조체에 대한 메소드는 구조체 포인터에 대해서도 할 수 있으며,  
+  구조체 값에 대해서도 할 수 있다.
+
+```go
+type rect struct {
+	width, height int
+}
+
+func (r *rect) area() int {
+	return r.width * r.height
+}
+
+func (r rect) perim() int {
+	return 2*r.width + 2*r.height
+}
+
+func main() {
+	r := rect{width: 10, height: 5}
+	fmt.Println("area: ", r.area()) // area: 50
+	fmt.Println("perim: ", r.perim()) // perim: 30
+
+	rp := &r
+	fmt.Println("area: ", rp.area()) // area: 50
+	fmt.Println("perim: ", rp.perim()) // perim: 30
+}
+```
+
+- r는 구조체 값, rp는 구조체 포인터를 담고 있지만 둘 다 메소드를 같은 형태로 호출했다.  
+  이는 Go가 메소드 호출에 대해 값과 포인터를 자동으로 변환해주기 때문이다.
+
+---
+
+</p></details>
