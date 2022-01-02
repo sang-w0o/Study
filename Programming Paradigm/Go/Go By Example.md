@@ -891,3 +891,66 @@ func main() {
 ---
 
 </p></details>
+
+<details><summary>Interfaces</summary>
+
+<p>
+
+- Go에서의 인터페이스는 메소드 시그니처의 집합체 이다.
+
+- 아래는 `area()`, `perim()`을 가지는 geometry라는 인터페이스가 정의된 모습이다.
+
+```go
+type geometry interface {
+	area() float64
+	perim() float64
+}
+```
+
+- 아래처럼 Go에서 인터페이스를 구현하기 위해서는 해당 인터페이스가 가진 메소드를 모두 구현하기만 하면 된다.  
+  rect, circle 구조체 모두 geometry 인터페이스가 가지는 `area()`, `perim()`을 구현했기에  
+  자동으로 geometry의 구현체로 취급되며, 그렇기에 `measure()`의 인자로 전달될 수 있는 것이다.
+
+```go
+type rect struct {
+	width, height float64
+}
+
+func (r rect) area() float64 {
+	return r.width * r.height
+}
+
+func (r rect) perim() float64 {
+	return 2*r.width + 2*r.height
+}
+
+type circle struct {
+	radius float64
+}
+
+func (c circle) area() float64 {
+	return math.Pi * c.radius * c.radius
+}
+
+func (c circle) perim() float64 {
+	return 2 * math.Pi * c.radius
+}
+
+func measure(g geometry) {
+	fmt.Println(g)
+	fmt.Println(g.area())
+	fmt.Println(g.perim())
+}
+
+func main() {
+	r := rect{width: 3, height: 4}
+	c := circle{radius: 5}
+
+	measure(r)
+	measure(c)
+}
+```
+
+---
+
+</p></details>
