@@ -680,3 +680,86 @@ func main() {
 ---
 
 </p></details>
+
+<details><summary>Closures</summary>
+
+<p>
+
+- Go는 익명 함수를 지원하며, 이를 사용해 `Closure`를 활용할 수 있다.  
+  익명 함수는 이름 그대로 특정 작업을 하지만, 이름을 붙이고 싶지 않을 때 활용할 수 있다.  
+  아래의 `intSeq()` 함수를 보자.
+
+```go
+func intSeq() func() int {
+	i := 0
+	return func() int {
+		i++
+		return i
+	}
+}
+
+func main() {
+	nextInt := intSeq()
+	fmt.Println(nextInt()) // 1
+	fmt.Println(nextInt()) // 2
+	fmt.Println(nextInt()) // 3
+
+	newInt := intSeq()
+	fmt.Println(newInt()) // 1
+	fmt.Println(newInt()) // 2
+}
+```
+
+- 우선 `nextInt`는 `intSeq()`의 반환 결과, 즉 i가 0인 함수를 갖고 있다.  
+  이후 `nextInt`를 호출할 때마다 i를 1씩 증가시키고 반환하는 익명 함수가 실행되기에  
+  값이 1, 2, 3으로 출력되는 것이다.
+
+- 반면 `newInt`는 또 다시 `intSeq()`의 반환 결과, 즉 i가 0인 함수를 갖고 있기에 1부터 다시 시작한다.
+
+---
+
+</p></details>
+
+<details><summary>Recursion</summary>
+
+<p>
+
+- 당연히 Go에서도 재귀 함수를 사용할 수 있다. 아래의 `fact()`를 보자.  
+  이 함수는 `fact(0)`가 호출될 때까지 계속 재귀적으로 호출된다.
+
+```go
+func fact(n int) int {
+	if n == 0 {
+		return 1
+	}
+	return n * fact(n-1)
+}
+
+func main() {
+	fmt.Println(fact(4)) // 24
+}
+```
+
+- 재귀 함수로 Closure 개념을 사용할 수도 있다.  
+  하지만 재귀 함수의 목적으로 Closure를 사용할 때는 항상 `var`로 명시적으로 선언되어야 한다.  
+  아래 코드에서 `fib()`를 명시적으로 선언하지 않으면, 함수를 선언함과 동시에 반환하기에 말이 안된다.  
+  실제로도 `fib is undefined` 에러가 난다.
+
+```go
+func main() {
+	var fib func(n int) int
+
+	fib = func(n int) int {
+		if n < 2 {
+			return n
+		}
+		return fib(n-1) + fib(n-2)
+	}
+
+	fmt.Println(fib(7))
+}
+```
+
+---
+
+</p></details>
