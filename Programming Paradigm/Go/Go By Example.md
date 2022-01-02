@@ -1011,3 +1011,88 @@ func main() {
 ---
 
 </p></details>
+
+<details><summary>Errors</summary>
+
+<p>
+
+- Java와 같이 정상적인 결과를 반환하거나, 예외를 던지는 패러다임과는 달리 Go에서는 예외를 던지지 않고,  
+  결과와 함께 반환한다.
+
+- 이러한 Go의 패러다임은 예외를 특별하게 처리하지 않고, 정상적인 결과를 처리할 때와 동일하게 코드를 작성하개 해준다.
+
+- 관례적으로 에러들은 `error` 타입을 가지며, 함수의 마지막 반환 값이다.
+
+- `errors.New`는 주어진 에러 메시지를 가진 새로운 `error`를 만들어낸다.
+
+```go
+func f1(arg int) (int, error) {
+	if arg == 42 {
+		return -1, errors.New("cannot work with 42.")
+	}
+	return arg + 3, nil
+}
+```
+
+- 위 `f1()` 함수는 인자로 42가 주어지면 에러를 반환한다.
+- 에러 반환값이 nil이라면 에러가 발생하지 않았음을 의미한다.
+
+- 아래처럼 `Error()` 메소드를 구현한 구조체를 만들어서 Custom error를 사용할 수 있다.
+
+```go
+type argError struct {
+	arg     int
+	problem string
+}
+
+func (e *argError) Error() string {
+	return fmt.Sprintf("%d - %s", e.arg, e.problem)
+}
+
+func f2(arg int) (int, error) {
+	if arg == 42 {
+		return -1, &argError{arg, "Cannot work with 42."}
+	}
+	return arg + 3, nil
+}
+```
+
+- 아래 코드를 보자. `range`를 사용해 7~42를 순회하며 각각 `f1()`과 `f2()`를 호출한다.  
+  아래 코드에서 쓰인 if절의 모습은 Go에서는 매우 흔한 모습이다.
+
+```go
+func main() {
+	for _, i := range []int{7, 42} {
+		if r, e := f1(i); e != nil {
+			fmt.Println("f1() failed:", e)
+		} else {
+			fmt.Println("f1() worked:", r)
+		}
+	}
+	for _, i := range []int{7, 42} {
+		if r, e := f2(i); e != nil {
+			fmt.Println("f2() failed:", e)
+		} else {
+			fmt.Println("f2() worked:", r)
+		}
+	}
+}
+```
+
+- 마지막으로 Custom error를 만들어 발생시키고, 사용할 때에는 형변환을 명시적으로 해줘야 한다.
+
+```go
+func main() {
+	_, e := f2(42)
+	if ae, ok := e.(*argError); ok {
+		fmt.Println(ae.arg) // 42
+		fmt.Println(ae.problem) // Cannot work with 42.
+	}
+}
+```
+
+- `e.(*argError)`는 형변환을 하는 모습이며 ae는 형변환된 결과, ok는 형변환이 가능한지를 담는 boolean 변수이다.
+
+---
+
+</p></details>
