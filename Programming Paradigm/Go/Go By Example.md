@@ -954,3 +954,60 @@ func main() {
 ---
 
 </p></details>
+
+<details><summary>Embedding</summary>
+
+<p>
+
+- Go에서는 구조체(struct)와 인터페이스(interface)들의 embedding을 지원한다.  
+  이를 사용해 수많은 조합을 만들어 사용할 수 있다.
+
+```go
+type base struct {
+	num int
+}
+
+func (b base) describe() string {
+	return fmt.Sprintf("base with num=%v", b.num)
+}
+
+type container struct {
+	base
+	str string
+}
+```
+
+- 위 코드에서 container 구조체는 base 구조체를 갖고 있다.  
+  이렇게 embedding은 마치 이름 없는 필드와 같이 보인다.
+
+```go
+func main() {
+
+	co := container{
+		base: base{num: 1},
+		str:  "Some name",
+	}
+
+	fmt.Println(co.describe()) // base with num=1
+	fmt.Println(co.base.describe()) // base with num=1
+	fmt.Println(co.base.num) // 1
+	fmt.Println(co.num) // 1
+
+	type describer interface {
+		describe() string
+	}
+
+	var d describer = co
+	fmt.Println(d.describe()) // base with num=1
+}
+```
+
+- 재밌는 것은 co의 num에 접근하려면 `co.base.num`이 맞지만, `co.num`으로도 접근이 가능하다는 것이다.  
+  마찬가지로 `describe()`는 base에 있는 메소드이지만 `co.describe()`도 가능하다.
+
+- 또한 describer라는 인터페이스를 만들었는데, 이 인터페이스의 메소드 시그니처를 동일하게 base 구조체가  
+  구현한다. 이때 container가 base를 embed하고 있기에 container가 describer를 구현하는 것으로 취급된다.
+
+---
+
+</p></details>
