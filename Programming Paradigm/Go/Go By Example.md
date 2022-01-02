@@ -582,4 +582,101 @@ func main() {
 
 <p>
 
+- 함수는 `func` 키워드를 사용해 선언한다.
+
+- 우선 아래는 2개의 int를 매개변수로 하고 int를 반환하는 함수 `plus()`이다.  
+  매개변수마다 타입을 지정해줘도 되고, 같은 타입이 여러 개 있다면 한 번만 써줘도 된다.
+
+```go
+func plus(a int, b int) int {
+	return a + b
+}
+
+func plusAll(a, b, c int) int {
+	return a + b + c
+}
+
+func plusDifferentTypes(a, b int, c, d string) string {
+	println(a + b)
+	return c + d
+}
+
+func main() {
+	fmt.Println(plusDifferentTypes(1, 2, "c", "d"))
+}
+```
+
+---
+
+</p></details>
+
+<details><summary>Multiple Return Values</summary>
+
+<p>
+
+- Go에서는 하나의 함수, 표현식이 여러 개의 반환 값을 가질 수 있다.  
+  예를 들어, 결과와 error를 모두 한 번에 반환하도록 할 수 있다.
+
+- 아래의 `vals()` 함수는 2개의 int를 반환한다.
+
+```go
+func vals() (int, int) {
+	return 3, 7
+}
+
+func main() {
+	fmt.Println(vals())
+}
+```
+
+- 2개 이상의 값이 반환될 때 하나만 사용하고 싶다면, 사용하지 않을 반환값에는 관례적으로 `_`로 네이밍한다.
+
+```go
+func main() {
+	_, seven := vals()
+	println(seven) // 7
+}
+```
+
+---
+
+</p></details>
+
+<details><summary>Variadic Functions</summary>
+
+<p>
+
+- Go에서의 가변인자를 선언하는 방법은 Java와 동일하게 `...` 을 사용한다.
+
+```go
+func sum(nums ...int) int {
+	result := 0
+	for _, num := range nums {
+		result += num
+	}
+	return result
+}
+
+func main() {
+	fmt.Println(sum(1, 2, 3, 4))
+}
+```
+
+- 가변인자를 매개변수로 받는 함수에 배열이나 `Slice`를 전달하려면 `...` 연산자를 붙힌다.
+
+```go
+func main() {
+	numbers := []int{1, 2, 3, 4, 5}
+	fmt.Println(sum(numbers...))
+
+	slices := make([]int, 6)
+	for i := 0; i < 6; i++ {
+		slices[i] = i
+	}
+	fmt.Println(sum(slices...))
+}
+```
+
+---
+
 </p></details>
