@@ -1456,3 +1456,91 @@ func main() {
 ---
 
 </p></details>
+
+<details><summary>Closing Channels</summary>
+
+<p>
+
+- Channel을 _close_ 한다는 것은 더 이상 해당 channel에 value들이 send되지 않을 것임을 뜻한다.  
+  이는 해당 channel의 receiver와 협력이 끝났음을 알릴 때 쓰이기 좋다.
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+    jobs := make(chan int, 5)
+    done := make(chan bool)
+
+    go func() {
+        for {
+            j, more := <-jobs
+            if more {
+                fmt.Println("received job", j)
+            } else {
+                fmt.Println("received all jobs")
+                done <- true
+                return
+            }
+        }
+    }()
+
+    for j := 1; j <= 3; j++ {
+        jobs <- j
+        fmt.Println("sent job", j)
+    }
+    close(jobs)
+    fmt.Println("sent all jobs")
+
+    <-done
+}
+
+/*
+sent job 1
+sent job 2
+sent job 3
+sent all jobs
+received job 1
+received job 2
+received job 3
+received all jobs
+*/
+```
+
+- 위 코드에서 `j, more := <-jobs`에서 알 수 있듯이 channel에서 값을 receive할 때는 2개의 반환값이 있는데,  
+  j는 receive한 value이며 more은 해당 channel이 _closed_ 상태이며 더 이상 value가 없을 때 false를 반환한다.
+
+---
+
+</p></details>
+
+<details><summary>Range over Channels</summary>
+
+<p>
+
+- 이전에 for와 range를 사용해 특정 데이터 집합에 대해 순차적인 작업을 수행하는 것을 확인했는데,  
+  이 구문을 channel 내의 value들에 대해서도 똑같이 사용할 수 있다.
+
+```go
+func main() {
+	queue := make(chan string, 2)
+	queue <- "one"
+	queue <- "two"
+	close(queue)
+
+	for element := range queue {
+		fmt.Println(element)
+	}
+	// Output: one two
+}
+```
+
+- range는 queue라는 channel에서 receive한 value들 각각을 순회하며, 이 반복은 2개의 value들이  
+  queue에서 모두 receive 되었을 때 끝난다.
+
+- 위 예시를 통해 value가 있는 non-empty channel을 close 하고, 그 후에도 value들을 가져올 수 있다는 것도 파악할 수 있다.
+
+---
+
+</p></details>
