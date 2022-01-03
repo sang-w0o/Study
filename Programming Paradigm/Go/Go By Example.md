@@ -1293,3 +1293,48 @@ func main() {
 ---
 
 </p></details>
+
+<details><summary>Select</summary>
+
+<p>
+
+- Go의 `Select`는 여러 개의 `Channel` 작업을 한 번에 대기할 수 있도록 해준다.  
+  여러 개의 `Goroutine`과 `Channel` 작업들을 `Select`로 조합하는 것은 Go의 가장 강력한 기능 중 하나이다.
+
+```go
+func main() {
+
+	c1 := make(chan string)
+	c2 := make(chan string)
+
+	go func() {
+		time.Sleep(time.Second)
+		c1 <- "one"
+	}()
+
+	go func() {
+		time.Sleep(2 * time.Second)
+		c2 <- "two"
+	}()
+
+	for i := 0; i < 2; i++ {
+		select {
+		case msg1 := <-c1:
+			fmt.Println("received", msg1)
+		case msg2 := <-c2:
+			fmt.Println("received", msg2)
+		}
+	}
+}
+```
+
+- for문에서 `select`내의 case를 보면 msg1, msg2의 receive를 c1, c2에서 동시에 기다리고 있다.  
+  따라서 이 프로그램은 총 2초 후에 종료된다.
+
+> 이때 for문은 2번 반복하는데, channel에서 값을 receive하면 case에 들어가기에 1번 반복된다.  
+> 따라서 만약 for문을 1번 돌게하면 "received one"만 출력되며, 3번 돌게 하면 마지막 반복 때  
+> deadlock이 걸리며 에러가 발생한다. 만약 default가 있다면 모두 default로 빠진다.
+
+---
+
+</p></details>
