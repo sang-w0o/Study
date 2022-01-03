@@ -1149,3 +1149,73 @@ func main() {
 ---
 
 </p></details>
+
+<details><summary>Channels</summary>
+
+<p>
+
+- `Channel`은 동시적으로 발생하는 `Goroutine`들을 이어주는 pipe이다.  
+  하나의 `Goroutine`에서 `Channel`에 여러 값을 전달하면, 이 값들을 다른 `Goroutine`에서 사용할 수 있다.
+
+- `Channel`은 `make(chan value-type)`으로 생성한다.  
+  `channelName <- value` 형식으로 `Channel`에 값을 전달(send)할 수 있으며,  
+  `<-channelName` 형식으로 `Channel`에 있는 값을 받아올(receive) 수 있다.
+
+```go
+func main() {
+	// messages 채널 생성
+	messages := make(chan string)
+
+	// messages 채널에 "ping"이라는 값 전달, 3초 sleep
+	go func() {
+		time.Sleep(time.Second * 3)
+		messages <- "ping"
+	}()
+
+	time.Sleep(time.Second)
+	// messages 채널에서 값을 받아와 msg 변수에 할당
+	msg := <-messages
+	fmt.Println(msg)
+}
+```
+
+- 기본적으로 `Channel`에 값을 send하거나 receive하는 작업은 발신자(sender)와 수신자(receiver)가 모두  
+  준비될 때까지 block된다. `Goroutine`에서 수행되는 익명함수가 3초 후에 messages `Channel`에  
+  "ping"을 send하기에 위 프로그램에서 `fmt.Println(msg)`가 수행되는 시점도 3초 후가 된다.
+
+---
+
+</p></details>
+
+<details><summary>Channel Buffering</summary>
+
+<p>
+
+- 기본적으로 `Channel`은 _unbuffered_ 하다. _unbuffered_ 하다는 것은 코드에서  
+  `channelName <- value` 형식으로 `Channel`에 값을 전달할 때, `Channel`이 값을  
+  `<-channelName` 형식으로 값을 읽어오는 코드가 있을 때만 전달받는 다는 것이다.
+
+- 반면 `Buffered Channel` 은 제한된 숫자의 값들을 그 값을 빼내는 곳이 없더라도 전달받을 수 있게끔 한다.
+
+```go
+func main() {
+	messages := make(chan string, 2)
+
+	messages <- "buffered"
+	messages <- "channel"
+
+	fmt.Println(<-messages) // "buffered"
+	fmt.Println(<-messages) // "channel"
+
+	//messages2 := make(chan string)
+	//messages2 <- "unbuffered"
+}
+```
+
+- 위 코드에서 messages라는 2개의 값을 가질 수 있는 buffered channel을 만들었다.  
+  아래쪽에 messages2 부분을 주석 해제하면 `fatal error: all goroutines are asleep - deadlock!` 이라는  
+  메시지와 함께 예외가 발생한다. Unbuffered channel에 값을 receive하는 코드가 없이 send했기 때문이다.
+
+---
+
+</p></details>
