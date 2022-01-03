@@ -1338,3 +1338,57 @@ func main() {
 ---
 
 </p></details>
+
+<details><summary>Timeouts</summary>
+
+<p>
+
+- Timeout은 외부 리소스에 연결하는 등 실행 시간을 조절할 때 매우 중요하다.  
+  Go에서 timeout을 구현하는 것은 channel과 `select` 덕에 매우 쉽다.
+
+- 우선 c1 이라는 Channel을 생성하고, 2초 후에 "Result 1"을 c1에 send하는 익명함수를 실행시켜보자.  
+  그리고 이 함수가 1초 이상 소요되면 timeout이라고 간주한다고 해보자. 아래는 이 로직을 구현한 코드이다.
+
+```go
+func main() {
+	c1 := make(chan string, 1)
+	go func() {
+		time.Sleep(2 * time.Second)
+		c1 <- "Result 1"
+	}()
+
+	select {
+	case res := <-c1:
+		fmt.Println(res)
+	case <-time.After(1 * time.Second):
+		fmt.Println("timeout 1")
+	}
+}
+```
+
+- 위처럼 `select`를 사용해 c1에서 값이 receive되면 성공 처리하고, 1초 동안 기다리는 case를 추가해 놓아  
+  timeout을 쉽게 구현할 수 있다.
+
+- 아래는 동일한 코드인데, 2초 동안 수행되는 함수와 timeout 기준이 3초일 때를 가정한 코드이다.  
+  아래 코드에서는 timeout이 걸리지 않기에 "Result 2"가 콘솔에 출력된다.
+
+```go
+func main() {
+	c2 := make(chan string, 1)
+	go func() {
+		time.Sleep(2 * time.Second)
+		c2 <- "Result 2"
+	}()
+
+	select {
+	case res := <-c2:
+		fmt.Println(res)
+	case <-time.After(3 * time.Second):
+		fmt.Println("timeout 2")
+	}
+}
+```
+
+---
+
+</p></details>
