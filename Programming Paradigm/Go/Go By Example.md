@@ -1096,3 +1096,56 @@ func main() {
 ---
 
 </p></details>
+
+<details><summary>Goroutines</summary>
+
+<p>
+
+- `goroutine`은 특정 작업을 실행하기 위한 경량 스레드이다.
+
+- 아래와 같은 `f()`라는 함수가 있다 해보자.
+
+```go
+func f(from string) {
+	for i := 0; i < 3; i++ {
+		fmt.Println(from, ":", i)
+	}
+}
+```
+
+- 위 함수를 실행시키려먼, 아래처럼 할 것이다.
+
+```go
+func main() {
+	f("direct")
+}
+```
+
+- 이 함수를 goroutine에서 실행하고 싶다면 `go f(s)`를 사용한다.  
+  이렇게 하면 goroutine이 `f()`를 `f()`를 실행시키는 `main()`과 동시에(concurrently) 실행하게 된다.
+
+```go
+func main() {
+	go func(msg string) {
+		time.Sleep(time.Second)
+		fmt.Println("Anonymous", msg)
+	}("After 1 second")
+
+	go func(msg string) {
+		time.Sleep(time.Second * 3)
+		fmt.Println("Anonymous2", msg)
+	}("After 3 seconds")
+
+	time.Sleep(time.Second * 5)
+	fmt.Println("done")
+}
+```
+
+- 위 코드를 실행하면 콘솔에 1초 후에 "After 1 second", 그로부터 2초후에 "After 3 seconds", 그리고  
+  그로부터 또 2초 후에 "done"이 출력되면서 프로그램이 종료된다.
+
+- 위에서는 3개의 함수 호출이 서로 비동기적으로(asynchronously) 실행되고 있다.
+
+---
+
+</p></details>
