@@ -1392,3 +1392,67 @@ func main() {
 ---
 
 </p></details>
+
+<details><summary>Non-blocking channel operations</summary>
+
+<p>
+
+- 기본적으로 `Channel`에 대해 send, receive하는 것은 blocking 방식이라고 했다.  
+  하지만 `select`를 default절과 함께 사용해 non-blocking 방식으로 send, receive를  
+  처리하도록 할 수도 있다.
+
+```go
+func main() {
+	messages := make(chan string, 1)
+
+	select {
+	case msg := <-messages:
+		fmt.Println("received message", msg)
+	default:
+		fmt.Println("no message received")
+	}
+}
+```
+
+- 위 코드는 non-blocking receive를 수행했다. 결과로는 "no message received"가 출력된다.  
+  하지만 만약 messages에 value가 있었다면 `<-messages` case를 타게 되며, 즉각적으로 default로  
+  넘어가지 않는다.
+
+```go
+func main() {
+	messages := make(chan string)
+
+	msg := "hi"
+	select {
+	case messages <- msg:
+		fmt.Println("sent message", msg)
+	default:
+		fmt.Println("no message sent")
+	}
+}
+```
+
+- non-blocking send도 비슷하게 작동한다. 위 코드에서 messages 채널은 _unbuffered_ channel이고  
+  receiver가 없기에 `messages <- msg` case를 탈 수 없게 된다. 따라서 default가 선택된다.
+
+```go
+func main() {
+	messages := make(chan string)
+	signals := make(chan bool)
+
+	select {
+	case msg := <-messages:
+		fmt.Println("received message", msg)
+	case sig := <-signals:
+		fmt.Println("received signal", sig)
+	default:
+		fmt.Println("no activity")
+	}
+}
+```
+
+- 위처럼 2개 이상의 channel에 대한 case를 만들어 multi-way non-blocking select를 수행할 수 있다.
+
+---
+
+</p></details>
