@@ -1219,3 +1219,77 @@ func main() {
 ---
 
 </p></details>
+
+<details><summary>Channel Synchronization</summary>
+
+<p>
+
+- `Channel`의 또다른 예로, 서로 다른 `Goroutine`의 실행을 동기화시킬 수 있다.  
+  바로 아래 코드를 보자.
+
+```go
+func worker(done chan bool) {
+	fmt.Println("working..")
+	time.Sleep(time.Second)
+	fmt.Println("done")
+
+	done <- true
+}
+
+func main() {
+
+	done := make(chan bool, 1)
+	go worker(done)
+
+	<-done
+}
+```
+
+- `worker()` 함수가 받는 channel에 작업을 끝내면 true를 넣어 해당 함수의 작업이 끝났음을 다른  
+  `Goroutine`에게 알린다.
+
+- `main()`에서는 `Goroutine`을 하나 만들고, `worker()`를 새로운 `Goroutine`에서 실행시킨다.  
+  마지막에 done에서 값을 receive하는 `<-done`이 실행되기 위해서는 done channel을 사용하는  
+  `Goroutine`들이 모두 ready해야 한다 했는데, ready 상태는 `worker()` 내에서 1초가 끝나야 된다.  
+  따라서 위 코드는 1초 후에 끝난다.
+
+- 만약 위 코드에서 `done <- false`와 `<-done`을 모두 지우거나, `<- done`만 지우면  
+  `worker()`가 실행되기 전에 프로그램은 종료되어 버린다.
+
+---
+
+</p></details>
+
+<details><summary>Channel Directions</summary>
+
+<p>
+
+- `Channel`을 함수의 매개변수로 사용할 때, 받고 싶은 `Channel`이 send전용 channel인지, receive 전용  
+  channel인지를 명시할 수 있다. 이러한 속성은 프로그램의 타입 안전성을 강화해준다.
+
+```go
+func ping(pings chan<- string, msg string) {
+	pings <- msg
+}
+
+func pong(pings <-chan string, pongs chan<- string) {
+	msg := <-pings
+	pongs <- msg
+}
+
+func main() {
+	pings := make(chan string, 1)
+	pongs := make(chan string, 1)
+	ping(pings, "passed message")
+	pong(pings, pongs)
+	fmt.Println(<-pongs)
+}
+```
+
+- `ping()`은 인자로 받은 pings `Channel`에 대해 send만 할 것임을 명시하고,  
+  `pong()`은 값을 receive하기만 할 것임을 명시하게 된다. 따라서 만약 `pong()` 내에서 `pings <- "A"`처럼  
+  pings `Channel`에 값을 send하려 하면 컴파일 시점에 오류가 난다.
+
+---
+
+</p></details>
