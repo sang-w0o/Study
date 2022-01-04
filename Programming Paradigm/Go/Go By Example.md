@@ -1680,3 +1680,57 @@ func main() {
 ---
 
 </p></details>
+
+<details><summary>Atomic Counters</summary>
+
+<p>
+
+- Go에서의 상태(state)관리의 대표적인 메커니즘은 Channel을 통해 소통하는 것이다.  
+  Worker Pool을 배우며 이를 써보기도 했는데, 상태 관리를 위한 다른 방법도 여러개 있다.  
+  여기서는 `sync/atomic` 패키지의 Atomic Counter를 사용해 여러 개의 Goroutine에서  
+  접근할 수 있는 상태를 관리하는 방법을 살펴보자.
+
+```go
+func main() {
+	var ops uint64
+
+	var waitGroup sync.WaitGroup
+
+	for i := 0; i < 50; i++ {
+		waitGroup.Add(1)
+
+		go func() {
+			for c := 0; c < 1000; c++ {
+				atomic.AddUint64(&ops, 1)
+			}
+			waitGroup.Done()
+		}()
+	}
+
+	waitGroup.Wait()
+	fmt.Println("ops:", ops)
+}
+
+// ops: 50000
+```
+
+- 우선 맨 위에서 uint64 형 ops 변수를 할당했다.(항상 양수) 이 변수는 counter로 사용된다.  
+  그 다음 `sync.WaitGroup`으로 WaitGroup을 waitGroup 변수에 할당했다.  
+  이전에 봤듯이 WaitGroup은 모든 Goroutine의 작업이 끝날 때까지 대기하게 된다.
+
+- for문에서는 50개의 Goroutine을 생성하는데, 각 Goroutine에서는 counter를 1000씩 증가시키게 된다.  
+  이때 `++ops`가 아닌 `atomic.AddUint64(&ops, 1)`를 사용해 ops의 메모리 주소를 전달해 함수가  
+  증가시키도록 했다.
+
+- 아래쪽의 `waitGroup.wait()`를 통해 이전과 마찬가지로 모든 Goroutine들이 작업을 마치기를 기다리게 했다.
+
+- 맨 마지막에서는 ops 변수를 출력했는데, 이제 더 이상 아무런 Goroutine이 ops에 접근하지 않음을 알기에  
+  직접 접근해도 안전하다. 위에서 `++ops`가 아닌 `atomic.AddUint64()`를 사용했다고 했는데, 만약  
+  `++ops`를 사용했다면 작업 수행 도중 goroutine들이 서로 ops에 직접 접근하기에 결과가 50000이 아닌  
+  다른 숫자가 되었을 것이다.
+
+- 참고로 Goroutine들의 작업 수행 도중 ops의 값을 알고 싶다면 `atomic.LoadUint64(&ops)`를 사용해야 한다.
+
+---
+
+</p></details>
