@@ -1606,3 +1606,77 @@ func main() {
 ---
 
 </p></details>
+
+<details><summary>WaitGroups</summary>
+
+<p>
+
+- 여러 개의 Goroutine들이 작업을 마치는 것을 기다리기 위해 WaitGroup을 사용할 수도 있다.
+
+```go
+func worker(id int) {
+	fmt.Printf("Worker %d starting\n", id)
+	time.Sleep(time.Second)
+	fmt.Printf("Worker %d done\n", id)
+}
+```
+
+- 위 함수가 Goroutine에서 수행할 작업이다.  
+  비싼 연산 작업을 흉내내기 위해 1초간 sleep하게 했다.
+
+- 이제 WaitGroup을 사용하는 코드를 보자.
+
+```go
+func main() {
+	var waitGroup sync.WaitGroup
+
+	for i := 1; i <= 5; i++ {
+		waitGroup.Add(1)
+		i := i
+		go func() {
+			defer waitGroup.Done()
+			worker(i)
+		}()
+	}
+	waitGroup.Wait()
+}
+```
+
+- 위 코드에서 `sync.WaitGroup`을 통해 waitGroup 변수에 WaitGroup을 할당했다.  
+  이 waitGroup은 모든 Goroutine들의 작업이 끝날 때까지 대기하게 된다.  
+  **참고로 함수로 WaitGroup이 전달되는 경우, 무조건 pointer를 전달해야 한다.**
+
+- for문 내에서는 5개의 Goroutine을 생성하고, i에 각 counter를 저장했다.  
+  `i := i`에서는 Goroutine Closure에서 동일한 i 값의 재사용을 방지했다.
+
+- `go func() { .. }()`에서는 모든 worker의 호출을 closure로 감싸서 WaitGroup에게  
+  해당 worker의 작업이 끝나면 해당 closure를 실행하게 한다.
+
+- 마지막으로 `waitGroup.wait()`를 통해 모든 WaitGroup의 작업이 끝날 때까지 대기한다.  
+  이 wait는 `waitGroup.add(delta int)`의 값이 0이 될 때까지 대기하게 된다.  
+  즉, 1씩 5번 더했기에 5개의 Goroutine이 끝나기를 대기하는 것이다.
+
+- 만약 함수로 전달하도록 다시 코드를 작성해본다면, 아래처럼 된다.
+
+```go
+func testWaitGroup(group *sync.WaitGroup) {
+	for i := 1; i <= 5; i++ {
+		group.Add(1)
+		i := i
+		go func() {
+			defer group.Done()
+			worker(i)
+		}()
+	}
+	group.Wait()
+}
+
+func main() {
+	var waitGroup sync.WaitGroup
+	testWaitGroup(&waitGroup)
+}
+```
+
+---
+
+</p></details>
