@@ -2026,3 +2026,78 @@ func main() {
 ---
 
 </p></details>
+
+<details><summary>Recover</summary>
+
+<p>
+
+- Go에서는 panic 발생 시, built-in 함수인 `recover()`를 사용해 panic 상태로부터 _recover(회복)_ 할 수 있다.  
+  `recover`는 `panic`에 의해 프로그램이 종료되는 것을 막아준다.
+
+- 이를 사용할 수 있는 실질적인 상황을 떠올려보자. Go로 작성된 서버가 있을 때, 연결된 클라이언트들 중 하나가  
+  치명적인 오류를 발생시켰다고 해서 서버 자체가 종료되기를 원하진 않을 것이다. 강제 종료 대신, 서버가 문제를 일으킨  
+  해당 클라이언트와의 연결만 끊고 나머지 클라이언트들의 요청을 처리하게끔 하는 것이 좋다.  
+  사실 Go의 `net/http` 패키지가 HTTP Server를 위해 이런 로직을 구현하고 있다.
+
+```go
+func mayPanic() {
+	panic("a problem")
+}
+```
+
+- 위 함수는 panic한다. 이를 recover로 처리해보자.
+
+```go
+func main() {
+
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Recovered. Error:\n", r)
+		}
+	}()
+
+	mayPanic()
+
+	fmt.Println("After mayPanic()")
+
+	/**
+	Recovered. Error:
+	a problem
+	*/
+}
+```
+
+- `recover()`는 항상 defer 함수 내에서 호출되어야 한다.  
+  만약 `recover()`가 있는 defer 함수의 호출부에서 panic이 일어나면 defer가 작동해 `recover()`가 호출된다.
+
+- `recover()`의 반환값은 panic을 일으킨 에러이다.
+
+- 따라서 위 코드의 `fmt.Println("After mayPanic()")`는 실행되지 않는다.  
+  왜냐하면 `mayPanic()`이 호출되고 에러가 발생하면, 제어는 defer 함수로 이동하기 때문이다.
+
+- 위 코드를 아래처럼 바꿔보자.
+
+```go
+func mayPanic() {
+	panic("a problem")
+}
+
+func recoverFromPanic() {
+	if r := recover(); r != nil {
+		fmt.Println("Recovered. Error:\n", r)
+	}
+}
+
+func main() {
+	defer recoverFromPanic()
+	mayPanic()
+	fm.Println("After mayPanic()")
+}
+```
+
+- 결과는 이전 코드와 동일하다. 하지만 만약 `mayPanic()`이 `defer recoverFromPanic()`보다 먼저 실행된다면,  
+  `recoverFromPanic()`는 실행되지 않는다.
+
+---
+
+</p></details>
