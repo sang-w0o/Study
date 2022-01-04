@@ -1960,3 +1960,69 @@ Process finished with the exit code 2
 ---
 
 </p></details>
+
+<details><summary>Defer</summary>
+
+<p>
+
+- `defer`은 특정 함수 호출이 특정 작업이 모두 먼저 수행된 후 수행되도록 보장하기 위해 사용한다.  
+  주로 cleanup을 위해 사용한다. 다른 언어의 ensure, finally와 비슷한 기능을 한다.
+
+- 아래 예시처럼 파일을 만들고, 만들어진 파일에 write한 후 닫고 싶다고 하자.  
+  이를 `defer`와 함께 구현해보자.
+
+- 우선 파일을 만들고, write하고, 닫는 함수들을 만들었다.
+
+```go
+func createFile(path string) *os.File {
+	fmt.Println("creating file at ", path)
+	file, err := os.Create(path)
+	if err != nil {
+		panic(err)
+	}
+	return file
+}
+
+func writeFile(file *os.File) {
+	fmt.Println("writing to file..")
+	fmt.Fprintln(file, "data")
+}
+
+func closeFile(file *os.File) {
+	fmt.Println("closing file..")
+
+	// 이후에 defer closeFile()이 있더라도
+	// 파일을 닫을 때는 예외를 검사하는 것이 좋다.
+	err := file.Close()
+
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
+}
+```
+
+- 마지막으로 `main()` 함수 부분을 보자.
+
+```go
+func main() {
+	file := createFile("/tmp/defer.txt")
+	defer closeFile(file)
+	writeFile(file)
+
+	/**
+	  creating file at /tmp/defer.txt
+	  writing to file..
+	  closing file..
+	*/
+}
+```
+
+- `main()`은 처음에 파일을 `createFile()`로 만들고, file 변수에 저장한다.  
+  이후 `defer closeFile()`을 통해 `closeFile()`이 호출부인 `main()`이 종료되면 호출되도록 한다.  
+  따라서 코드 상에서는 create -> close -> write 이지만, close에 defer가 있기에 실행되는 순서는  
+  create -> write -> close 가 되는 것이다.
+
+---
+
+</p></details>
