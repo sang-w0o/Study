@@ -1544,3 +1544,65 @@ func main() {
 ---
 
 </p></details>
+
+<details><summary>Worker Pools</summary>
+
+<p>
+
+- 이번에는 Goroutine과 Channel을 사용해 Worker Pool을 구현하는 방법을 알아보자.
+
+```go
+func worker(id int, jobs <-chan int, results chan<- int) {
+	for j := range jobs {
+		fmt.Println("worker", id, "started job", j)
+		time.Sleep(time.Second)
+		fmt.Println("worker", id, "finished job", j)
+		results <- j * 2
+	}
+}
+```
+
+- 위 함수가 worker인데, jobs channel에서 value를 받아 알맞은 결과값을 results channel에 담는다.  
+  비용이 꽤 드는 작업을 흉내내기 위해 작업 소요 시 1초 동안 sleep한다.
+
+```go
+func main() {
+	const numJobs = 5
+	jobs := make(chan int, numJobs)
+	results := make(chan int, numJobs)
+
+	/**
+	3개의 worker 생성.
+	처음에는 아무런 작업이 없기에 block되어 있다.
+	*/
+	for w := 1; w <= 3; w++ {
+		go worker(w, jobs, results)
+	}
+
+	/**
+	5개의 job들을 jobs channel에 전달한다.
+	그리고 close()를 호출해 jobs에 대해 더이상
+	job이 없다는 사실을 알린다.
+	*/
+	for j := 1; j <= numJobs; j++ {
+		jobs <- j
+	}
+	close(jobs)
+
+	/**
+	작업들의 결과를 취합한다.
+	이렇게 channel에서 value를 빼내는 것은 worker goroutine들이
+	작업을 마쳤음을 보장해주기도 한다.
+	*/
+	for a := 1; a <= numJobs; a++ {
+		<-results
+	}
+}
+```
+
+- 위 코드에서 총 5개의 job들이 각각 1초씩 걸리기에 5초가 소요되어야 하지만, 3개의 worker들이  
+  동시적(concurrently)으로 작업을 수행하기에 총 2초 가량이 소요된다.
+
+---
+
+</p></details>
