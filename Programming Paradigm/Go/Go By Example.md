@@ -1734,3 +1734,72 @@ func main() {
 ---
 
 </p></details>
+
+<details><summary>Mutexes</summary>
+
+<p>
+
+- 이전에 Atomic Counter를 통해 단순한 counter 상태를 접근하는 방법을 보았는데, 여러 개의 Goroutine이  
+  사용하는 더 복잡한 상태를 안전하게 접근하고 싶을 때는 Mutex를 사용할 수 있다.
+
+```go
+type Container struct {
+	mutex    sync.Mutex
+	counters map[string]int
+}
+```
+
+- `Container` 구조체는 counters라는 `Map`을 갖고 있다. 또한 우리는 이 counters에 여러 개의 Goroutine들이  
+  접근하게끔 하고 싶기에 `Counter`에 `Mutex`를 추가해 접근을 동기화할 수 있도록 했다.  
+  참고로 mutex는 복사되면 안되기에 구조체가 전달될 때 꼭 pointer로 전달되어야 한다.
+
+```go
+func (container *Container) inc(name string) {
+	container.mutex.Lock()
+	defer container.mutex.Unlock()
+	container.counters[name]++
+}
+```
+
+- 해당 함수가 Goroutine의 작업에서 수행될 함수인데, counters 변수에 접근헤 값을 증가시킨다.  
+  이때 counters에 접근하기 전에 mutex에 Lock을 걸고, 접근이 끝나면 Lock을 해제하기 위해  
+  `defer`를 사용해 unlock해주었다.
+
+```go
+func main() {
+	c := Container{
+		counters: map[string]int{"a": 0, "b": 0},
+	}
+	var waitGroup sync.WaitGroup
+
+	doIncrement := func(name string, n int) {
+		for i := 0; i < n; i++ {
+			c.inc(name)
+		}
+		waitGroup.Done()
+	}
+
+	waitGroup.Add(3)
+	go doIncrement("a", 10000)
+	go doIncrement("a", 10000)
+	go doIncrement("b", 10000)
+
+	waitGroup.Wait()
+	fmt.Println(c.counters)
+	// Output: map[a:20000 b:10000]
+}
+```
+
+- `doIncrement()`는 주어진 n번 만큼 반복하며 `Container` 구조체에 대해 `inc()`를 호출해  
+  `Map`의 알맞은 value의 값을 1씩 증가시킨다. `doIncrement()`의 마지막에는 작업을 완료하고  
+  WaitGroup의 counter를 감소시키기 위해 `waitGroup.Done()`을 호출해주었다.
+
+- 그 다음으로는 waitGroup에 delta값으로 3을 전달하고 `doIncrement()`를 동시적으로 3개 수행했다.  
+  3개의 Goroutine이 동일한 `Container`에 대한 작업을 동시적으로 수행되며, 그 중 2개는 심지어  
+  `Map`의 같은 value에 접근한다.
+
+- 마지막으로 `waitGroup.wait()`으로 모든 Goroutine의 작업이 끝나길 대기했다.
+
+---
+
+</p></details>
