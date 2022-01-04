@@ -1803,3 +1803,118 @@ func main() {
 ---
 
 </p></details>
+
+<details><summary>Stateful Goroutines</summary>
+
+<p>
+
+- 이전 예시에서는 Mutex를 사용해 여러 개의 Goroutine이 접근해야 하는 상태에 명시적으로 lock을 걸어줌으로써  
+  상태를 공유하도록 했다. 또다른 방법으로는 Goroutine과 Channel이 갖는 built-in 동기화 기능을 사용할 수 있다.
+
+- 이 예시에서 상태(state)는 단 하나의 Goroutine에 종속되는 상황을 다뤄볼 것이다.  
+  이는 해당 상태값이 동시성으로 인해 변질되지 않는 다는 것을 보장해준다.  
+  상태를 읽거나 쓰기 위해서 다른 Goroutine들은 해당 상태를 갖고 있는 Goroutine에게 메시지를 전달할 것이며,  
+  작업 수행 후 답변을 받을 것이다. 아래의 `readOp`와 `writeOp` 구조체는 이 요청을 한 단계 추상화하는 데 사용된다.
+
+```go
+type readOp struct {
+	key int
+	resp chan int
+}
+
+type writeOp struct {
+	key int
+	val int
+	resp chan bool
+}
+```
+
+- 이제 아래를 통해 상태를 소유하고 있는 Goroutine에 다른 Goroutine들이 Channel을 통해 어떻게  
+  값을 접근하고, 수정하는지 보자.
+
+```go
+func main() {
+
+	// read, write 횟수 기록용 변수
+	var readOps uint64
+	var writeOps uint64
+
+	// 각각 read, write 요청을 전달하기 위해 쓰이는 channel
+	reads := make(chan readOp)
+	writes := make(chan writeOp)
+
+	/**
+	상태(state)를 소유하는 Goroutine.
+	반복적으로 select를 통해 reads, writes channel을 폴링하며
+	reads channel에 값이 올 경우 resp에 state의 key에 알맞은 value를 send하고
+	writes channel에 값이 오면 state에 알맞은 값을 저장하고 true를 send한다.
+	*/
+	go func() {
+		var state = make(map[int]int)
+		for {
+			select {
+			case read := <-reads:
+				read.resp <- state[read.key]
+			case write := <-writes:
+				state[write.key] = write.val
+				write.resp <- true
+			}
+		}
+	}()
+
+	/**
+	state를 소유한 Goroutine에게 read 요청을 보낼 100개의 Goroutine 생성
+	각 read는 readOp 구조체를 만들어서 진행한다. 만들어진 구조체를 reads channel에 전달하고
+	결과를 read.resp에서 receive한다.
+	Concurrent-safe하게 하기 위해 readOps에 접근할 때 atomic.AddUint64()를 사용했다.
+	*/
+	for r := 0; r < 100; r++ {
+		go func() {
+			for {
+				read := readOp{
+					key:  rand.Intn(5),
+					resp: make(chan int),
+				}
+				// reads channel에 값을 send하면 폴링하던 select의 read case에 들어간다.
+				// 그리고 read.resp에 value가 send되기에 receive 해준다.
+				reads <- read
+				<-read.resp
+				atomic.AddUint64(&readOps, 1)
+				time.Sleep(time.Millisecond)
+			}
+		}()
+	}
+
+	/**
+	read와 동일한 로직
+	*/
+	for w := 0; w < 10; w++ {
+		go func() {
+			for {
+				write := writeOp{
+					key:  rand.Intn(5),
+					val:  rand.Intn(100),
+					resp: make(chan bool),
+				}
+				writes <- write
+				<-write.resp
+				atomic.AddUint64(&writeOps, 1)
+				time.Sleep(time.Millisecond)
+			}
+		}()
+	}
+
+	time.Sleep(time.Second)
+
+	readOpsFinal := atomic.LoadUint64(&readOps)
+	fmt.Println("readOps:", readOpsFinal)
+	writeOpsFinal := atomic.LoadUint64(&writeOps)
+	fmt.Println("writeOps:", writeOpsFinal)
+}
+
+// Output: readOps: 80094 writOps: 8014
+```
+
+---
+
+</p></details>
