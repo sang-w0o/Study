@@ -2091,7 +2091,7 @@ func recoverFromPanic() {
 func main() {
 	defer recoverFromPanic()
 	mayPanic()
-	fm.Println("After mayPanic()")
+	fmt.Println("After mayPanic()")
 }
 ```
 
@@ -2101,3 +2101,150 @@ func main() {
 ---
 
 </p></details>
+
+<details><summary>Collection Functions</summary>
+
+<p>
+
+- 여느 프로그램과 마찬가지로 다양한 자료구조에 대한 연산을 수행해야할 경우가 많은데, Go에서 문자열에 대한  
+  연산을 수행하는 간단한 함수들을 만들어보자.
+
+```go
+//Index
+/*
+returns the first index of the target string t.
+or -1 if no match is found.
+*/
+func Index(vs []string, t string) int {
+	for i, v := range vs {
+		if v == t {
+			return i
+		}
+	}
+	return -1
+}
+
+// Include
+/**
+returns true if the target string t is in the slice.
+*/
+func Include(vs []string, t string) bool {
+	return Index(vs, t) >= 0
+}
+
+// Any
+/**
+returns true if one of the strings in the slice
+satisfies the predicate fn.
+*/
+func Any(vs []string, fn func(string) bool) bool {
+	for _, v := range vs {
+		if fn(v) {
+			return true
+		}
+	}
+	return false
+}
+
+// All
+/**
+returns true if all the strings in the slice
+satisfy the predicate fn.
+*/
+func All(vs []string, fn func(string) bool) bool {
+	for _, v := range vs {
+		if !fn(v) {
+			return false
+		}
+	}
+	return true
+}
+
+// Filter
+/**
+returns a new slice containing all strings in the slice
+that satisfy the predicate fn.
+*/
+func Filter(vs []string, fn func(string) bool) []string {
+	vsf := make([]string, 0)
+	for _, v := range vs {
+		if fn(v) {
+			vsf = append(vsf, v)
+		}
+	}
+	return vsf
+}
+
+// Map
+/**
+returns a new slice containing the results of applying the function fn
+to each string in the original slice.
+*/
+func Map(vs []string, fn func(string) string) []string {
+	vsm := make([]string, len(vs))
+	for i, v := range vs {
+		vsm[i] = fn(v)
+	}
+	return vsm
+}
+
+func main() {
+
+	var str = []string{"peach", "apple", "pear", "plum"}
+
+	fmt.Println(Index(str, "pear")) // 2
+	fmt.Println(Include(str, "grape")) // false
+	fmt.Println(Any(str, func(v string) bool {
+		return strings.HasPrefix(v, "p")
+	})) // true
+	fmt.Println(All(str, func(v string) bool {
+		return strings.HasPrefix(v, "p")
+	})) // false
+	fmt.Println(Filter(str, func(v string) bool {
+		return strings.Contains(v, "e")
+	})) // [peach apple pear]
+	fmt.Println(Map(str, strings.ToUpper)) // [PEACH APPLE PEAR PLUM]
+}
+```
+
+---
+
+</p></details>
+
+<details><summary>String Functions</summary>
+
+<p>
+
+- 표준 라이브러리인 `strings` 패키지는 문자열 관련한 다양한 함수들을 제공한다.  
+  아래의 예시를 보자.
+
+```go
+import (
+	"fmt"
+	s "strings"
+)
+
+var p = fmt.Println
+
+func main() {
+	p("Contains: ", s.Contains("test", "es"))      // Contains:  true
+	p("Count: ", s.Count("test", "t"))             // Count:  2
+	p("HasPrefix: ", s.HasPrefix("test", "te"))    // HasPrefix:  true
+	p("HasSuffix: ", s.HasSuffix("test", "st"))    // HasSuffix:  true
+	p("Index: ", s.Index("test", "e"))             // Index:  1
+	p("Join: ", s.Join([]string{"a", "b"}, "-"))   // Join:  a-b
+	p("Repeat: ", s.Repeat("a", 5))                // Repeat:  aaaaa
+	p("Replace: ", s.Replace("foo", "o", "0", -1)) // Replace:  f00
+	p("Replace: ", s.Replace("foo", "o", "0", 1))  // Replace:  f0o
+	p("Split: ", s.Split("a-b-c-d-e", "-"))        // Split:  [a b c d e]
+	p("ToLower: ", s.ToLower("TEST"))              // ToLower:  test
+	p("ToUpper: ", s.ToUpper("test"))              // ToUpper:  TEST
+	p("Len: ", len("hello"))                       // Len:  5
+	p("Char: ", "hello"[1])                        // Char:  101
+}
+```
+
+---
+
+</p></details>
+```
