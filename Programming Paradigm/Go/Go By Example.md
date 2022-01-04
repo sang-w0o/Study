@@ -1918,3 +1918,45 @@ func main() {
 ---
 
 </p></details>
+
+<details><summary>Panic</summary>
+
+<p>
+
+- `panic`은 예상치 못한 상황이 발생했음을 의미한다.  
+  주로 일반적인 작업에서 발생한 예외를 빠르게 처리하기 위해 사용한다.
+
+- 주로 함수가 에러를 반환했지만, 처리할 수 없거나 처리하고 싶지 않을 때 프로그램을 종료(abort)시키기 위해 `panic`을 사용한다.
+
+```go
+func main() {
+	panic("a problem")
+
+	_, err := os.Create("/tmp/file")
+	if err != nil {
+		panic(err)
+	}
+}
+```
+
+- 위 프로그램을 실행하면 panic이 일어나며, goroutine에 대한 추적(trace) 정보와 함께 0이 아닌 exit status code와  
+  함께 프로그램이 종료된다.
+
+```
+panic: a problem
+
+goroutine 1 [running]:
+main.main()
+        /Users/sangwoo/GolandProjects/main/main.go:6 +0x38
+
+Process finished with the exit code 2
+```
+
+- 위 코드에서처럼 처음으로 `main()` 함수 내에서 panic이 일어나면, 더 이상의 코드는 실행되지 않고 프로그램은 종료된다.  
+  따라서 만약 위 프로그램에서 의도한 것처럼 `/tmp/file`이라는 파일을 만들고 싶다면 `panic()`을 주석처리하면 된다.
+
+- 참고로 많은 예외들이 예외를 사용해 많은 에러들을 처리하는데, Go에서는 에러를 의미하는 반환값을 사용하는 것이 일반적이다.
+
+---
+
+</p></details>
