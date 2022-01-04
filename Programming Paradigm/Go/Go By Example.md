@@ -2247,7 +2247,6 @@ func main() {
 ---
 
 </p></details>
-```
 
 <details><summary>JSON</summary>
 
@@ -2461,6 +2460,109 @@ func TestIntMinTableDriven(t *testing.T) {
     --- PASS: TestIntMinTableDriven/-1,_0 (0.00s)
 PASS
 ok      learning        0.444s
+```
+
+---
+
+</p></details>
+
+<details><summary>HTTP Clients</summary>
+
+<p>
+
+- Go의 표준 라이브러리는 HTTP Client를 위한 많은 기능을 제공한다.  
+  이 기능들은 built-in package인 `net/http`에 있다.
+
+- 아래 코드를 통해 간단히 내가 진행중인 프로젝트의 API 서버에 요청을 보내보자.  
+  해당 API에 요청을 보내면 `application/json`으로 아래의 응답이 온다.
+
+```json
+{ "status": "UP" }
+```
+
+- 바로 코드를 보자.
+
+```go
+func main() {
+	resp, err := http.Get("MY_API_SERVER_URL")
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	fmt.Println("Response status:", resp.Status) // Response status: 200 OK
+
+	result := statusResponse{}
+
+	responseBody, _ := io.ReadAll(resp.Body)
+	response := string(responseBody)
+
+	_ = json.Unmarshal([]byte(response), &result)
+	fmt.Println(result)        // {UP}
+	fmt.Println(result.Status) // UP
+}
+```
+
+---
+
+</p></details>
+
+<details><summary>HTTP Servers</summary>
+
+<p>
+
+- 기본적인 HTTP Server를 작성하기 위한 built-in package 또한 `net/http`로 제공된다.
+
+- `net/http` 서버의 기본적인 컨셉은 _handler_ 이다.  
+  Handler는 `http.Handler` 인터페이스의 구현체이다. Handler를 작성하는 일반적인 방법은  
+  `http.HandlerFunc` 어댑터를 함수에 적절한 시그니처와 함께 사용하는 것이다.
+
+```go
+func hello(w http.ResponseWriter, req *http.Request) {
+	fmt.Fprintf(w, "hello handler\n")
+}
+```
+
+- 위 코드처럼 Handler의 역할을 하는 함수는 `http.ResponseWriter`와 `http.Request`를 매개변수로 갖는다.  
+  `http.ResponseWriter`는 HTTP Response를 위해 사용된다.  
+  또다른 Handler를 보자.
+
+```go
+func headers(w http.ResponseWriter, req *http.Request) {
+	for name, headers := range req.Header {
+		for _, h := range headers {
+			fmt.Fprintf(w, "%v: %v\n", name, h)
+		}
+	}
+}
+```
+
+- 위의 `headers()` Handler는 HTTP Request의 HTTP Request Header를 모두 읽어 HTTP Response로 전달한다.
+
+- 마지막으로 서버를 실행시키기 위한 `main()`을 보자.
+
+```go
+func main() {
+
+	// /hello Path로 오는 요청을 hello()가 handle
+	http.HandleFunc("/hello", hello)
+
+	// /headers Path로 오는 요청을 headers()가 handle
+	http.HandleFunc("/headers", headers)
+
+	// 8090번 포트에서 서버 실행
+	http.ListenAndServe(":8090", nil)
+}
+```
+
+- 이제 요청을 전달하면, 아래 결과처럼 알맞은 handler가 요청을 처리함을 알 수 있다.
+
+```sh
+curl -X GET localhost:8090/hello
+> hello handler
+
+curl -X GET localhost:8090/headers
+> User-Agent: curl/7.64.1 Accept: */*
 ```
 
 ---
