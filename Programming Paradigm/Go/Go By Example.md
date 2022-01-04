@@ -2248,3 +2248,91 @@ func main() {
 
 </p></details>
 ```
+
+<details><summary>JSON</summary>
+
+<p>
+
+- Go는 JSON encoding, decoding을 위한 라이브러리를 built-in support 해준다.
+
+- 아래 코드에 모든 설명을 주석으로 첨부해놓았다.
+
+```go
+type response1 struct {
+	Page   int
+	Fruits []string
+}
+
+type response2 struct {
+	Page   int      `json:"page"`
+	Fruits []string `json:"fruits"`
+}
+
+func main() {
+
+	// About JSON Encoding
+	bolB, _ := json.Marshal(true)
+	fmt.Println(string(bolB)) // true
+
+	intB, _ := json.Marshal(1)
+	fmt.Println(string(intB)) // 1
+
+	strB, _ := json.Marshal("gopher")
+	fmt.Println(string(strB)) // "gopher"
+
+	slcD := []string{"apple", "peach", "pear"}
+	slcB, _ := json.Marshal(slcD)
+	fmt.Println(string(slcB)) // ["apple", "peach", "pear"]
+
+	mapD := map[string]int{"apple": 5, "lettuce": 7}
+	mapB, _ := json.Marshal(mapD)
+	fmt.Println(string(mapB)) // {"apple":5,"lettuce":7}
+
+	res1D := &response1{
+		Page:   1,
+		Fruits: []string{"apple", "peach", "pear"},
+	}
+	res1B, _ := json.Marshal(res1D)
+	fmt.Println(string(res1B)) // {"Page":1,"Fruits":["apple","peach","pear"]}
+
+	res2D := &response2{
+		Page:   1,
+		Fruits: []string{"apple", "peach", "pear"},
+	}
+	res2B, _ := json.Marshal(res2D)
+	fmt.Println(string(res2B)) // {"page":1,"fruits":["apple","peach","pear"]}
+
+	// About JSON Decoding
+	byt := []byte(`{"num":6.13,"strs":["a","b"]}`)
+
+	// Decoding된 결과물이 담길 변수
+	var dat map[string]interface{}
+
+	// Decoding
+	if err := json.Unmarshal(byt, &dat); err != nil {
+		panic(err)
+	}
+	fmt.Println(dat) // map[num:6.13 strs:[a b]]
+
+	// 아래처럼 중첩된 데이터에 접근하기 위해서는 변환 작업이 필요하다.
+	strs := dat["strs"].([]interface{})
+	str1 := strs[0].(string)
+	fmt.Println(str1) // a
+
+	// Decoding JSON into custom data types
+	str := `{"page": 1, "fruits": ["apple", "peach"]}`
+	res := response2{}
+	_ = json.Unmarshal([]byte(str), &res)
+	fmt.Println(res)           // {1 [apple peach]}
+	fmt.Println(res.Fruits[0]) // apple
+
+	// Example of streaming JSON encodings directly.
+	encoder := json.NewEncoder(os.Stdout)
+	data := map[string]int{"apple": 5, "lettuce": 7}
+	encoder.Encode(data) // {"apple":5,"lettuce":7}
+}
+```
+
+---
+
+</p></details>
