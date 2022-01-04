@@ -2568,3 +2568,61 @@ curl -X GET localhost:8090/headers
 ---
 
 </p></details>
+
+<details><summary>Context</summary>
+
+<p>
+
+- HTTP Server에서는 `context.Context`를 사용해 cancellation을 조절할 수 있다.  
+  `Context`는 API 범위와 Goroutine 범위의 request에 한정된 deadline, cancellation signal,  
+  그리고 다른 값들을 갖는다.
+
+- `context.Context`는 `net/http`에 의해 각 요청(request)마다 별개로 생성되며, `Context()` 메소드로 접근할 수 있다.
+
+- 이전에 본 Handler를 작성해보자.  
+  10초 동안 대기해 서버가 다른 일을 하는 것을 흉내내보았다.  
+  만약 요청이 중간에 끊기는 등 해당 요청의 `Context`가 cancel되어야 하는 상황이 발생하면 `select context.Done()`으로 들어가게 된다.
+
+```go
+func hello(w http.ResponseWriter, req *http.Request) {
+
+	context := req.Context()
+	fmt.Println("server: hello handler started")
+	defer fmt.Println("server: hello handler ended")
+
+	select {
+	case <-time.After(10 * time.Second):
+		fmt.Fprintf(w, "hello\n")
+	case <-context.Done():
+		err := context.Err()
+		fmt.Println("server error:", err)
+		internalError := http.StatusInternalServerError
+		http.Error(w, err.Error(), internalError)
+	}
+}
+
+func main() {
+	http.HandleFunc("/hello", hello)
+	http.ListenAndServe(":8090", nil)
+}
+```
+
+- 이제 요청을 보내면 정상적인 경우 클라이언트에게는 hello가 오며, 콘솔에는 아래의 결과가 찍힌다.
+
+```
+server: hello handler started
+server: hello handler ended
+```
+
+- 반면, 요청을 보내고 응답이 오기 전에 클라이언트에서 요청을 취소하게 되면, `context.Done()`으로 들어가  
+  아래의 결과가 출력된다.
+
+```
+server: hello handler started
+server error: context canceled
+server: hello handler ended
+```
+
+---
+
+</p></details>
