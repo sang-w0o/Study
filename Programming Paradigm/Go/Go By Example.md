@@ -2368,3 +2368,101 @@ func main() {
 ---
 
 </p></details>
+
+<details><summary>Testing and Benchmarking</summary>
+
+<p>
+
+- Go는 다양한 테스트 및 벤치마크를 위한 built-in package인 `testing`를 제공한다.  
+  관례적으로 테스트 코드는 테스트 할 코드가 있는 패키지와 동일한 위치에 존재한다.
+
+- 예시를 위해 2개의 정수를 받아 더 작은 정수를 반환해주는 `IntMin()` 함수를 테스트한다고 해보자.
+
+```go
+func IntMin(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+```
+
+- Go가 테스트임을 인식하기 위해서는 2개의 조건이 만족되어야 한다.
+
+  - (1) `*_test.go` 형식의 파일명이어야 한다.
+  - (2) 테스트할 함수는 `Test*()` 형식의 이름을 가져야 한다.
+
+- 먼저 단위 테스트를 작성해보자.
+
+```go
+func TestIntMinBasic(t *testing.T) {
+	answer := IntMin(2, -2)
+	if answer != -2 {
+		t.Errorf("IntMin(2, -2 = %d; want -2", answer)
+	}
+}
+```
+
+- 단위 테스트를 위해서는 메소드 파라미터에 `testing.T` 포인터를 명시해줘야 한다.
+
+- 조금 더 깊게 들어가서, 테스트 코드는 반복적인 코드가 많이 생길 수 있다.  
+  이를 방지하기 위해 _table-driven style_ 의 테스트 코드를 작성하는 것이 좋다.  
+  이 스타일은 테스트 입력값과 예상값을 테이블 형식으로 정리해 반복문으로 처리하는 스타일을 의미한다.  
+  이 스타일대로 구현하기 위해 테스트에 필요한 구조체를 만들어서 사용해보자.
+
+```go
+func TestIntMinTableDriven(t *testing.T) {
+	var tests = []struct {
+		a, b int
+		want int
+	}{
+		{0, 1, 0},
+		{1, 0, 0},
+		{2, -2, -2},
+		{0, -1, -1},
+		{-1, 0, -1},
+	}
+
+	for _, tt := range tests {
+		testname := fmt.Sprintf("%d, %d", tt.a, tt.b)
+		t.Run(testname, func(t *testing.T) {
+			answer := IntMin(tt.a, tt.b)
+			if answer != tt.want {
+				t.Errorf("got %d, want %d", answer, tt.want)
+			}
+		})
+	}
+}
+```
+
+- 위 코드에서 for문 안에 있는 `t.Run()`은 테이블 내의 각 entry가 독립적인 부분 테스트로 인식되도록 한다.  
+  아래에 있는 테스트 결과를 보면 알 수 있다.
+
+- 마지막으로 벤치마크 테스트 코드를 쓸 때는 여러 번 테스트를 해서 결과를 얻어야 하기 때문에 주로  
+  `b.N`을 사용한다. b는 `*testing.B` 타입이며 `testing` runner가 정확한 수치를 알아내기 위해  
+  아래 코드처럼 반복문을 `b.N` 만큼 반복하게만 해두면 알아서 반복할 횟수를 결정한다.
+
+- verbose mode로 테스트를 수행하기 위해 `go test -v`를 수행하면, 아래와 같은 결과가 나온다.
+
+```
+=== RUN   TestIntMinBasic
+--- PASS: TestIntMinBasic (0.00s)
+=== RUN   TestIntMinTableDriven
+=== RUN   TestIntMinTableDriven/0,_1
+=== RUN   TestIntMinTableDriven/1,_0
+=== RUN   TestIntMinTableDriven/2,_-2
+=== RUN   TestIntMinTableDriven/0,_-1
+=== RUN   TestIntMinTableDriven/-1,_0
+--- PASS: TestIntMinTableDriven (0.00s)
+    --- PASS: TestIntMinTableDriven/0,_1 (0.00s)
+    --- PASS: TestIntMinTableDriven/1,_0 (0.00s)
+    --- PASS: TestIntMinTableDriven/2,_-2 (0.00s)
+    --- PASS: TestIntMinTableDriven/0,_-1 (0.00s)
+    --- PASS: TestIntMinTableDriven/-1,_0 (0.00s)
+PASS
+ok      learning        0.444s
+```
+
+---
+
+</p></details>
