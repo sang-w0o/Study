@@ -19,7 +19,7 @@ service PersonService {
   // 사용자 정보 저장 요청, Unary RPC
   rpc GetPersonInformation(PersonRequest) returns (PersonResponse) {}
 
-  // 모든 사용자 정보 요청, Server Streaming RPC
+  // email이 일치하는 모든 사용자 정보 요청, Server Streaming RPC
   rpc ListPersons(ListPersonRequest) returns (stream PersonResponse) {}
 
   // 다수의 사용자 저장 요청, Client Streaming RPC
@@ -140,6 +140,53 @@ func printResponseAfterCallingGetPersonInformation(client pb.PersonServiceClient
 ```
 
 ### Server Streaming RPC
+
+- 이제 Server Streaming RPC를 구현해보자. Server Streaming RPC는 서버에서 단일 응답을 주는게 아니라 일련의 message들을  
+  담은 Stream을 반환한다. 따라서 stream에서 message들을 하나씩 읽어오는 부분을 유의해서 보자.
+
+```go
+func printResponseAfterCallingListPersons(client pb.PersonServiceClient, req *pb.ListPersonRequest) {
+	log.Printf("Sending request to get all persons with email: %v", req.Email)
+
+  // Deadline: 1 hour
+	ctx, cancel := context.WithTimeout(context.Background(), time.Hour)
+	defer cancel()
+
+  // Get stream
+	stream, err := client.ListPersons(ctx, req)
+	if err != nil {
+		log.Fatalf("%v.ListPersons(_) = _, %v", client, err)
+	}
+
+  // Read messages from stream
+	for {
+    // Read single message
+		person, err := stream.Recv()
+
+    // If err is EOF, break for statement.
+		if err == io.EOF {
+			break
+		}
+
+		if err != nil {
+			log.Fatalf("%v.ListPersons(_) = _, %v", client, err)
+		}
+		log.Printf("Response: Person(name: %v, message: %v)", person.Name, person.Age)
+	}
+}
+```
+
+- 생각보다 단순한데, stub에 대해 Server Streaming RPC인 `ListPersons()`를 호출하면 stream이 반환된다.  
+  그리고 for문을 이용해 한 번 반복될 때마다 stream의 `Recv()`를 이용해 message를 꺼내온다.  
+  이때, 메시지가 더이상 없다면 `EOF` 값을 담은 error가 반환되기에, 이 경우를 검사해 break를 지정해주었다.
+
+- 정상적으로 요청이 수행되면, 서버에서 1초 간격으로 stream에 message를 담게 했기에 아래 내용이 콘솔에도 1초 간격으로 출력된다.
+
+```
+2022/01/06 15:19:07 Response: Person(name: sangwooAged25, message: 25)
+2022/01/06 15:19:08 Response: Person(name: sangwooAged26, message: 26)
+2022/01/06 15:19:09 Response: Person(name: sangwooAged27, message: 27)
+```
 
 ### Client Streaming RPC
 
