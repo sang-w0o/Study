@@ -86,7 +86,7 @@ protoc --go_out=. --go_opt=paths=source_relative \
 type PersonServiceServer interface {
 	// 사용자 정보 저장 요청, Unary RPC
 	GetPersonInformation(context.Context, *PersonRequest) (*PersonResponse, error)
-	// 모든 사용자 정보 요청, Server Streaming RPC
+	// email이 모든 사용자 정보 요청, Server Streaming RPC
 	ListPersons(*ListPersonRequest, PersonService_ListPersonsServer) error
 	// 다수의 사용자 저장 요청, Client Streaming RPC
 	SavePersons(PersonService_SavePersonsServer) error
@@ -213,6 +213,80 @@ func main() {
 ```
 
 ### Server Streaming RPC
+
+- 이제 Server Streaming RPC를 구현해보자. service에 정의된 Server Streaming RPC 메소드는 `ListPersons()`이며,  
+  이메일을 받아 해당 이메일과 일치하는 사용자 정보를 반환해준다.
+
+- 우선 protoc로 컴파일한 이후의 시그니처는 아래와 같다.
+
+```go
+// 모든 사용자 정보 요청, Server Streaming RPC
+ListPersons(*ListPersonRequest, PersonService_ListPersonsServer) error
+```
+
+- 바로 구현해보자. Email이 일치하는 사용자들을 찾아 1초 간격으로 Stream에 message를 전송하도록 해보았다.
+
+```go
+func (s *personServiceServer) ListPersons(req *pb.ListPersonRequest, stream pb.PersonService_ListPersonsServer) error {
+	log.Printf("ListPersonRequest(email: %v) arrived.", req.Email)
+	for _, person := range s.savedPersons {
+		if person.Email == req.Email {
+			time.Sleep(time.Second) // Optional
+			if err := stream.Send(personRequestToPersonResponse(person)); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+```
+
+- 코드에서 바로 알 수 있듯이 stream에 message를 보내려면 stream에 대해 `Send()`를 호출하면 된다.  
+  클라이언트로 요청이 오면, 콘솔에 아래와 같이 출력된다.
+
+```
+2022/01/06 15:19:06 ListPersonRequest(email: robbyra@gmail.com) arrived.
+```
+
+- 참고로 이메일이 일치하는 사용자들을 설정해주기 위해 아래처럼 `newServer()`를 수정해 초기값을 지정해주었다.
+
+<details><summary>초기값 지정 코드 보기</summary>
+
+<p>
+
+```go
+func newServer() *personServiceServer {
+	savedPersons := []*pb.PersonRequest{
+		{
+			Email:    "robbyra@gmail.com",
+			Age:      25,
+			Name:     "sangwooAged25",
+			Password: "sangwooPassword",
+		},
+		{
+			Email:    "robbyra@gmail.com",
+			Age:      26,
+			Name:     "sangwooAged26",
+			Password: "sangwooPassword",
+		},
+		{
+			Email:    "robbyra@gmail.com",
+			Age:      27,
+			Name:     "sangwooAged27",
+			Password: "sangwooPassword",
+		},
+		{
+			Email:    "notSangwoo@gmail.com",
+			Age:      1,
+			Name:     "notSangwoo",
+			Password: "notSangwooPassword",
+		},
+	}
+	return &personServiceServer{savedPersons: savedPersons}
+}
+```
+
+</p></details>
 
 ### Client Streaming RPC
 
