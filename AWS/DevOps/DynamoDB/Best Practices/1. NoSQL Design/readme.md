@@ -50,7 +50,7 @@
     속도 향상에 가장 중요한 factor였다고 한다. 이 연구결과는 NoSQL에도 그대로 적용된다. 즉 **관계를 갖는 데이터들을 한 곳에 모아두는 것이**  
     **query 비용과 성능에 큰 영향을 미치게 된다.** 이는 곧 NoSQL Database에서는 가능한 한 table 개수가 적도록 설계하라는 것을 의미한다.
 
-  - User sort order: 관계된 item들은 만약 key가 그들을 정렬되게끔 설정되어 있다면 query, grouping 모두 효율적으로 할 수 있다.
+  - Use sort order: 관계된 item들은 만약 key가 그들을 정렬되게끔 설정되어 있다면 query, grouping 모두 효율적으로 할 수 있다.
 
   - Distribute queries: 많은 양의 query가 데이터베이스의 한 뿌분에 집중적으로 몰리게 하지 않는 것도 중요하다.  
     대신, 트래픽을 partition에 따라 적절히 분배시킬 수 있도록 data key를 정의해야 한다.
