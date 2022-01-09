@@ -190,4 +190,66 @@ func printResponseAfterCallingListPersons(client pb.PersonServiceClient, req *pb
 
 ### Client Streaming RPC
 
+- Server Streaming RPC와 반대로 Client Streaming RPC에서는 클라이언트가 서버에게 일련의 message들을 담은 stream을 전달한다.  
+  서버는 message를 뽑아 읽을 것이며, 클라이언트 측에서는 message를 stream으로 전달하면 된다.
+
+- 항상 하던대로 stub를 호출해주면 되는데, 이번에는 조금의 dummy data를 전달해보자.
+
+```go
+func savePersons(client pb.PersonServiceClient) {
+
+	// 요청 보낼 dummy data 들.
+	requests := []*pb.PersonRequest{
+		{
+			Email:    "email1@test.com",
+			Age:      1,
+			Name:     "name1",
+			Password: "password1",
+		},
+		{
+			Email:    "email2@test.com",
+			Age:      2,
+			Name:     "name2",
+			Password: "password2",
+		},
+		{
+			Email:    "email3@test.com",
+			Age:      3,
+			Name:     "name3",
+			Password: "password3",
+		},
+	}
+
+	// stub에 대해 `SavePersons()`를 호출해 stream을 반환받는다.
+	stream, err := client.SavePersons(context.Background())
+	if err != nil {
+		log.Fatalf("%v.SavePersons(_) = _, %v", client, err)
+	}
+
+	// dummy data들을 하나씩 순회하며 1초 간격으로 stream에 message로 전송한다.
+	for _, req := range requests {
+		time.Sleep(time.Second)
+		if err := stream.Send(req); err != nil {
+			log.Fatalf("%v.Send(%v) = %v", stream, req, err)
+		}
+	}
+
+	// 서버가 보내는 단일 response를 받고 stream을 닫는다.
+	response, err := stream.CloseAndRecv()
+	if err != nil {
+		log.Fatalf("%v.CloseAndRecv() got error %v, want %v", stream, err, nil)
+	}
+	log.Printf("SavePersons() response: %v\n", response)
+}
+```
+
+- 이제 이를 호출하면 서버에서는 모든 메시지를 읽는 데에 3초가 소요되기 때문에(클라이언트에서 1초에 1개씩 보내므로)  
+  3초 후에 응답이 콘솔에 출력된다.
+
+```
+2022/01/09 15:06:53 SavePersons() response: message:"All requests saved!"
+```
+
+---
+
 ### Bidirectional Streaming RPC
