@@ -253,3 +253,103 @@ func savePersons(client pb.PersonServiceClient) {
 ---
 
 ### Bidirectional Streaming RPC
+
+- Bidirectional Streaming RPC에서는 서버, 클라이언트 모두 서로 독립적으로 message를 send, receive할 수 있는  
+  stream을 사용한다.
+
+- 이번에는 message를 보내는 작업과 받는 작업이 서로 비동기적으로 수행될 수 있게 해보자.  
+  메시지를 받는 작업을 위해서만 새로운 Goroutine을 사용하도록 해보자.
+
+```go
+func printResponseInAskAndGetPersons(client pb.PersonServiceClient) {
+
+	// dummy data들
+	requests := []*pb.PersonRequest{
+		// 사전에 보낼 dummy data들의 속성
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	// stream 획득
+	stream, err := client.AskAndGetPersons(ctx)
+	if err != nil {
+		log.Fatalf("%v.AskAndGetPersons(_) = _, %v", client, err)
+	}
+
+	// Goroutine의 실행 완료 여부를 확인하기 위한 channel
+	waitChannel := make(chan struct{})
+
+	// Stream의 message를 읽는 작업만을 하는 Goroutine 생성
+	go func() {
+		for {
+			res, err := stream.Recv()
+
+			if err == io.EOF {
+				// Close channel
+				close(waitChannel)
+				return
+			}
+			if err != nil {
+				log.Fatalf("Failed to receive PersonResponse : %v", err)
+			}
+			log.Printf("PersonResponse(email: %v, name: %v, age: %d) arrived.\n", res.Email, res.Name, res.Age)
+		}
+	}()
+
+	// request를 1초에 하나씩 stream에 send.
+	for _, req := range requests {
+		time.Sleep(time.Second)
+		log.Printf("PersonRequest(email: %v, name: %v, age: %d) sent.", req.Email, req.Name, req.Age)
+		if err := stream.Send(req); err != nil {
+			log.Fatalf("Failed to send PersonRequest: %v", err)
+		}
+	}
+
+	// 여기까지 오면 read, write할 message가 모두 stream에 더이상 없으므로 stream을 close한다.
+	stream.CloseSend()
+
+	// channel을 이용해 Goroutine의 작업이 끝날 때까지 대기(Channel synchronization)
+	<-waitChannel
+}
+```
+
+- 결과는 아래와 같다.
+
+```
+2022/01/09 17:34:27 PersonRequest(email: email1@test.com, name: name1, age: 1) sent.
+2022/01/09 17:34:27 PersonResponse(email: email1@test.com, name: name1, age: 1) arrived.
+2022/01/09 17:34:28 PersonRequest(email: email2@test.com, name: name2, age: 2) sent.
+2022/01/09 17:34:28 PersonResponse(email: email2@test.com, name: name2, age: 2) arrived.
+2022/01/09 17:34:29 PersonRequest(email: email3@test.com, name: name3, age: 3) sent.
+2022/01/09 17:34:29 PersonResponse(email: email3@test.com, name: name3, age: 3) arrived.
+```
+
+- 위 예시에서 Channel Synchronization의 필요성이 느껴지게끔 하기 위해, 서버에서 request를 받으면 1초 동안  
+  sleep하게 바꿔보자. 그리고 channel 관련된 코드를 모두 지워보면, 아래처럼 출력된다.
+
+```
+2022/01/09 17:35:44 PersonRequest(email: email1@test.com, name: name1, age: 1) sent.
+2022/01/09 17:35:45 PersonRequest(email: email2@test.com, name: name2, age: 2) sent.
+2022/01/09 17:35:45 PersonResponse(email: email1@test.com, name: name1, age: 1) arrived.
+2022/01/09 17:35:46 PersonRequest(email: email3@test.com, name: name3, age: 3) sent.
+
+Process finished with the exit code 0
+```
+
+- 즉 message를 send하는 작업과 receive하는 작업은 여전히 비동기적으로 진행되지만, `main()`에서  
+  수행할 request를 보내는 작업이 끝나면 Goroutine의 작업을 기다려주지 않고 프로그램이 종료되는 것이다.
+
+- 따라서 기존처럼 channel을 만들고, Goroutine의 작업이 끝나면 해당 channel을 close하는 패턴을 사용해  
+  Goroutine의 작업이 끝날 때까지 기다려준 것이다. channel이 있는 코드를 실행하면 아래처럼 된다.
+
+```
+2022/01/09 17:42:56 PersonRequest(email: email1@test.com, name: name1, age: 1) sent.
+2022/01/09 17:42:57 PersonRequest(email: email2@test.com, name: name2, age: 2) sent.
+2022/01/09 17:42:57 PersonResponse(email: email1@test.com, name: name1, age: 1) arrived.
+2022/01/09 17:42:58 PersonRequest(email: email3@test.com, name: name3, age: 3) sent.
+2022/01/09 17:42:58 PersonResponse(email: email2@test.com, name: name2, age: 2) arrived.
+2022/01/09 17:42:59 PersonResponse(email: email3@test.com, name: name3, age: 3) arrived.
+```
+
+---
