@@ -333,4 +333,46 @@ Closing stream after sending response.
 
 ### Bidirectional Streaming RPC
 
+- Bidirectional Streaming RPC에서는 서버, 클라이언트 모두 서로 독립적으로 message를 send, receive할 수 있는  
+  stream을 사용한다.
+
+- 사용자 정보 저장 요청(`PersonRequest`)가 오면 저장 후 저장된 사용자의 정보를 반환하는 `PersonResponse`를 반환하도록 해보자.
+
+```go
+func (s *personServiceServer) AskAndGetPersons(stream pb.PersonService_AskAndGetPersonsServer) error {
+	for {
+
+		// client의 stream에서 message를 읽어들인다.
+		req, err := stream.Recv()
+
+		// 더 이상 message가 없다면 종료한다.
+		if err == io.EOF {
+			log.Println("Read all messages from client stream. Closing server stream.")
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+
+		// 읽은 message(pb.PersonRequest 타입)를 savedPersons에 저장하고,
+		log.Printf("PersonRequest(email: %v, name: %v, age: %d) arrived.", req.Email, req.Name, req.Age)
+		s.savedPersons = append(s.savedPersons, req)
+
+		// 저장된 사용자의 정보를 반환한다.(pb.PersonResponse 타입)
+		if err := stream.Send(personRequestToPersonResponse(req)); err != nil {
+			return err
+		}
+	}
+}
+```
+
+- 클라이언트에서 1초 간격으로 요청을 보내면, 아래처럼 콘솔에 출력되는 것을 확인할 수 있다.
+
+```
+2022/01/09 16:48:31 PersonRequest(email: email1@test.com, name: name1, age: 1) arrived.
+2022/01/09 16:48:32 PersonRequest(email: email2@test.com, name: name2, age: 2) arrived.
+2022/01/09 16:48:33 PersonRequest(email: email3@test.com, name: name3, age: 3) arrived.
+2022/01/09 16:48:33 Read all messages from client stream. Closing server stream.
+```
+
 ---
