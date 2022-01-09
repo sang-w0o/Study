@@ -1955,7 +1955,7 @@ Process finished with the exit code 2
 - 위 코드에서처럼 처음으로 `main()` 함수 내에서 panic이 일어나면, 더 이상의 코드는 실행되지 않고 프로그램은 종료된다.  
   따라서 만약 위 프로그램에서 의도한 것처럼 `/tmp/file`이라는 파일을 만들고 싶다면 `panic()`을 주석처리하면 된다.
 
-- 참고로 많은 예외들이 예외를 사용해 많은 에러들을 처리하는데, Go에서는 에러를 의미하는 반환값을 사용하는 것이 일반적이다.
+- 참고로 많은 언어들이 예외를 사용해 많은 에러들을 처리하는데, Go에서는 에러를 의미하는 반환값을 사용하는 것이 일반적이다.
 
 ---
 
@@ -2067,13 +2067,13 @@ func main() {
 }
 ```
 
-- `recover()`는 항상 defer 함수 내에서 호출되어야 한다.  
-  만약 `recover()`가 있는 defer 함수의 호출부에서 panic이 일어나면 defer가 작동해 `recover()`가 호출된다.
+- `recover()`는 항상 defer 구문에서 호출되어야 한다.  
+  만약 `recover()`가 있는 defer 구문의 호출부에서 panic이 일어나면 defer가 작동해 `recover()`가 호출된다.
 
 - `recover()`의 반환값은 panic을 일으킨 에러이다.
 
 - 따라서 위 코드의 `fmt.Println("After mayPanic()")`는 실행되지 않는다.  
-  왜냐하면 `mayPanic()`이 호출되고 에러가 발생하면, 제어는 defer 함수로 이동하기 때문이다.
+  왜냐하면 `mayPanic()`이 호출되고 에러가 발생하면, 제어는 defer로 이동하기 때문이다.
 
 - 위 코드를 아래처럼 바꿔보자.
 
@@ -2437,10 +2437,6 @@ func TestIntMinTableDriven(t *testing.T) {
 - 위 코드에서 for문 안에 있는 `t.Run()`은 테이블 내의 각 entry가 독립적인 부분 테스트로 인식되도록 한다.  
   아래에 있는 테스트 결과를 보면 알 수 있다.
 
-- 마지막으로 벤치마크 테스트 코드를 쓸 때는 여러 번 테스트를 해서 결과를 얻어야 하기 때문에 주로  
-  `b.N`을 사용한다. b는 `*testing.B` 타입이며 `testing` runner가 정확한 수치를 알아내기 위해  
-  아래 코드처럼 반복문을 `b.N` 만큼 반복하게만 해두면 알아서 반복할 횟수를 결정한다.
-
 - verbose mode로 테스트를 수행하기 위해 `go test -v`를 수행하면, 아래와 같은 결과가 나온다.
 
 ```
@@ -2460,6 +2456,18 @@ func TestIntMinTableDriven(t *testing.T) {
     --- PASS: TestIntMinTableDriven/-1,_0 (0.00s)
 PASS
 ok      learning        0.444s
+```
+
+- 마지막으로 벤치마크 테스트 코드를 쓸 때는 여러 번 테스트를 해서 결과를 얻어야 하기 때문에 주로  
+  `b.N`을 사용한다. b는 `*testing.B` 타입이며 `testing` runner가 정확한 수치를 알아내기 위해  
+  아래 코드처럼 반복문을 `b.N` 만큼 반복하게만 해두면 알아서 반복할 횟수를 결정한다.
+
+```go
+func BenchmarkIntMin(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		IntMin(1, 2)
+	}
+}
 ```
 
 ---
@@ -2483,6 +2491,10 @@ ok      learning        0.444s
 - 바로 코드를 보자.
 
 ```go
+type statusResponse struct {
+	Status string
+}
+
 func main() {
 	resp, err := http.Get("MY_API_SERVER_URL")
 	if err != nil {
