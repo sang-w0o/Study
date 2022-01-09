@@ -73,7 +73,7 @@ protoc --go_out=. --go_opt=paths=source_relative \
 - 이제 위에서 proto file에 정의한 `PersonService` service를 구현해보자.  
   이를 위해서는 아래 2개의 작업을 해야 한다.
 
-  - Service 정의에 의해 생성된 인터페이스를 구현하는해야 한다.  
+  - Service 정의에 의해 생성된 인터페이스를 구현해야 한다.  
     즉 서비스가 실제로 할 일을 정의하는 것이다.
 
   - gRPC 서버를 실행해 클라이언트로부터 request를 받도록 하고, 올바른 서비스 구현체로 요청이 보내지도록 해야 한다.
@@ -289,6 +289,47 @@ func newServer() *personServiceServer {
 </p></details>
 
 ### Client Streaming RPC
+
+- 이번에는 클라이언트에서 일련의 message들을 stream에 담아 요청하는 Client Streaming RPC를 구현해보자.  
+  Server Streaming RPC와 반대로, 이번에는 서버 측에서 stream에서 message를 뽑아 하나씩 처리해야 한다.
+
+```go
+func (s *personServiceServer) SavePersons(stream pb.PersonService_SavePersonsServer) error {
+	for {
+		// stream에서 request 추출 (에러 시 error가 nil이 아니다.)
+		req, err := stream.Recv()
+
+		// error가 io.EOF라는 뜻은 stream의 모든 message를 다 읽어 더 이상 message가 없다는 뜻이다.
+		// 따라서 response를 보내준다.
+		if err == io.EOF {
+			log.Println("Read all messages in client stream.\nClosing stream after sending response.")
+			return stream.SendAndClose(&pb.BasicResponse{Message: "All requests saved!"})
+		}
+		if err != nil {
+			log.Fatalf("%v.SavePersons(_) = _, %v", s, err)
+			return err
+		}
+
+		// message를 잘 읽은 경우
+		s.savedPersons = append(s.savedPersons, req)
+		log.Printf("Saved Person(name: %v, email: %v, age: %d).\n", req.Name, req.Email, req.Age)
+	}
+	return nil
+}
+```
+
+- 이제 서버를 실행하면 클라이언트에서 1초 간격으로 stream에 `PersonRequest` message를 보내면 아래처럼 콘솔에  
+  1초 간격으로 출력된다.
+
+```
+2022/01/09 15:06:51 Saved Person(name: name1, email: email1@test.com, age: 1).
+2022/01/09 15:06:52 Saved Person(name: name2, email: email2@test.com, age: 2).
+2022/01/09 15:06:53 Saved Person(name: name3, email: email3@test.com, age: 3).
+2022/01/09 15:06:53 Read all messages in client stream.
+Closing stream after sending response.
+```
+
+---
 
 ### Bidirectional Streaming RPC
 
