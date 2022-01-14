@@ -41,8 +41,7 @@
 - 이때 DynamoDB의 Adaptive Capacity가 적용되는데, Partition 4의 처리량을 증가시켜 초당 150 WCU의 트래픽을 병목현상 없이  
   처리할 수 있게 해준다.
 
-![picture 6](../../../../../images/DYNAMODB_ADAPTIVE_CAPACITY
-.png)
+![picture 6](../../../../../images/DYNAMODB_ADAPTIVE_CAPACITY.png)
 
 ### Isolate Frequently Accessed Items
 
