@@ -14,7 +14,7 @@
 - Timoty Berners-Lee라는 사람에 의해 개발되어 WWW의 표준화된 통신 수단으로 사용된 HTTP는  
   클라이언트와 로컬 또는 원격의 서버와 통신하는 Top-Level Application Protocol이다.  
   이 통신 과정에서, 클라이언트는 텍스트 기반의 요청을 `GET`, `POST` 등의 HTTP Method를 통해  
-  전송하게 된다. 이에 대한 응답으로, 서버는 JSON 또는 HTML 페이지와 같은 리소스를 읃답해준다.
+  전송하게 된다. 이에 대한 응답으로, 서버는 JSON 또는 HTML 페이지와 같은 리소스를 응답해준다.
 
 - 예를 들어, 우리(클라이언트)가 `www.example.com`이라는 웹사이트를 방문한다고 해보자.  
   이 URL로 접속하게 되면, 우리가 사용하는 웹 브라우저는 텍스트 기반의 HTTP Request를 보내게 된다.  
@@ -100,7 +100,7 @@ Host: www.example.com
   각 Stream은 익숙한 요청/응답의 형식으로 된 메시지들을 담고 있다.  
   마지막으로, 각 하나의 Stream안의 여러 메시지들을 각각 **Frames** 라 하는 더 작은 단위로 쪼개어진다.
 
-![picture 1](../images/a95bd214171a63466aa06dd324ebd3228163c2e6567a1c56c7cfb050a39bac8d.png)
+![picture 1](/images/a95bd214171a63466aa06dd324ebd3228163c2e6567a1c56c7cfb050a39bac8d.png)
 
 - Communication Channel은 여러 개의 2진법으로 인코딩되어 있는 Frame들을 가지며, 이 Frame들은 각각  
   특정 Stream에 소속되어 있다. 각 Frame들은 고유 식별자로 `Identifying Tag`를 가지는데, 이 태그를 통해  
@@ -142,7 +142,7 @@ Host: www.example.com
   만약 parent identifier(부모 식별값, 부모의 stream ID)가 누락되었다면, 해당 stream은  
   Root Stream(최상위 stream)에 의존성을 갖는다고 취급된다. 아래 그림을 보자.
 
-![picture 2](../images/da4c804b6b44b415f8bbe8facd59413d0c8f2ef9a29fa711961429bbed61650a.png)
+![picture 2](/images/da4c804b6b44b415f8bbe8facd59413d0c8f2ef9a29fa711961429bbed61650a.png)
 
 - 위 그림에서, Channel은 각각 고유한 ID값과 Wt(weight, 가중치)가 부여된 6개의 Stream들로 구성된다.  
   `Stream ID 1`은 Parent ID가 nll(null)로 기입되어 있다. 이는 곳 Root stream에 의존성을 갖음을 의미한다.  
@@ -155,7 +155,7 @@ Host: www.example.com
   의존성 트리(Dependency Tree)를 생성하여, 어떤 요청이 우선적으로 수행되어야 하는지를 결정한다.  
   위 그림에 있던 Stream의 경우, 아래의 의존성 트리가 생긴다.
 
-![picture 3](../images/bc39fcbaea21e520f3dbb695379675fe377772029da9a36cb9ab6524436ce8de.png)
+![picture 3](/images/bc39fcbaea21e520f3dbb695379675fe377772029da9a36cb9ab6524436ce8de.png)
 
 - 위 Dependency Tree를 살펴보자.  
   우선 `Stream ID 1`은 PID가 null이기에 Root에 대해 의존성을 갖는다.  
@@ -207,7 +207,7 @@ Host: www.example.com
 
 - HTTP/1.1에서 Flow control은 TCP Connection에 기반을 둔다.  
   TCP Connection이 수립되면, 클라이언트와 서버가 모두 각각의 버퍼 사이즈를 시스템 설정값으로 설정하게 된다.  
-  만약 Receiver(수신자) 버퍼의 일부가 데이터로 이미 차있다면, 수신자는 발신자(Receiver)에게 자신의  
+  만약 Receiver(수신자) 버퍼의 일부가 데이터로 이미 차있다면, 수신자는 발신자(Sender)에게 자신의  
   `Receive Window(남은 버퍼의 크기)`를 알려준다. 이 `Receive Window`는 `ACK Packet`을 통해  
   발신자에게 알려진다. (`ACK Packet`은 Receiver가 Sender에게 요청이 왔음을 확인하는 용도로 사용된다.)  
   만약 Sender에게 알려진 `Receive Window`의 크기가 0이면, Sender는 Receiver가 자신의 버퍼를 비우기  
@@ -226,7 +226,7 @@ Host: www.example.com
   구현할 수 있게 하여 이 문제를 해결한다. Transport Layer가 아닌 Application Layer를 사용하여  
   `Receive Window`에 대한 정보를 알려줄 수 있게 하여, 클라이언트와 서버가 개별적인 stream들에 대해  
   `Receive Window` 정보를 설정할 수 있게 한다. 이 설정(Flow Control 구현 방법)은 Connection이  
-  수립돈 후에 `WINDOW_UPDATE` frame을 통해 변경될 수도 있다.
+  수립된 후에 `WINDOW_UPDATE` frame을 통해 변경될 수도 있다.
 
 - 이 방법은 Data Flow를 Transport Layer가 아닌 Application Layer에서 진행하기에, `Receive Window`를  
   수정했다는 정보가 상대방에게 전송될 때까지 기다릴 필요가 없다. 각 node들은 각각 자신의 Flow Control 설정을 통해  
