@@ -9,11 +9,11 @@
   gRPC는 **Channels**, **RPC(Remote Procedure Call)**, 그리고 **Messages** 라는 3개의 개념을 소개한다.  
   이 세가지 사이의 관계는 간단한데, 각 channel은 여러 RPC를 가질 수 있으며 각 RPC는 여러 message를 가질 수 있다.
 
---- image 1
+![picture 1](/images/GRPC_HTTP2_1.png)
 
 - 이제 gRPC가 어떻게 HTTP/2와 연관되는지를 보자.
 
---- image 2
+![picture 2](/images/GRPC_HTTP2_2.png)
 
 - Channel은 gRPC의 핵심 개념이다. HTTP/2의 Stream은 하나의 connection 상에서 동시에 여러 요청과 응답을 할 수 있도록 해주는데,  
   gRPC의 Channel은 동시에 맺어진 여러 connection에 여러 stream을 만들 수 있게 해주면서 stream의 개념을 확장한다.  
@@ -25,15 +25,13 @@
   더 깊게 들어가자면, message는 data frame의 상위에 _layer_ 된다. 하나의 data frame이 여러 gRPC message를 담을 때도 있는 반면,  
   gRPC message가 꽤 크다면 하나의 gRPC message가 여러 data frame을 사용하는 경우도 있다.
 
----
-
 ## Resolvers and Load Balancers
 
 - gRPC는 connection을 alive, healthy, utilized 상태로 두기 위해 대표적으로 **Resolver**와 **Load Balancer**를 사용한다.  
   Resolver는 DNS를 실제 IP 주소(들)로 바꿔주며, 이를 Load Balancer로 전달한다. 그 후 Load Balancer는 Resolver로 전달받은  
   주소들에 대해 RPC들을 Load Balancing하고 connection을 수립하게 해준다.
 
---- image 3
+![picture 3](/images/GRPC_HTTP2_3.png)
 
 - 예시 상황을 보자. 예를 들어 DNS Resolver가 host name의 IP 주소를 13개 찾았다 하면, RoundRobin Balancer는 13개의 주소에 대해  
   각각 1개씩, 총 13개의 connection을 수립할 것이다. 조금 더 간단한 balancer의 경우에는 13개 중 처음으로 찾은 IP 주소에 대해서만  
