@@ -18,7 +18,7 @@
 - Channel은 gRPC의 핵심 개념이다. HTTP/2의 Stream은 하나의 connection 상에서 동시에 여러 요청과 응답을 할 수 있도록 해주는데,  
   gRPC의 Channel은 동시에 맺어진 여러 connection에 여러 stream을 만들 수 있게 해주면서 stream의 개념을 확장한다.  
   겉으로 봤을 때, 사용자들은 단지 message들을 channel에 전달하기만 하지만, 내부적으로는 해당 channel이 사용할 connection들을  
-  살려놓고, healty하게, 그리고 사용가능하도록 하기 위해 엄청나게 복잡한 작업들이 수행된다.
+  살려놓고, healthy하게, 그리고 사용가능하도록 하기 위해 엄청나게 복잡한 작업들이 수행된다.
 
 - Channel은 HTTP/2 Connection에 의해 기반한 가상 connection(virtual connection)이다. RPC는 connection과 연관 관계를 갖는다.  
   사실 RPC를 HTTP/2 Stream으로 봐도 무방하다. Message들은 RPC와의 연관 관계를 사용해 HTTP/2 data frame들로 전달된다.  
@@ -76,9 +76,9 @@
   건너뛰며 오로지 connection이 alive 한지만을 판별하기 위한 것이다. 만약 PING에 대한 응답이 적절한 시간 내에 오지 않는다면,  
   gRPC는 해당 connection이 fail했다고 판단하고, 위에서 설명한대로 reconnect를 시도하기 시작한다.
 
-- 이러한 방식들로 gRPC는 connection 들의 pool을 healty하게 유지하고, HTTP/2를 사용해 connection들의 health를 주기적으로 파악한다.  
+- 이러한 방식들로 gRPC는 connection 들의 pool을 healthy하게 유지하고, HTTP/2를 사용해 connection들의 health를 주기적으로 파악한다.  
   위의 모든 과정들은 user(gRPC를 호출하는 클라이언트)에게는 숨겨진다. message가 다른 IP로 redirect되는 과정은 자동으로, 매우 짧은 시간 내에  
-  진행되기 때문에 user 입장에서는 항상 healty한 connection을 사용하는 것처럼 보인다.
+  진행되기 때문에 user 입장에서는 항상 healthy한 connection을 사용하는 것처럼 보인다.
 
 ---
 
