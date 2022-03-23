@@ -1,6 +1,6 @@
 # AWS Lambda 구축하기
 
-<h2>Basics</h2>
+## Basics
 
 - AWS의 Lambda는 대표적인 Serverless 서비스이다.  
   _Serverless_ 하다는 것이 어색할 수 있지만, 말 그대로 받아들이면 된다.
@@ -18,23 +18,23 @@
 
 - 위 컨셉에 맞게 비용 청구 방식은 _함수가 수행된 시간_ 이다.
 
-<hr/>
+---
 
-<h2>Starting Project</h2>
+## Starting Project
 
 - Lambda는 실행시킬 함수에 대하여 정말 많은 언어를 지원하는데, 이번 예제에서는  
   boiler plate를 제공해주는 serverless 프레임워크를 사용해보자.  
   언어로는 TypeScript를 선택했다.
 
-```
+```sh
 npm i -g serverless
 ```
 
 - 위 명령으로 전역젹으로 serverless를 설치한 후, serverless가 제공하는  
   명령어를 통해 AWS Lambda를 위한 typescript로 된 boilerplate를 만들어보자.
 
-```
-serless create --template aws-nodejs-typescript --path ./Lambda_Example
+```sh
+serverless create --template aws-nodejs-typescript --path ./Lambda_Example
 ```
 
 - 위 명령어는 aws-nodejs-typescript의 boilerplate 코드를 Lambda_Example 폴더에  
@@ -73,9 +73,9 @@ serless create --template aws-nodejs-typescript --path ./Lambda_Example
 - `typescript`: typescript 사용을 위한 라이브러리
 - `serverless-plugin-typescript`: typescript를 serverless와 함께 사용하기 위한 라이브러리
 
-<hr/>
+---
 
-<h2>Writing example code</h2>
+## Writing example code
 
 - 이제 Lambda가 trigger되면 실제로 수행될 함수를 작성해보자.  
   `src/` 하위에 `helloWorld`라는 폴더를 만든 후, `handler.ts`를 만든다.
@@ -114,13 +114,13 @@ export { helloLambdaWorld };
 Malformed Lambda proxy response
 ```
 
-<hr/>
+---
 
-<h2>배포 과정 구축하기</h2>
+## 배포 과정 구축하기
 
 - Github Action을 사용하여 배포 과정을 구축해보자.
 
-<h3>1. IAM 계정 생성</h3>
+### 1. IAM 계정 생성
 
 - Github Action을 통해 AWS 리소스를 사용하기 위해서는 여느때와 마찬가지로 IAM이 필요하다.  
   프로그래밍 방식 엑세스를 선택한 후 IAM 사용자를 하나 추가해주자.  
@@ -222,7 +222,7 @@ Malformed Lambda proxy response
     따라서 CloudWatch에 대한 권한이 필요하다.
   - 그 외의 권한 목록도 최소한으로 필요하다.
 
-<h3>2. Serverless 스크립트 작성</h3>
+### 2. Serverless 스크립트 작성
 
 - 이후 Github Action이 수행할 스크립트는 Serverless를 사용한다.  
   이때 serverless는 lambda에 대한 정보를 담는 스크립트를 요구하는데,  
@@ -261,7 +261,7 @@ functions:
   - sayHello: 이 Lambda가 실행할 함수명
   - handler: 실제로 어떤 코드가 이 함수를 실행하는지를 명시한다.
 
-<h3>3. Workflow 스크립트 작성</h3>
+### 3. Workflow 스크립트 작성
 
 - 이제 마지막으로 Github Action이 수행할 스크립트를 작성해보자.
 
@@ -301,22 +301,22 @@ jobs:
 
 - `actions/setup-node@v1`: node 환경을 사용하기 위한 스크립트
 - `yarn install --frozen-lockfile`: `npm ci`와 같은 역할을 해주는 명령어이다.
-  - <a href="https://www.geeksforgeeks.org/difference-between-npm-i-and-npm-ci-in-node-js/">npm install과 npm ci의 차이점</a>
+  - [npm install과 npm ci의 차이점](https://www.geeksforgeeks.org/difference-between-npm-i-and-npm-ci-in-node-js/)
 - `serverless/github-action@v2.1.0`: serverless가 제공하는 github action 스크립트이다.  
   환경변수(env)로 `AWS_ACCESS_KEY_ID`와 `AWS_SECRET_ACCESS_KEY`는 이 workflow가  
   수행될 때 사용할 AWS IAM의 정보이다. 위에서 IAM을 생성할 때 가져온 값을 사용한다.  
   가장 아래에 `with: args: deploy`가 있는데, 이는 serverless가 배포할 때 사용하는  
   명령어이다.
 
-<hr/>
+---
 
-<h2>API Gateway 연결</h2>
+## API Gateway 연결
 
 - 배포가 성공하면 S3에 bucket이 하나 생성되어 있을 것이며 Lambda에도  
   함수 하나가 추가되어 있을 것이다.  
   Lambda 콘솔에서 트리거 추가를 이용하여 API Gateway를 손쉽게 구축할 수 있다.
 
-![picture 1](../../images/e65e329378c42d6c64a3002afa5f61c43520174812104d45a00f9c7c7dd86252.png)
+![picture 1](/images/e65e329378c42d6c64a3002afa5f61c43520174812104d45a00f9c7c7dd86252.png)
 
 - 하위 속성은 기본값을 유지해도 된다.
 
@@ -330,6 +330,6 @@ jobs:
 }
 ```
 
-<hr/>
+---
 
 - 소스코드: <a href="https://github.com/Example-Collection/Lambda-Example">Github</a>
