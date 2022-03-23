@@ -16,7 +16,7 @@
 
 - 다음으로 원하는 이름과 알맞은 region을 선택하고, 정보를 입력한다.
 
-![picture 2](../../images/AWS_WAF_2.png)
+![picture 2](/images/AWS_WAF_2.png)
 
 - 하단에 `Add AWS Resources`가 있는데, 현재는 WAF를 아래의 3가지 AWS Resource에 대해 적용할 수 있다.
 
@@ -26,7 +26,7 @@
 
 - 나는 기존에 ECS Cluster에 연결된 Application Load Balancer가 있었기에, Application Load Balancer를 선택했다.
 
-![picture 3](../../images/AWS_WAF_3.png)
+![picture 3](/images/AWS_WAF_3.png)
 
 - 다음으로 넘어가면, 규칙과 규칙 그룹을 만들 수 있게 된다.
 
@@ -37,11 +37,11 @@
   참고로 현재 AWS WAF는 Rate-based Rule에 대해 무조건 **5분을 기준**으로 두게끔 한다.  
   따라서 나는 300을 rate limit으로 두었다.
 
-![picture 7](../../images/AWS_WAF_4.png)
+![picture 7](/images/AWS_WAF_4.png)
 
 - 규칙을 성공적으로 추가한 후 모습은 아래와 같다.
 
-![picture 6](../../images/AWS_WAF_5.png)
+![picture 6](/images/AWS_WAF_5.png)
 
 - 지금은 Rule이 하나밖에 없어서 priority(우선 순위)를 설정할 것이 없지만, 만약 다양한 Rate Limit 조건이 있다면  
   다음 Step인 `Set rule priority`에서 우선순위를 설정할 수 있다.
@@ -63,6 +63,6 @@
 
 - 그래서 아래처럼 Custom Response를 지정해주었다.
 
-![picture 8](../../images/AWS_WAF_6.png)
+![picture 8](/images/AWS_WAF_6.png)
 
 ---
