@@ -86,7 +86,7 @@ class UserServiceTest {
 - 이를 만끽해보기 위해, 우선 Kotest의 일부만을 도입해보자.  
   Kotest는 코틀린에서 테스트를 수행하기 수월하게 도와주는 테스트 프레임워크이다.
 
-<hr/>
+---
 
 ## Kotest Assertions 도입
 
@@ -433,7 +433,7 @@ class UserServiceAnnotationSpecTest : AnnotationSpec() {
 
 <hr/>
 
-- <a href="https://kotest.io/docs/assertions/assertions.html">Kotest Assertions</a>
-- <a href="https://mockk.io/">Mockk</a>
-- <a href="https://kotest.io/docs/framework/testing-styles.html">Kotest Testing Styles</a>
-- <a href="https://techblog.woowahan.com/5825/">스프링에서 코틀린 스타일 테스트 코드 작성하기</a>
+- [Kotest Assertions](https://kotest.io/docs/assertions/assertions.html)
+- [Mockk](https://mockk.io/)
+- [Kotest Testing Styles](https://kotest.io/docs/framework/testing-styles.html)
+- [스프링에서 코틀린 스타일 테스트 코드 작성하기](https://techblog.woowahan.com/5825/)
