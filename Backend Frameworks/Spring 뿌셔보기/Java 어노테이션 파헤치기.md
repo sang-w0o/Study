@@ -5,7 +5,7 @@
 - Java로 프로그래밍할 때, 정말 많이 그리고 자주 어노테이션을 사용하게 됩니다.
   특히 매번 작성해야 하는 코드, 보일러플레이트를 줄이기 위해 Lombok을 많이 사용하는데요.
   Lombok이 제공하는 무수한 어노테이션 중 `@Getter` 를 보면, 아래와 같이 선언돼 있습니다.
-  ![picture 1](../../images/LOMBOK_GETTER.png)
+  ![picture 1](/images/LOMBOK_GETTER.png)
 
   어노테이션을 만들기 위한 클래스에 또다른 어노테이션이 붙어 있네요!
   이처럼 **어노테이션 선언에 다는 어노테이션을 메타 어노테이션(Meta-Annotation)**이라 합니다.
@@ -43,9 +43,9 @@
 
   정말 Lombok 어노테이션이 사라져 있습니다.
 
-  ![picture 2](../../images/LOMBOK_JAVA.png)
+  ![picture 2](/images/LOMBOK_JAVA.png)
 
-  ![picture 3](../../images/LOMBOK_CLASS.png)
+  ![picture 3](/images/LOMBOK_CLASS.png)
 
   나머지 2개 열거 타입도 보자면, `RUNTIME` 은 가장 흔히 쓰이는 타입으로,
 
@@ -80,11 +80,11 @@
 
   - 위 코드를 컴파일해보고, 디컴파일 해보니 `@NonNull` 이 수행하는 로직(null 검사) 코드와 여전히 `@NonNull` 이 그대로 남아 있었습니다.
 
-  ![picture 4](../../images/NONNULL_CLASS.png)
+  ![picture 4](/images/NONNULL_CLASS.png)
 
   - 이제 바이드 코드에까지 어노테이션이 그대로 남아 있는 것을 확인했으니, Reflection API로는 접근할 수 없는지 테스트해보겠습니다. 간단하게 `Sample` 클래스에서 `@NonNull` 이 적용된 필드들을 모두 가져와 콘솔에 출력해보고 싶었습니다.
 
-  ![picture 5](../../images/LOMBOK_EX_APPLICATION.png)
+  ![picture 5](/images/LOMBOK_EX_APPLICATION.png)
 
   I~~DE가 정적 검사한 후 노란 색 경고를 띄워주는걸 보니 뭔가 벌써 잘못 썼다는게 느껴지네요,,~~
 
@@ -160,7 +160,7 @@
 
 - 우선 사용자 정보를 담는 테이블은 아래와 같이 매우 간단하게 생겼습니다.
 
-![picture 6](../../images/ANNOTATION_USER_TABLE.png)
+![picture 6](/images/ANNOTATION_USER_TABLE.png)
 
 - 최대한 나름 책임을 분리(?) 하기 위해 레포지토리도 만들어 보았는데요, 레포지토리는 하나의 `User`만을 가집니다.
 
@@ -407,11 +407,11 @@ public class UserController {
 
   실제로 Lombok을 보면 `META-INF` 가 있으며, 위의 파일을 보면 아래와 같습니다.
 
-  ![picture 7](../../images/ANNOTATION_META_INF.png)
+  ![picture 7](/images/ANNOTATION_META_INF.png)
 
 - 첫 번째 줄에 있는 클래스를 타고 들어가면, 아래와 같이 `AbstractProcessor` 를 상속하는 클래스가 있습니다..
 
-![picture 8](../../images/LOMBOK_ABSTRACT_PROCESSOR.png)
+![picture 8](/images/LOMBOK_ABSTRACT_PROCESSOR.png)
 
 > 이 개념을 실제로 사용한 [예시 코드](https://www.logicbig.com/tutorials/core-java-tutorial/java-se-annotation-processing-api/annotation-processor-generate-code.html)를 발견했습니다.
 
