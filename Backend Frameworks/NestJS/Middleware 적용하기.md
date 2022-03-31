@@ -1,16 +1,16 @@
-<h1>MiddleWare 적용하기</h1>
+# MiddleWare 적용하기
 
 - `Middleware`는 함수의 하나로, 각 Route의 Request Handler들이 요청을 핸들링 하기 전에  
   호출되는 것이다. 이 Middleware는 `Request(요청)` 객체와 `Response(응답)`객체에  
   접근을 할 수 있으며, 이 Middleware내에 있는 `next()` 함수에도 접근할 수 있다.
 
-![picture 1](../../images/9482f67f52fb1e2f57a9e20aadf1a0a9cd13c2b84af7d0d78a32227e4a975995.png)
+![picture 1](/images/NESTJS_MIDDLEWARE_1.png)
 
 - NestJS에서도 개발자가 직접 작성한 Middleware를 적용할 수 있는데, 해당 Middleware는  
   함수 또는 `@Injectable()` 데코레이터가 적용된 클래스여야 한다.  
   만약 클래스를 사용한다면 `NestMiddleware` 인터페이스의 구현체여야 한다.
 
-<h2>클래스형 Middleware 사용하기</h2>
+## 클래스형 Middleware 사용하기
 
 ```ts
 @Injectable()
@@ -72,9 +72,9 @@ consumer
   .forRoutes(UserController);
 ```
 
-<hr/>
+---
 
-<h2>함수형 Middleware 사용하기</h2>
+## 함수형 Middleware 사용하기
 
 - 만약 Middleware에서 수행하는 작업들이 그리 복잡하거나 많지 않다면 함수형 Middleware를 사용하자.  
   위의 `LoggerMiddleware`를 함수형으로 바꾸면 아래와 같다.
@@ -95,9 +95,9 @@ consumer.apply(logger).forRoutes(UserController);
 - 함수형 Middleware를 사용하면 코드가 간결해지는 것 뿐만 아니라  
   의존성 주입에 대한 신경을 쓰지 않아도 된다는 장점이 있다.
 
-<hr/>
+---
 
-<h2>여러 개의 Middleware 사용하기</h2>
+## 여러 개의 Middleware 사용하기
 
 - 만약 여러 개의 Middleware들을 적용하고 싶다면, `apply()` 메소드에 컴마를 구분으로 인자에 넣으면 된다.
 
@@ -105,9 +105,9 @@ consumer.apply(logger).forRoutes(UserController);
 consumer.apply(cors(), helmet(), logger).forRoutes(UserController);
 ```
 
-<hr/>
+---
 
-<h2>전역 Middleware 사용하기</h2>
+## 전역 Middleware 사용하기
 
 - 등록된 모든 Route들에 대해 Middleware를 적용하고 싶다면, 모듈의 최상단인  
   `AppModule`을 실행하는 `main.ts`에 아래와 같이 `use()` 함수를 사용하면 된다.
@@ -122,3 +122,5 @@ async function bootstrap() {
 }
 bootstrap();
 ```
+
+---
