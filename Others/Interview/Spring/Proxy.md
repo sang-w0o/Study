@@ -12,7 +12,7 @@
 > 위 정의에서 알 수 있듯이 Proxy 객체들의 특징은 **핵심 기능을 구현하지 않는다는 것**이다.  
 > 대신, **여러 객체에 공통으로 적용할 수 있는 기능을 구현**한다.
 
-<hr/>
+---
 
 ## Proxy의 종류
 
@@ -32,24 +32,24 @@
 ```kt
 // Service라는 인터페이스
 interface Service {
-    fun getName(): String
+  fun getName(): String
 }
 
 // Service를 구현하는 ServiceImpl
 @Service
 class ServiceImpl : Service {
-    override fun getName(): String {
-	return "Spring"
-    }
+  override fun getName(): String {
+    return "Spring"
+  }
 }
 
 // ServiceImpl이 JDK Dynamic Proxy를 통해 Proxy Bean으로 등록되고,
 // 인터페이스 타입으로 지정하여 주입받는다.
 @RestController
 class Controller(
-    private val service: Service
+  private val service: Service
 ) {
-    //..
+  //..
 }
 ```
 
@@ -60,11 +60,11 @@ class Controller(
 
 ```java
 public class Proxy implements java.io.Serializable {
-    //..
+  //..
 
-    public static Object newProxyInstance(ClassLoader loader,Class<?>[] interfaces, InvocationHandler h) {
-	//..
-    }
+  public static Object newProxyInstance(ClassLoader loader,Class<?>[] interfaces, InvocationHandler h) {
+    //..
+  }
 }
 ```
 
@@ -73,7 +73,7 @@ public class Proxy implements java.io.Serializable {
 
 - 아래는 실제 프로젝트의 오류 로그인데, 보면 나는 작성한 적이 없는 `invoke()`가 나와있는 것을 확인할 수 있다.
 
-![picture 1](../../../images/SPRING_PROXY_INVOKE_ERROR_LOG.png)
+![picture 1](/images/SPRING_PROXY_INVOKE_ERROR_LOG.png)
 
 ### CGLib Proxy
 
@@ -89,9 +89,9 @@ public class Proxy implements java.io.Serializable {
 ```java
 @Service
 public class TestService {
-    public String test() {
-        return "test";
-    }
+  public String test() {
+    return "test";
+  }
 }
 ```
 
@@ -103,14 +103,14 @@ import org.springframework.cglib.proxy.Enhancer;
 import org.springframework.cglib.proxy.MethodInterceptor;
 
 public class TestCGLibProxy {
-    public void foo() {
-        Enhancer enhancer = new Enhancer();
-        enhancer.setSuperclass(TestService.class);
-        enhancer.setCallback((FixedValue) () -> "Hello World");
-        TestService proxy = (TestService) enhancer.create();
-        String resultFromProxy = proxy.test();
-        System.out.println(resultFromProxy.equals("Hello World")); // true
-    }
+  public void foo() {
+    Enhancer enhancer = new Enhancer();
+    enhancer.setSuperclass(TestService.class);
+    enhancer.setCallback((FixedValue) () -> "Hello World");
+    TestService proxy = (TestService) enhancer.create();
+    String resultFromProxy = proxy.test();
+    System.out.println(resultFromProxy.equals("Hello World")); // true
+  }
 }
 ```
 
@@ -122,12 +122,12 @@ public class TestCGLibProxy {
 ```java
 @Service
 public class TestService {
-    public String test() {
-        return "test";
-    }
-    public Integer test2() {
-        return 2;
-    }
+  public String test() {
+    return "test";
+  }
+  public Integer test2() {
+    return 2;
+  }
 }
 ```
 
@@ -135,22 +135,22 @@ public class TestService {
 
 ```java
 public class TestCGLibProxy {
-    public void foo() {
-        Enhancer enhancer = new Enhancer();
-        enhancer.setSuperclass(TestService.class);
-        enhancer.setCallback((MethodInterceptor)(obj, method, args, proxy) -> {
-            if(method.getReturnType() == String.class) {
-                return "Hello World";
-            } else {
-                return proxy.invokeSuper(obj, args);
-            }
-        });
-        TestService proxy = (TestService) enhancer.create();
-        String stringResultFromProxy = proxy.test();
-        System.out.println(stringResultFromProxy.equals("Hello World")); // true
-        Integer intResultFromProxy = proxy.test2();
-        System.out.println(intResultFromProxy.equals(2)); // true
-    }
+  public void foo() {
+    Enhancer enhancer = new Enhancer();
+    enhancer.setSuperclass(TestService.class);
+    enhancer.setCallback((MethodInterceptor)(obj, method, args, proxy) -> {
+      if(method.getReturnType() == String.class) {
+        return "Hello World";
+      } else {
+        return proxy.invokeSuper(obj, args);
+      }
+    });
+    TestService proxy = (TestService) enhancer.create();
+    String stringResultFromProxy = proxy.test();
+    System.out.println(stringResultFromProxy.equals("Hello World")); // true
+    Integer intResultFromProxy = proxy.test2();
+    System.out.println(intResultFromProxy.equals(2)); // true
+  }
 }
 ```
 
@@ -169,10 +169,10 @@ public class TestCGLibProxy {
 - Spring 4.3, Spring Boot 1.4 부터 JDK Dynamic Proxy가 아닌 CGLib이 Spring Framework의  
   Proxy 객체 생성 방식의 default 방식으로 채택되었다.
 
-<hr/>
+---
 
 ### 레퍼런스
 
-- <a href="https://medium.com/@spac.valentin/java-dynamic-proxy-mechanism-and-how-spring-is-using-it-93756fc707d5">JDK Dynamic Proxy with Spring</a>
+- [JDK Dynamic Proxy with Spring](https://medium.com/@spac.valentin/java-dynamic-proxy-mechanism-and-how-spring-is-using-it-93756fc707d5)
 
-- <a href="https://www.baeldung.com/cglib">CGLib</a>
+- [CGLib](https://www.baeldung.com/cglib)
