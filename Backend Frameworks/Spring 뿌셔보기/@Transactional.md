@@ -6,7 +6,7 @@
   이 어노테이션이 어떻게 작동하는지, 설정할 수 있는 속성들 중 주요한 속성인 isolationLevel과  
   propagation 속성은 어떤 특징을 가지는지 알아보자.
 
-<hr/>
+---
 
 ## @Transactional의 작동 방식
 
@@ -29,7 +29,7 @@ public interface PlatformTransactionManager extends TransactionManager {
 
 - 위 메소드들에 대한 공식 문서의 요약은 아래와 같다.
 
-![picture 2](../../images/SPRING_PLATFORMTRANSACTIONMANAGER.png)
+![picture 2](/images/SPRING_PLATFORMTRANSACTIONMANAGER.png)
 
 - Spring은 위 인터페이스를 구현한 트랜잭션 관리자를 Spring Bean으로 등록한다.  
   아래는 JDBC 관련 트랜잭션을 관리하는 `DatasourceTransactionManager`이다.
@@ -82,7 +82,7 @@ public class JpaTransactionManager extends AbstractPlatformTransactionManager im
 
   - (4) 결과 반환
 
-<hr/>
+---
 
 ## Isolation Level 지정
 
@@ -642,7 +642,7 @@ class TestService2(
   예외를 발생했기에 _"nested"_ 트랜잭션을 사용한 `TestService2#bar()`에는 아무런 문제가 없음에도 불구하고  
   모든 내용이 rollback된 것이다.
 
-<hr/>
+---
 
 ### Reference
 
