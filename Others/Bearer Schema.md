@@ -4,9 +4,9 @@
   Authorization Header에 `Bearer {TOKEN}` 형식으로 token을 전달하는 것이다.  
   그런데 막상 왜 앞에 `Bearer`를 사용하는지를 몰라서, 알기 위해 정리해 보았다.
 
-<hr/>
+---
 
-<h2>소개</h2>
+## 소개
 
 - OAuth는 클라이언트가 `access token`을 통해 클라이언트가 보호된 리소스에 접근할 수 있도록 해준다.  
   이는 `RFC7649`에 아래와 같이 명시되어 있다.
@@ -23,9 +23,9 @@
 - Bearer Token은 HTTP1.1의 TLS(Transport Layer Security) `RFC5246`을 이용해서  
   보호된 리소스에 접근한다. 따라서 이 인증 방식을 사용할 때 서버는 TLS를 필수적으로 구현해야 한다.
 
-<hr/>
+---
 
-<h2>용어 정의</h2>
+## 용어 정의
 
 - Bearer Token
 
@@ -39,15 +39,15 @@
   > require a bearer to prove possession of cryptographic key material  
   > (proof-of-possession).
 
-<hr/>
+---
 
-<h2>인증 과정 및 사용 예시</h2>
+## 인증 과정 및 사용 예시
 
 - 인증 및 인증 후 리소스에 접근하는 과정은 잘 알고 있듯이 아래 처럼 이루어진다.
 
-![picture 1](../images/fdc746e62ae369abce2ef106c20705e9875b4e375fc86d4969ae411c7297a9a1.png)
+![picture 1](/images/BEARER_SCHEME.png)
 
-<h3>인증된 요청</h3>
+### 인증된 요청
 
 - Access Token은 HTTP/1.1에서 정의된 인증 방식(`RFC2617`) 중, Authorization Header를  
   사용한다. Authorization Header는 Request Header의 Authorization 필드를 의미한다.  
@@ -64,8 +64,8 @@ Authorization: Bearer thisIsWhereTokenIsPut
   `Bearer`로 시작하는 HTTP 인증 방식을 통해 전달해야 한다. 그리고 인증이 필요한 요청을 받는  
   리소스 서버는 필수적으로 이 방식에 대한 처리를 할 수 있도록 구현되어야 한다.
 
-<hr/>
+---
 
 - ~~HTTP 인증 표준 방식이었다. Bearer가 소지자 라는 의미를 갖는지 알게되는 계기였다.~~
 
-- 참고 문서: <a href="https://datatracker.ietf.org/doc/html/rfc6750">링크</a>
+- 참고 문서: [링크](https://datatracker.ietf.org/doc/html/rfc6750)
