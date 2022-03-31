@@ -28,7 +28,7 @@
 
 - 예를 들어, 부품 제조 공장은 아래의 스키마를 사용할 수도 있을 것이다.
 
-![picture 9](../../../../../images/SORT_KEY_VERSION_CONTROL.png)
+![picture 9](/images/SORT_KEY_VERSION_CONTROL.png)
 
 - 위 예시 스키마의 데이터를 보면 `Equipment_1` item은 다양한 Auditor들에 의해 수정된다.  
   수정된 결과는 새로운 item `v1`부터 하나씩 증가하는 version number를 갖고 있다.

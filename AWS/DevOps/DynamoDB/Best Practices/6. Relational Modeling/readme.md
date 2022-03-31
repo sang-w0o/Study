@@ -3,7 +3,7 @@
 - 전통적인 RDBMS에서는 데이터를 관계를 갖도록 설계해 저장한다. 이 방식은 데이터가 계층적으로 구성되지 않는 대신,  
   여러 개의 table에 나누어 저장한다. 아래의 스키마는 일반적인 주문(order)과 직원 정보(HR)를 포함한 RDB 스키마이다.
 
-![picture 19](../../../../../images/DYNAMODB_TRADITIONAL_RDB_SCHEME.png)
+![picture 19](/images/DYNAMODB_TRADITIONAL_RDB_SCHEME.png)
 
 - RDBMS에서는 SQL을 사용해 애플리케이션에서 데이터를 원하는 대로 조회 혹은 조합할 수 있도록 해준다.  
   예를 들어, 주문된 order item들을 각 item을 배송할 수 있는 warehouse이 가진 재고 수량에 따라 정렬하기 위해 아래의 query를 수행할 수 있다.

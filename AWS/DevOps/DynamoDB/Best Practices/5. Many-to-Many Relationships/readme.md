@@ -19,13 +19,13 @@
   `BillID` partition은 해당 bill에 대한 모든 정보들을 가질 것이다. 그리고 `InvoiceID` partition은 invoice에 특화된  
   정보를 갖는다. 스키마는 아래 표와 같다.
 
-![picture 14](../../../../../images/DYNAMODB_ADJACENCY_LIST_PATTERN_1.png)
+![picture 14](/images/DYNAMODB_ADJACENCY_LIST_PATTERN_1.png)
 
 - 위 스키마를 사용하면 특정 invoice의 모든 bill들을 PK를 사용해 모두 조회할 수 있게 된다.  
   만약 반대로 bill과 연관된 invoice들만 조회하고 싶다면 기존의 Sort Key를 Partition Key로 갖는  
   Global Secondary Index를 만들면 된다. 아래 표와 같다.
 
-![picture 15](../../../../../images/DYNAMODB_ADJACENCY_LIST_PATTERN_2.png)
+![picture 15](/images/DYNAMODB_ADJACENCY_LIST_PATTERN_2.png)
 
 ---
 
@@ -36,15 +36,15 @@
 
 - 가장 먼저 table이다. 복합 PK가 있으며 Partition Key로는 `NodeId`가, Sort Key로는 `TypeTarget`이 지정되어 있다.
 
-![picture 16](../../../../../images/DYNAMODB_MATERIALIZED_GRAPH_PATTERN_1.png)
+![picture 16](/images/DYNAMODB_MATERIALIZED_GRAPH_PATTERN_1.png)
 
 - 다음으로 첫 번째 Global Secondary Index를 보자. `0-N` 사이의 값을 갖는 Partition Key와 `Data`를 Sort Key로 갖고 있다.
 
-![picture 17](../../../../../images/DYNAMODB_MATERIALIZED_GRAPH_PATTERN_2.png)
+![picture 17](/images/DYNAMODB_MATERIALIZED_GRAPH_PATTERN_2.png)
 
 - 두 번째 Global Secondary Index도 보자.
 
-![picture 18](../../../../../images/DYNAMODB_MATERIALIZED_GRAPH_PATTERN_3.png)
+![picture 18](/images/DYNAMODB_MATERIALIZED_GRAPH_PATTERN_3.png)
 
 - 위의 스키마는 graph의 node와 edge를 표현하는 데이터들로 이루어져있다.  
   Edge item은 `Target`과 `Type` attribute를 갖는다. 이 attribute들은 `TypeTarget`이라는 복합 PK에 사용되며,  
