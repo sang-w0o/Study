@@ -14,15 +14,30 @@
 - Operates at request level.
 - Advanced routing, TLS termination and visibility features targeted at application architectures.
 
+- ALB operates at layer 7, the application layer.
+
+  - The application layer serves as the interface for users and application processes to access network services.
+  - Examples of the application processes: HTTP, HTTPS, STMP, NFS, etc.
+
+- ALS always has cross-zone load balancing enabled.
+
 ## Network Load Balancer(NLB)
 
 - Ultra-high performance while maintaining very low latency.
 - Operates at connection level, routing traffics to targets within VPC.
 - Handles millions of request per second.
 
+- NLB operates at layet 4, the transport layer.
+
+  - Enables you to balance requests purely based on TCP/UDP protocol.
+
+- Cross-zone load balancing on NLB can be enabled or disabled.
+
 ## Classic Load Balancer
 
 - Used for applications that were built in the classic EC2 environment.
+  - It is best practice to use ALB over Classic Load Balancer unless you have an existing application  
+    running in the EC2-Classic network.
 - Operates at both request and connection level.
 
 ## Components of ELB
