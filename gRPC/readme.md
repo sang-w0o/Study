@@ -108,7 +108,7 @@ message HelloResponse {
 
   - Bidirectional Streaming RPC: 클라이언트, 서버 모두 read-write stream을 사용해 서로에게 일련의  
     message들을 전송한다. 2개의 stream(클라이언트 -> 서버, 서버 -> 클라이언트)는 서로 독립적으로 작동하기에  
-    클라이언트와 서버는 read, write를 각자가 원하는 대로 할 수 있다. 예를 들어, 서버갸 응답을 보내기 전에 클라이언트가  
+    클라이언트와 서버는 read, write를 각자가 원하는 대로 할 수 있다. 예를 들어, 서버가 응답을 보내기 전에 클라이언트가  
     보낸 모든 message들을 수신하도록 할 수도 있고, 하나의 message를 읽고 하나의 response를 보내는 식으로도 할 수 있다.
 
   ```proto
