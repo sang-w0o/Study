@@ -19,7 +19,7 @@
   - The application layer serves as the interface for users and application processes to access network services.
   - Examples of the application processes: HTTP, HTTPS, STMP, NFS, etc.
 
-- ALS always has cross-zone load balancing enabled.
+- ALB always has cross-zone load balancing enabled.
 
 ## Network Load Balancer(NLB)
 
