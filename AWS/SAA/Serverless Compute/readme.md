@@ -21,7 +21,7 @@
 ## Event Source Mapping
 
 - Event source mapping is the configuration that links your event source to your Lambda function.  
-  It's what links the events generated from your event source to invoke your Lamba function.
+  It's what links the events generated from your event source to invoke your Lambda function.
 
 ### Push-based services
 
