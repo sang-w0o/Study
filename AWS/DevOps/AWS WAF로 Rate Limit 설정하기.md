@@ -39,30 +39,16 @@
 
 ![picture 7](/images/AWS_WAF_4.png)
 
-- 규칙을 성공적으로 추가한 후 모습은 아래와 같다.
-
-![picture 6](/images/AWS_WAF_5.png)
+- 규칙을 성공적으로 추가한 후 모습은 아래와 같다.  
+  **Default web ACL action for requests that don't match any rules** 는 `ALLOW`로 설정해야 한다.
 
 - 지금은 Rule이 하나밖에 없어서 priority(우선 순위)를 설정할 것이 없지만, 만약 다양한 Rate Limit 조건이 있다면  
   다음 Step인 `Set rule priority`에서 우선순위를 설정할 수 있다.
 
 - Metric(CloudWatch) 설정은 기본값으로 넘겼고(추가할 게 아직 없기에..) 리뷰 후 생성을 모두 마쳤다.
 
-- 참고로 Rate Limit을 넘어선 요청들에 대해서는 기본적으로 아래의 응답과 HTTP Status 403(Forbidden)이 간다.
+- 마지막으로 Rate-based Rule을 초과한 요청들에 대해서는 아래처럼 응답이 가게끔 해주었다.
 
-```html
-<html>
-  <head>
-    <title>403 Forbidden</title>
-  </head>
-  <body>
-    <center><h1>Forbidden</h1></center>
-  </body>
-</html>
-```
-
-- 그래서 아래처럼 Custom Response를 지정해주었다.
-
-![picture 8](/images/AWS_WAF_6.png)
+![picture 8](/images/AWS_WAF_5.png)
 
 ---
