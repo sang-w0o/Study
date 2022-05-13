@@ -27,7 +27,7 @@
 - Operates at connection level, routing traffics to targets within VPC.
 - Handles millions of request per second.
 
-- NLB operates at layet 4, the transport layer.
+- NLB operates at layer 4, the transport layer.
 
   - Enables you to balance requests purely based on TCP/UDP protocol.
 
@@ -39,6 +39,8 @@
   - It is best practice to use ALB over Classic Load Balancer unless you have an existing application  
     running in the EC2-Classic network.
 - Operates at both request and connection level.
+
+---
 
 ## Components of ELB
 
@@ -89,3 +91,24 @@
 - When cross-zone load balancing is disabled, each ELB in its associated AZ will distribute its traffic with the  
   targets within that AZ only.
 - With cross-zone load balancing enabled, the ELBs will distribute all incoming traffic evenly between all targets.
+
+---
+
+## Using ELB and Auto Scaling together
+
+- It is easy to associate your EC2 Auto Scaling Group to an ELB
+
+  - The ELB allows you to dynamically manage load across your resources based on target groups and rules.
+  - EC2 Auto Scaling allows you to elastically scale those target groups based upon the demand put upon  
+    your infrastructure.
+
+- Combining an ELB and Auto Scaling helps you to manage and automatically scale your EC2 compute resources  
+  both in and out.
+
+- When you attach an ELB to an Auto Scaling Group, the ELB will automatically detect the instances  
+  and start to distribute all traffic to the resources in the Auto Scaling Group.
+
+  - To associate an ALB or NLB, you must associate the Auto Scaling Group with the ELB Target Group.
+  - For the Classic Load Balancer, the EC2 fleet will be registered directly with the load balancer.
+
+---
