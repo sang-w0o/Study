@@ -112,3 +112,26 @@
   - For the Classic Load Balancer, the EC2 fleet will be registered directly with the load balancer.
 
 ---
+
+## Launch Configurations
+
+- Launch configuration is a template that the Auto Scaling group uses to launch Amazon EC2 instances.  
+  Launch configuration includes information such as AMI ID to use for launching the EC2 instance,  
+  the instance type, key pairs, security groups and blocked device mappings among other configuration settings.  
+  When you create your auto scaling group, you must associate it with a laungh configuration and you can attach  
+  only one launch configuration to an auto scaling group at any time.
+
+- Launch configurations cannot not be modified(immutable).  
+  So if you want to change the launch configuration of your Auto Scaling group, you have to first create a new  
+  launch configuration and then update your auto scaling group by attaching the new one.
+
+- When you attach a new launch configuration to your auto scaling group, any new instances are launched using a  
+  new configuration parameters. **Existing instances are not affected.**
+
+## Launch Templates
+
+- You can have multiple versions of launch templates saved and disassociate one version from an auto scaling  
+  group and replace it with another without having to delete any existing templates or stop or restart your  
+  auto scaling group.
+
+---
