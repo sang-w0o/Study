@@ -7,3 +7,7 @@
 - ~~배움의 끝은 진짜 없구나..~~
 
 [![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Fsangw-w0o/Study)](https://hits.seeyoufarm.com)
+
+- Star history
+
+[![Star History Chart](https://api.star-history.com/svg?repos=sang-w0o/Study&type=Date)](https://star-history.com/#sang-w0o/Study&Date)
