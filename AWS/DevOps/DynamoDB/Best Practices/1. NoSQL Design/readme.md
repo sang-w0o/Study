@@ -52,7 +52,7 @@
 
   - Use sort order: 관계된 item들은 만약 key가 그들을 정렬되게끔 설정되어 있다면 query, grouping 모두 효율적으로 할 수 있다.
 
-  - Distribute queries: 많은 양의 query가 데이터베이스의 한 뿌분에 집중적으로 몰리게 하지 않는 것도 중요하다.  
+  - Distribute queries: 많은 양의 query가 데이터베이스의 한 부분에 집중적으로 몰리게 하지 않는 것도 중요하다.  
     대신, 트래픽을 partition에 따라 적절히 분배시킬 수 있도록 data key를 정의해야 한다.
 
   - Use global secondary indexes: Global Secondary Index를 생성해 table이 기본적으로 지원하는 query보다 더 다양한 query를  
