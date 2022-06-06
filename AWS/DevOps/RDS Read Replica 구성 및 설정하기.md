@@ -42,3 +42,5 @@
   2개의 record에 주어진 weight가 모두 100이므로, `100 / (100 + 100)`, 즉 `1/2`의 확률로 실제로 연결할 read replica를 선택하게 될 것이다.
 
 ---
+
+> Spring boot application에서 read replica를 사용하도록 설정하는 방법은 [여기](https://github.com/sang-w0o/Study/blob/master/Backend%20Frameworks/Spring%20%EB%BF%8C%EC%85%94%EB%B3%B4%EA%B8%B0/RDBMS%20Read%20Replica%20%EC%84%A4%EC%A0%95%ED%95%98%EA%B8%B0.md)에 있다.
