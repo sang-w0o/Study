@@ -38,7 +38,7 @@ message Person {
   `set_name()`과 같은 메소드와 함께 전체 데이터를 raw bytes로 직렬화/역직렬화하기 위한 메소드도 제공된다.  
   예를 들어 C++을 사용한다면, 위 proto 파일을 컴파일하면 `Person`이라는 클래스가 생긴다.  
   이후에는 이 클래스를 애플리케이션에서 자유롭게 생성하고, Protocol Buffer 데이터로 직렬화하고,  
-  `Person`을 담은 Protocl Buffer Message를 역직렬화하기 위해 사용할 수 있다.
+  `Person`을 담은 Protocol Buffer Message를 역직렬화하기 위해 사용할 수 있다.
 
 ```proto
 // The greeter service definition.
