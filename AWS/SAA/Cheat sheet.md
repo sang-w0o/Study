@@ -1,10 +1,37 @@
 # Cheat sheet
 
-## EFS(Elastic File System)
+## EFS(Elastic File System) vs EBS(Elastic Block Storage)
 
-## AWS Backuo
+- EBS: Provides block-level storage for your EC2 instances for persistent and durable data storage.  
+  EBS is an appropriate choice for storing frequently changing data or if you have specific IOPS requirements.  
+  It is possible to attach more than one EBS volumes to an EC2 instance; however, multiple EC2 instances cannot  
+  share EBS storage.
 
-## Reserved, spot, on-demand instances
+- EFS: EFS is a file-level storage optimized for low latency access that appears to users like a file manager  
+  interface. EFS uses standard file system semantics such as locking files, renaming files, updating files, and  
+  uses a hierarchy structure. You can mount EFS storage to multiple EC2 instances to enable concurrent access  
+  to the file system.
+
+## AWS Backup, Amazon Data Lifecycle Manager
+
+- AWS Backup is a service that allows you to automate and manage data backups for various amazon services.  
+  For example, you can use AWS Backup to protect your data stored on EBS volumes, EFS, or Amazon RDS databases.
+
+- Amazon Data Lifecycle Manager: Helps organizations manage EBS snapshots.
+
+## EBS instance types
+
+- General Purpose SDD(gp2): Used for workloads where IOPS is more critical than throughput, and the cost is more  
+  important than performance.
+
+- Provisioned IOPS SSD(io2): Used for workloads when more concerned with IOPS performance and when workloads are  
+  primarily samller random I/O operations.
+
+- Throughput Optimized HDD(st1): Used when primary concerned with throughput, and storage pattern aligns with larger  
+  sequential I/O operations.
+
+- Cold HDD(sc1): Used when storage is infrequently accessed and when minimizing storage cost is more important  
+  than performance.
 
 ## AWS File gateway, tape gateway, volume gateway, dataSync
 
@@ -48,4 +75,126 @@
 
 ## VPN, Transit gateway, Direct Connect, etc
 
+- Direct Connect: Charged for connection to your Amazon VPC. No additional cost for on-premises to access your  
+  Amazon EFS.
+
 ## S3 Multipart upload & Pre-signed URLs
+
+## S3 Object lock
+
+- S3 object lock can prevent objects from modification or deletion.
+
+- Object lock has two retention modes:
+  - Compliance mode: Prevents objects from being deleted or updated by users, including the root user.
+  - Governance mode: Allows object to be modified, prevents objects from being deleted.
+
+## Amazon GuardDuty, Amazon Inspector, Amazon Macie, Amazon Detective
+
+- Amazon GuardDuty: A threat detection service that continuously monitors AWS accounts and workloads for malicious  
+  activity and anomalous behavior. GuardDudy utilizes machine learning to identify the threats and classify them.
+
+- Amazon Inspector: An automated security assessment service that monitors for software vulnerabilities and unintended  
+  network exposure.
+
+- Amazon Macie: A fully managed data security and data privacy service that leverages pattern recognition and machine  
+  learning to discover and protect sensitive data within your web prescence.
+
+- Amazon Detective: Makes it easy to analyze, investigate and determine the root cause of security assessment findings  
+  or suspicious activities. Analysis and investigation data are also presented in the form of graphs, continously refreshed.
+
+## ENI(Elastic Network Interface)
+
+- TODO
+
+## Auto Slacing Policies
+
+- TODO
+
+## S3 Glacier Data Retrieval options
+
+- Expedited:
+
+  - Used for urgent access to a subset of an Archive
+  - Less than 250MB
+  - Data available within 1~5 minutes.
+  - With provisioned capacity: Guaranteed to be available when you need them(Recommended for DR plan)
+  - On-demand
+
+- Standard
+
+  - Used to retrieve any of your Archives.
+  - Data available within 3~5 hours.
+  - Cheaper than Expedited.
+
+- Bulk
+  - The cheapest option for data retrieval.
+  - Used to retrieve petabytes of data
+  - Data available within 5~12 hours.
+
+## EC2 Purchase options
+
+### On-demand instances
+
+- Can be launched at any time.
+- Can be used for as long as needed.
+- Flat rate determined on the instance type.
+- Typically used for short-term uses where workloads can be irregualr
+
+### Reserved instances
+
+- Purchases for a set period of time for reduced cost.
+- Best applied for long term, predictable workloads.
+- Modifying instance size which is **within the same instance family** is possible.
+- You can modify the AZ of the reserved instance, change the scope of the reserved instance from AZ to region.
+
+### Scheduled instances
+
+- You pay for the reservations on a recurring schedule, either daily, weekly or monthly.
+- You could set up a scheduled instance to run during that set time frame once a week.
+- Note that event if you don't use the instance, you would still be charged.
+
+### Spot instances
+
+- Bid for a unused EC2 compute resources.
+- No guarantees for a fixed period of time.
+- Must bid higher than the current spot price which is set by AWS.  
+  This spot price fluctuates depending on supply and demand of the unused resource.
+- As soon as your bid price comes lower than the fluctuating spot price, you will be issued a two-minute warning  
+  before the instance automatically terminates and is removed from your AWS environment.
+- You can bit for large EC2 instances at a very low cost point, saving a huge amount on cost.
+- Since it can be removed at any time, spot instances are only useful for processing data and applications that  
+  can be suddenly interrupted.(Batch jobs, background processing of data etc.)
+
+### Tenancy
+
+- Relates to what underlying host your EC2 instance will reside on, so essentially the physical server within  
+  an AWS Data Center.
+
+#### Shared tenancy
+
+- EC2 instance is launched on any available host with the required resources.
+- The same host may be used by multiple customers.
+
+### Dedicated instances
+
+- Hosted on hardware that no other customer can access.
+- May be required to meet compliance.
+- Occurs additional charges.
+
+### Dedicated hosts
+
+- Additional visibility and control on the physical host.
+- Allows to use the same host for a number of instances.
+- May be required to meet compliance.
+-
+
+## S3 Transfer Acceleration
+
+- Amazon S3 Transfer Acceleration enables fast, easy, and secure transfers of files over long distances between  
+  your client and your Amazon S3 bucket. S3 Transfer Acceleration leverages Amazon CloudFront’s globally distributed  
+  AWS Edge Locations. As data arrives at an AWS Edge Location, data is routed to your Amazon S3 bucket over an  
+  optimized network path.
+
+## How to establish site-to-site VPN
+
+-
