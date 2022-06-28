@@ -80,6 +80,11 @@
 
 ## S3 Multipart upload & Pre-signed URLs
 
+- Ways to minimize costs of incomplete multipart uploads:
+
+  - Stop unsuccessful multipart uploads.
+  - Stop incomplete uploads with a bucket lifecycle policy.
+
 ## S3 Object lock
 
 - S3 object lock can prevent objects from modification or deletion.
@@ -198,3 +203,13 @@
 ## How to establish site-to-site VPN
 
 -
+
+## Cluster placement group
+
+- A cluster placement group is a logical grouping of instances within a single Availability Zone.  
+  Placement groups are recommended for applications that benefit from low network latency, high network throughput, or both
+
+---
+
+2. Not ENI?
+3. Does using EBS slow down boot time?
