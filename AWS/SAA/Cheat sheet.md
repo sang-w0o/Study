@@ -78,6 +78,11 @@
 - Direct Connect: Charged for connection to your Amazon VPC. No additional cost for on-premises to access your  
   Amazon EFS.
 
+## AWS RAM
+
+- AWS RAM(Resource Access Manager) enables you to securely share your AWS resources in one account with other  
+  accounts or specific IAM roles or users.
+
 ## S3 Multipart upload & Pre-signed URLs
 
 - Ways to minimize costs of incomplete multipart uploads:
@@ -111,9 +116,15 @@
 
 - TODO
 
-## Auto Slacing Policies
+## Auto Slacing
 
-- TODO
+- **Auto Scaling launch templates can deploy instances of multiple instance types and purchase types**.
+- **Auto Scaling lifecycle hooks enable you to control how instances launch and terminate within an Auto Scaling**  
+  **group, you can perform actions on the instance before it is put into service or before it is terminated.**
+
+- Policies
+
+  - TODO
 
 ## S3 Glacier Data Retrieval options
 
@@ -200,9 +211,16 @@
   AWS Edge Locations. As data arrives at an AWS Edge Location, data is routed to your Amazon S3 bucket over an  
   optimized network path.
 
-## How to establish site-to-site VPN
+### Interface Endpoints
 
--
+- Interface Endpoints are essentially ENIs that are placed within a subnet that act as a target for any traffic  
+  that is being sent to a supported services and operates through the use of PrivateLink.
+
+  - PrivateLink allows a private and secure connection between VPCs, AWS services, and on-premises applications,  
+    via the AWS internal network.
+
+  - **Interface endpoint makes it possible to connect to a number of AWS services both from resources within your**  
+    **Amazon VPC and from resources in your on-premises environment.**
 
 ## Cluster placement group
 
@@ -211,5 +229,8 @@
 
 ---
 
-2. Not ENI?
-3. Does using EBS slow down boot time?
+## AWS Control Tower
+
+- AWS Control Tower offers an easy way to set up and manage a secure multi-account environment.  
+  Control Tower offers blueprints to govern multi-account structures at scale. It provides the assurance that  
+  all accounts are aligned with centrally established policies.
