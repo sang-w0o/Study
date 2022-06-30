@@ -25,7 +25,7 @@
   important than performance.
 
 - Provisioned IOPS SSD(io2): Used for workloads when more concerned with IOPS performance and when workloads are  
-  primarily samller random I/O operations.
+  primarily smaller random I/O operations.
 
 - Throughput Optimized HDD(st1): Used when primary concerned with throughput, and storage pattern aligns with larger  
   sequential I/O operations.
@@ -68,10 +68,10 @@
 
 - Active-passive failover: This failover configuration is used when you want a primary group of resources to be  
   available the majority of the time, and you want a secondary group of resources to be on standby in case all of  
-  the primary resources become unavailable. When responding to queries, Route53 includes only the health primary  
+  the primary resources become unavailable. When responding to queries, Route53 includes only the healthy primary  
   resources. If all of the primary resources are unhealthy, Route53 begins to include only the healthy secondary  
   resources in response to DNS queries. Active-passive has several configuration options based on the number of  
-  resources, and at what point you want Route53 to failover based on the health of your resources.FLSI
+  resources, and at what point you want Route53 to failover based on the health of your resources.
 
 ## VPN, Transit gateway, Direct Connect, etc
 
