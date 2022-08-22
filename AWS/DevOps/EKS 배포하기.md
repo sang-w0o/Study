@@ -712,3 +712,250 @@ Outputs:
 - VPC 구성은 완료되었지만, worker node들은 아직 생성되지 않았다. 이를 eksctl을 사용해 생성해보자.
 
 ---
+
+## (3) - eksctl 기반 k8s 설정
+
+- 위에서 생성한 VPC의 id, subnet id들은 이후에도 많이 사용되므로 아래 명령어를 실행해 환경 변수에 저장 및 별도 파일에 저장하도록 하자.
+
+```sh
+#VPC ID export
+export vpc_ID=$(aws ec2 describe-vpcs --filters Name=tag:Name,Values=planit-eks-vpc | jq -r '.Vpcs[].VpcId')
+echo $vpc_ID
+
+#Subnet ID, CIDR, Subnet Name export
+aws ec2 describe-subnets --filter Name=vpc-id,Values=$vpc_ID | jq -r '.Subnets[]|.SubnetId+" "+.CidrBlock+" "+(.Tags[]|select(.Key=="Name").Value)'
+echo $vpc_ID > vpc_subnet.txt
+aws ec2 describe-subnets --filter Name=vpc-id,Values=$vpc_ID | jq -r '.Subnets[]|.SubnetId+" "+.CidrBlock+" "+(.Tags[]|select(.Key=="Name").Value)' >> vpc_subnet.txt
+cat vpc_subnet.txt
+
+# VPC, Subnet ID 환경변수 저장
+export PublicSubnet01=$(aws ec2 describe-subnets --filter Name=vpc-id,Values=$vpc_ID | jq -r '.Subnets[]|.SubnetId+" "+.CidrBlock+" "+(.Tags[]|select(.Key=="Name").Value)' | awk '/planit-eks-vpc-PublicSubnet01/{print $1}')
+export PublicSubnet02=$(aws ec2 describe-subnets --filter Name=vpc-id,Values=$vpc_ID | jq -r '.Subnets[]|.SubnetId+" "+.CidrBlock+" "+(.Tags[]|select(.Key=="Name").Value)' | awk '/planit-eks-vpc-PublicSubnet02/{print $1}')
+export PublicSubnet03=$(aws ec2 describe-subnets --filter Name=vpc-id,Values=$vpc_ID | jq -r '.Subnets[]|.SubnetId+" "+.CidrBlock+" "+(.Tags[]|select(.Key=="Name").Value)' | awk '/planit-eks-vpc-PublicSubnet03/{print $1}')
+export PrivateSubnet01=$(aws ec2 describe-subnets --filter Name=vpc-id,Values=$vpc_ID | jq -r '.Subnets[]|.SubnetId+" "+.CidrBlock+" "+(.Tags[]|select(.Key=="Name").Value)' | awk '/planit-eks-vpc-PrivateSubnet01/{print $1}')
+export PrivateSubnet02=$(aws ec2 describe-subnets --filter Name=vpc-id,Values=$vpc_ID | jq -r '.Subnets[]|.SubnetId+" "+.CidrBlock+" "+(.Tags[]|select(.Key=="Name").Value)' | awk '/planit-eks-vpc-PrivateSubnet02/{print $1}')
+export PrivateSubnet03=$(aws ec2 describe-subnets --filter Name=vpc-id,Values=$vpc_ID | jq -r '.Subnets[]|.SubnetId+" "+.CidrBlock+" "+(.Tags[]|select(.Key=="Name").Value)' | awk '/planit-eks-vpc-PrivateSubnet03/{print $1}')
+echo "export vpc_ID=${vpc_ID}" | tee -a ~/.bash_profile
+echo "export PublicSubnet01=${PublicSubnet01}" | tee -a ~/.bash_profile
+echo "export PublicSubnet02=${PublicSubnet02}" | tee -a ~/.bash_profile
+echo "export PublicSubnet03=${PublicSubnet03}" | tee -a ~/.bash_profile
+echo "export PrivateSubnet01=${PrivateSubnet01}" | tee -a ~/.bash_profile
+echo "export PrivateSubnet02=${PrivateSubnet02}" | tee -a ~/.bash_profile
+echo "export PrivateSubnet03=${PrivateSubnet03}" | tee -a ~/.bash_profile
+source ~/.zshrc
+```
+
+- 위 명령어를 실행하면 vpc id, subnet id가 모두 환경 변수에 저정되며 `vpc_subnet.txt`에 저장된다.  
+  아래는 `vpc_subnet.txt` 파일의 예시 모습이다.
+
+```
+vpc-0e88a2ed7a32c0336
+subnet-02b5356084f4355cb 10.11.16.0/20 planit-eks-vpc-PublicSubnet02
+subnet-0ea280f1567234a3b 10.11.253.0/24 planit-eks-vpc-TGWSubnet03
+subnet-0a79d22a3acf610bf 10.11.32.0/20 planit-eks-vpc-PublicSubnet03
+subnet-0c96f4c64e724524b 10.11.251.0/24 planit-eks-vpc-TGWSubnet01
+subnet-0d5d255e8542cf405 10.11.64.0/20 planit-eks-vpc-PrivateSubnet02
+subnet-0c3c37774542ac95c 10.11.252.0/24 planit-eks-vpc-TGWSubnet02
+subnet-07f97eaa984b5ced2 10.11.0.0/20 planit-eks-vpc-PublicSubnet01
+subnet-0ebb353a91c36ab17 10.11.48.0/20 planit-eks-vpc-PrivateSubnet01
+subnet-0e3c3abe52dbe07e8 10.11.80.0/20 planit-eks-vpc-PrivateSubnet03
+```
+
+- 마지막으로 aws region을 환경 변수로 넣어두자.
+
+  ```sh
+  export AWS_REGION=ap-northeast-2
+  ```
+
+- 이전 단계에서 환경 변수로 설정했던 VPC id, subnet id, region, kms master arn은 eksctl을 통해 EKS cluster를 배포하는 데 사용된다.
+
+### Cluster 생성
+
+- Cluster를 생성하기 전, 몇 개의 추가적인 환경 변수를 설정하고 잘 나오는지 테스트해보자.
+
+```sh
+export ekscluster_name="planit-dev-eks"
+export eks_version="1.21"
+export instance_type="t3a.medium"
+echo ${AWS_REGION}
+echo ${eks_version}
+echo ${PublicSubnet01}
+echo ${PublicSubnet02}
+echo ${PublicSubnet03}
+echo ${PrivateSubnet01}
+echo ${PrivateSubnet02}
+echo ${PrivateSubnet03}
+echo ${MASTER_ARN}
+```
+
+- [이 공식문서](https://docs.aws.amazon.com/eks/latest/userguide/fargate-profile.html)에 나와있는 것처럼 fargate는 private subnet에만 배정할 수 있다.
+
+  ![picture 9](/images/AWS_DEVOPS_EKS_5.png)
+
+- eksctl이 참조할 파일은 아래와 같다.
+
+<details><summary>ekscluster-3az.yml</summary>
+
+<p>
+
+```yaml
+# A simple example of ClusterConfig object:
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: ${ekscluster_name}
+  region: ${AWS_REGION}
+  version: "${eks_version}"
+
+vpc:
+  id: ${vpc_ID}
+  subnets:
+    private:
+      PrivateSubnet01:
+        az: ${AWS_REGION}a
+        id: ${PrivateSubnet01}
+      PrivateSubnet02:
+        az: ${AWS_REGION}b
+        id: ${PrivateSubnet02}
+      PrivateSubnet03:
+        az: ${AWS_REGION}c
+        id: ${PrivateSubnet03}
+
+secretsEncryption:
+  keyARN: ${MASTER_ARN}
+
+fargateProfiles:
+  - name: fp-managed-ng-public-01
+    selectors:
+      - namespace: planit-dev
+    subnets:
+      - ${PrivateSubnet01}
+      - ${PrivateSubnet02}
+      - ${PrivateSubnet03}
+
+  - name: fp-managed-ng-private-01
+    selectors:
+      - namespace: planit-dev
+    subnets:
+      - ${PrivateSubnet01}
+      - ${PrivateSubnet02}
+      - ${PrivateSubnet03}
+
+cloudWatch:
+  clusterLogging:
+    enableTypes:
+      ["api", "audit", "authenticator", "controllerManager", "scheduler"]
+```
+
+</p></details>
+
+- 이제 eksctl을 통해 EKS cluster를 생성하자.
+
+- 먼저 아래 명령을 실행한다.
+
+```sh
+cat << EOF > ekscluster-3az.yaml
+# A simple example of ClusterConfig object:
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: ${ekscluster_name}
+  region: ${AWS_REGION}
+  version: "${eks_version}"
+
+vpc:
+  id: ${vpc_ID}
+  subnets:
+    private:
+      PrivateSubnet01:
+        az: ${AWS_REGION}a
+        id: ${PrivateSubnet01}
+      PrivateSubnet02:
+        az: ${AWS_REGION}b
+        id: ${PrivateSubnet02}
+      PrivateSubnet03:
+        az: ${AWS_REGION}c
+        id: ${PrivateSubnet03}
+
+secretsEncryption:
+  keyARN: ${MASTER_ARN}
+
+fargateProfiles:
+  - name: fp-managed-ng-public-01
+    selectors:
+      - namespace: planit-dev
+    subnets:
+      - ${PrivateSubnet01}
+      - ${PrivateSubnet02}
+      - ${PrivateSubnet03}
+
+  - name: fp-managed-ng-private-01
+    selectors:
+      - namespace: planit-dev
+    subnets:
+      - ${PrivateSubnet01}
+      - ${PrivateSubnet02}
+      - ${PrivateSubnet03}
+
+cloudWatch:
+  clusterLogging:
+    enableTypes:
+      ["api", "audit", "authenticator", "controllerManager", "scheduler"]
+
+EOF
+```
+
+- 그리고 아래 명령어로 eks cluster를 생성한다.
+
+```sh
+eksctl create cluster --config-file=ekscluster-3az.yaml
+```
+
+### kubectl로 연결하기
+
+- eksctl로 클러스터는 만들어졌지만, 아래의 에러가 마지막에 출력된다.
+
+  ![picture 10](/images/AWS_DEVOPS_EKS_6.png)
+
+- 일단 아래 명령어로 kubeconfig를 설정해주자.
+
+```sh
+aws eks update-kubeconfig --region ap-northeast-2 --name planit-dev-eks
+```
+
+- 그리고 kubectl 명령어를 실행해보면, 아래의 에러가 발생한다.
+
+```sh
+# kubectl get svc
+error: exec plugin: invalid apiVersion "client.authentication.k8s.io/v1alpha1"
+```
+
+- 심지어 `kubectl version` 명령어를 수행해도 동일한 에러가 발생한다.
+
+- 이 문제는 kubernetes의 버전과 kubectl의 버전이 불일치해서 발생하는데, 현재 우리는 kubenetes를 1.21로 가동했다.  
+  따라서 이를 지원하는 kubectl 버전 1.22로 설치해 사용하도록 하자.
+
+> kubectl 버전과 kubernetes 버전 관련 문서는 [여기](https://docs.aws.amazon.com/eks/latest/userguide/install-kubectl.html)에서 확인할 수 있다.
+
+```sh
+curl -o kubectl https://s3.us-west-2.amazonaws.com/amazon-eks/1.22.6/2022-03-09/bin/darwin/amd64/kubectl
+chmod +x ./kubectl
+mkdir -p $HOME/bin && cp ./kubectl $HOME/bin/kubectl && export PATH=$HOME/bin:$PATH
+echo 'export PATH=$PATH:$HOME/bin' >> ~/.zshrc
+kubectl version --short --client
+kubectl version
+```
+
+- 이후 `kubectl get svc`를 수행하면, 아래의 내용이 출력된다.
+
+```sh
+kubectl get svc
+# NAME         TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+# kubernetes   ClusterIP   172.20.0.1   <none>        443/TCP   43m
+```
+
+---
