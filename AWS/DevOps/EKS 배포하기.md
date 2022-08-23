@@ -1,32 +1,32 @@
 # EKS 배포하기
 
-- 이 글은 사이드 프로젝트로 개발하는 Spring Boot application을 EKS로 배포했던 과정을 설명합니다.
+- 이 글은 사이드 프로젝트로 개발하는 Spring Boot application을 EKS로 배포했던 과정을 설명한다.
 
-- 모든 과정은 [AWS Builders 2022 - EKS](https://awskocaptain.gitbook.io/aws-builders-eks/)를 참고해 진행되었으므로, 이 글의 과정과 매우 유사합니다.
+- 모든 과정은 [AWS Builders 2022 - EKS](https://awskocaptain.gitbook.io/aws-builders-eks/)를 참고해 진행되었으므로, 이 글의 과정과 매우 유사하다.
 
 ## (1) - 자격 증명 및 환경 설정
 
 - aws cli가 설치되어 있다는 가정 하에, AWS console에서 EKS를 사용하기 위한 권한 등을 포함한 IAM 사용자를 생성하고,  
-  로컬 터미널에서 credential을 설정합니다.
+  로컬 터미널에서 credential을 설정한다.
 
-- 저의 경우, 테스트를 위해 `AdministratorAccess` 권한을 부여했습니다.
+> 나는 테스트를 위해 `AdministratorAccess` 권한을 부여했다.
 
-- kubectl, eksctl, k9s는 환경에 맞게 설치해줍니다.
+- kubectl, eksctl, k9s는 환경에 맞게 설치해준다.
 
 ### KMS 설정
 
 - 암호화 key를 K8S에서 편리하기 사용하기 위해 손쉽게 암호화 key를 생성, 관리해주며 다양한 AWS의 서비스들과 연동할 수 있도록 하는  
-  AWS KMS를 사용하도록 합니다.
+  AWS KMS를 사용하도록 한다.
 
   ```sh
   aws kms create-alias --alias-name alias/planit-eks --target-key-id $(aws kms create-key --query KeyMetadata.Arn --output text)
   ```
 
-- AWS Console에서 KMS에 접속해 생성된 CMK(Customer-Managed Key) 정보를 확인합니다.
+- AWS Console에서 KMS에 접속해 생성된 CMK(Customer-Managed Key) 정보를 확인한다.
 
   ![picture 5](/images/AWS_DEVOPS_EKS_1.png)
 
-- 생성된 CMK의 ARN을 사용해 접근하게 되므로, 아래처럼 환경 변수로 지정해준 후 별도의 파일에 저장하도록 합니다.
+- 생성된 CMK의 ARN을 사용해 접근하게 되므로, 아래처럼 환경 변수로 지정해준 후 별도의 파일에 저장하도록 한다.
 
   ```sh
   export MASTER_ARN=$(aws kms describe-key --key-id alias/planit-eks --query KeyMetadata.Arn --output text)
@@ -39,19 +39,15 @@
 
 ![picture 6](/images/AWS_DEVOPS_EKS_2.png)
 
-- 위 사진과 같은 구성을 eksctl과 cloudformation으로 구성해볼 것이다.
+- 위 사진과 같은 구성을 eksctl과 CloudFormation으로 구성해볼 것이다.
 
-- Cloudformation이 사용하는 yml파일에는 VPC, AZ, Subnet, Routing Table등을 구성하고, eksctl로 사전에 정의된 yaml을  
+- CloudFormation이 사용하는 yml파일에는 VPC, AZ, Subnet, Routing Table등을 구성하고, eksctl로 사전에 정의된 yaml을  
   통해 public node group, 그리고 private node group을 구성한다.
 
 - 여기서 생성할 VPC에는 NAT Gateway가 3개 사용되므로 총 3개의 EIP가 사용된다.  
   기본적으로 한 계정에서 사용할 수 있는 EIP의 최대 개수는 5개 이므로 EIP가 3개 이상 여유가 있어야 배포가 가능하다.
 
-<details><summary>Cloudformation yml 파일은 아래와 같다.(EKSVPC3AZ.yml)</summary>
-
-<p>
-
-- 생성되는 리소스는 다음과 같다.
+- [eks-vpc-3az.yaml](https://gist.github.com/sang-w0o/9e189c34bb25e19896703f156f0da507)은 실행 시 아래의 리소스들을 생성한다.
 
   - VPC
   - 3개의 private subnet
@@ -62,638 +58,12 @@
   - 3개의 Private Route Table
   - ControlPlane을 위한 security group
 
-```yml
----
-AWSTemplateFormatVersion: "2010-09-09"
-Description: "Amazon EKS Sample VPC - 3 AZ, Private 3 subnets, Public 3 subnets, 1 IGW, 3 NATGateways, Public RT, 3 Private RT, Security Group for ControlPlane "
-
-Metadata:
-  AWS::CloudFormation::Interface:
-    ParameterGroups:
-      - Label:
-          default: "Worker Network Configuration"
-        Parameters:
-          - VpcBlock
-          - AvailabilityZoneA
-          - AvailabilityZoneB
-          - AvailabilityZoneC
-          - PublicSubnet01Block
-          - PublicSubnet02Block
-          - PublicSubnet03Block
-          - PrivateSubnet01Block
-          - PrivateSubnet02Block
-          - PrivateSubnet03Block
-          - TGWSubnet01Block
-          - TGWSubnet02Block
-          - TGWSubnet03Block
-
-Parameters:
-  VpcBlock:
-    Type: String
-    Default: 10.11.0.0/16
-    Description: The CIDR range for the VPC. This should be a valid private (RFC 1918) CIDR range.
-
-  AvailabilityZoneA:
-    Description: "Choose AZ1 for your VPC."
-    Type: AWS::EC2::AvailabilityZone::Name
-    Default: "ap-northeast-2a"
-
-  AvailabilityZoneB:
-    Description: "Choose AZ2 for your VPC."
-    Type: AWS::EC2::AvailabilityZone::Name
-    Default: "ap-northeast-2b"
-
-  AvailabilityZoneC:
-    Description: "Choose AZ1 for your VPC."
-    Type: AWS::EC2::AvailabilityZone::Name
-    Default: "ap-northeast-2c"
-
-  PublicSubnet01Block:
-    Type: String
-    Default: 10.11.0.0/20
-    Description: CidrBlock for public subnet 01 within the VPC
-
-  PublicSubnet02Block:
-    Type: String
-    Default: 10.11.16.0/20
-    Description: CidrBlock for public subnet 02 within the VPC
-
-  PublicSubnet03Block:
-    Type: String
-    Default: 10.11.32.0/20
-    Description: CidrBlock for public subnet 03 within the VPC
-
-  PrivateSubnet01Block:
-    Type: String
-    Default: 10.11.48.0/20
-    Description: CidrBlock for private subnet 01 within the VPC
-
-  PrivateSubnet02Block:
-    Type: String
-    Default: 10.11.64.0/20
-    Description: CidrBlock for private subnet 02 within the VPC
-
-  PrivateSubnet03Block:
-    Type: String
-    Default: 10.11.80.0/20
-    Description: CidrBlock for private subnet 03 within the VPC
-
-  TGWSubnet01Block:
-    Type: String
-    Default: 10.11.251.0/24
-    Description: CidrBlock for TGW subnet 01 within the VPC
-
-  TGWSubnet02Block:
-    Type: String
-    Default: 10.11.252.0/24
-    Description: CidrBlock for TGW subnet 02 within the VPC
-
-  TGWSubnet03Block:
-    Type: String
-    Default: 10.11.253.0/24
-    Description: CidrBlock for TGW subnet 03 within the VPC
-
-Resources:
-  #####################
-  # Create-VPC : VPC #
-  #####################
-
-  VPC:
-    Type: AWS::EC2::VPC
-    Properties:
-      CidrBlock: !Ref VpcBlock
-      EnableDnsSupport: true
-      EnableDnsHostnames: true
-      Tags:
-        - Key: Name
-          Value: !Sub "${AWS::StackName}"
-
-  ########################################################
-  # Create-InternetGateway:
-  ########################################################
-
-  InternetGateway:
-    Type: "AWS::EC2::InternetGateway"
-
-  ########################################################
-  # Attach - VPC Gateway
-  ########################################################
-
-  VPCGatewayAttachment:
-    Type: "AWS::EC2::VPCGatewayAttachment"
-    Properties:
-      InternetGatewayId: !Ref InternetGateway
-      VpcId: !Ref VPC
-
-  ########################################################
-  # Create-Public-Subnet: PublicSubnet01,02,03,04
-  ########################################################
-
-  PublicSubnet01:
-    Type: AWS::EC2::Subnet
-    Metadata:
-      Comment: Public Subnet 01
-    Properties:
-      VpcId: !Ref VPC
-      CidrBlock: !Ref PublicSubnet01Block
-      AvailabilityZone: !Ref AvailabilityZoneA
-      MapPublicIpOnLaunch: "true"
-      Tags:
-        - Key: Name
-          Value: !Sub "${AWS::StackName}-PublicSubnet01"
-        - Key: kubernetes.io/role/elb
-          Value: 1
-
-  PublicSubnet02:
-    Type: AWS::EC2::Subnet
-    Metadata:
-      Comment: Public Subnet 02
-    Properties:
-      VpcId: !Ref VPC
-      CidrBlock: !Ref PublicSubnet02Block
-      AvailabilityZone: !Ref AvailabilityZoneB
-      MapPublicIpOnLaunch: "true"
-      Tags:
-        - Key: Name
-          Value: !Sub "${AWS::StackName}-PublicSubnet02"
-        - Key: kubernetes.io/role/elb
-          Value: 1
-
-  PublicSubnet03:
-    Type: AWS::EC2::Subnet
-    Metadata:
-      Comment: Public Subnet 03
-    Properties:
-      VpcId: !Ref VPC
-      CidrBlock: !Ref PublicSubnet03Block
-      AvailabilityZone: !Ref AvailabilityZoneC
-      MapPublicIpOnLaunch: "true"
-      Tags:
-        - Key: Name
-          Value: !Sub "${AWS::StackName}-PublicSubnet03"
-        - Key: kubernetes.io/role/elb
-          Value: 1
-
-  #####################################################################
-  # Create-Public-RouteTable:
-  #####################################################################
-
-  PublicRouteTable:
-    Type: AWS::EC2::RouteTable
-    Properties:
-      VpcId: !Ref VPC
-      Tags:
-        - Key: Name
-          Value: Public Subnets
-        - Key: Network
-          Value: PublicRT
-
-  ################################################################################################
-  # Associate-Public-RouteTable: VPC_Private_Subnet_a,b Accsociate VPC_Private_RouteTable #
-  ################################################################################################
-  PublicSubnet01RouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      SubnetId: !Ref PublicSubnet01
-      RouteTableId: !Ref PublicRouteTable
-
-  PublicSubnet02RouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      SubnetId: !Ref PublicSubnet02
-      RouteTableId: !Ref PublicRouteTable
-
-  PublicSubnet03RouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      SubnetId: !Ref PublicSubnet03
-      RouteTableId: !Ref PublicRouteTable
-
-  ################################################################################################
-  # Create Public Routing Table
-  ################################################################################################
-  PublicRoute:
-    DependsOn: VPCGatewayAttachment
-    Type: AWS::EC2::Route
-    Properties:
-      RouteTableId: !Ref PublicRouteTable
-      DestinationCidrBlock: 0.0.0.0/0
-      GatewayId: !Ref InternetGateway
-
-  ################################################################################################
-  # Create-NATGateway: NATGATEWAY01,02,03
-  ################################################################################################
-  NatGateway01:
-    DependsOn:
-      - NatGatewayEIP1
-      - PublicSubnet01
-      - VPCGatewayAttachment
-    Type: AWS::EC2::NatGateway
-    Properties:
-      AllocationId: !GetAtt "NatGatewayEIP1.AllocationId"
-      SubnetId: !Ref PublicSubnet01
-      Tags:
-        - Key: Name
-          Value: !Sub "${AWS::StackName}-NatGatewayAZ1"
-
-  NatGateway02:
-    DependsOn:
-      - NatGatewayEIP2
-      - PublicSubnet02
-      - VPCGatewayAttachment
-    Type: AWS::EC2::NatGateway
-    Properties:
-      AllocationId: !GetAtt "NatGatewayEIP2.AllocationId"
-      SubnetId: !Ref PublicSubnet02
-      Tags:
-        - Key: Name
-          Value: !Sub "${AWS::StackName}-NatGatewayAZ2"
-
-  NatGateway03:
-    DependsOn:
-      - NatGatewayEIP3
-      - PublicSubnet03
-      - VPCGatewayAttachment
-    Type: AWS::EC2::NatGateway
-    Properties:
-      AllocationId: !GetAtt "NatGatewayEIP3.AllocationId"
-      SubnetId: !Ref PublicSubnet03
-      Tags:
-        - Key: Name
-          Value: !Sub "${AWS::StackName}-NatGatewayAZ3"
-
-  NatGatewayEIP1:
-    DependsOn:
-      - VPCGatewayAttachment
-    Type: "AWS::EC2::EIP"
-    Properties:
-      Domain: vpc
-
-  NatGatewayEIP2:
-    DependsOn:
-      - VPCGatewayAttachment
-    Type: "AWS::EC2::EIP"
-    Properties:
-      Domain: vpc
-
-  NatGatewayEIP3:
-    DependsOn:
-      - VPCGatewayAttachment
-    Type: "AWS::EC2::EIP"
-    Properties:
-      Domain: vpc
-
-  ########################################################
-  # Create-Security-Group : ControlPlane
-  ########################################################
-  ControlPlaneSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: Cluster communication with worker nodes
-      VpcId: !Ref VPC
-
-  ########################################################
-  # Create-Security-Group : Session Manager
-  ########################################################
-  SSMSG:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: Open-up ports for HTTP/S from All network
-      GroupName: SSMSG
-      VpcId: !Ref VPC
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          CidrIp: 0.0.0.0/0
-          FromPort: "80"
-          ToPort: "80"
-        - IpProtocol: tcp
-          CidrIp: 0.0.0.0/0
-          FromPort: "443"
-          ToPort: "443"
-      Tags:
-        - Key: Name
-          Value: !Sub "${AWS::StackName}-SSMSG"
-  ########################################################
-  # Create-Private-Subnet: PrivateSubnet01,02
-  ########################################################
-
-  PrivateSubnet01:
-    Type: AWS::EC2::Subnet
-    Metadata:
-      Comment: Private Subnet 01
-    Properties:
-      VpcId: !Ref VPC
-      CidrBlock: !Ref PrivateSubnet01Block
-      AvailabilityZone: !Ref AvailabilityZoneA
-      Tags:
-        - Key: Name
-          Value: !Sub "${AWS::StackName}-PrivateSubnet01"
-        - Key: kubernetes.io/role/internal-elb
-          Value: 1
-
-  PrivateSubnet02:
-    Type: AWS::EC2::Subnet
-    Metadata:
-      Comment: Private Subnet 02
-    Properties:
-      VpcId: !Ref VPC
-      CidrBlock: !Ref PrivateSubnet02Block
-      AvailabilityZone: !Ref AvailabilityZoneB
-      Tags:
-        - Key: Name
-          Value: !Sub "${AWS::StackName}-PrivateSubnet02"
-        - Key: kubernetes.io/role/internal-elb
-          Value: 1
-
-  PrivateSubnet03:
-    Type: AWS::EC2::Subnet
-    Metadata:
-      Comment: Private Subnet 03
-    Properties:
-      VpcId: !Ref VPC
-      CidrBlock: !Ref PrivateSubnet03Block
-      AvailabilityZone: !Ref AvailabilityZoneC
-      Tags:
-        - Key: Name
-          Value: !Sub "${AWS::StackName}-PrivateSubnet03"
-        - Key: kubernetes.io/role/internal-elb
-          Value: 1
-
-  #####################################################################
-  # Create-Private-RouteTable: PrivateRT01,02
-  #####################################################################
-  PrivateRouteTable01:
-    Type: AWS::EC2::RouteTable
-    Properties:
-      VpcId: !Ref VPC
-      Tags:
-        - Key: Name
-          Value: Private Subnet AZ1
-        - Key: Network
-          Value: PrivateRT01
-
-  PrivateRouteTable02:
-    Type: AWS::EC2::RouteTable
-    Properties:
-      VpcId: !Ref VPC
-      Tags:
-        - Key: Name
-          Value: Private Subnet AZ2
-        - Key: Network
-          Value: PrivateRT02
-
-  PrivateRouteTable03:
-    Type: AWS::EC2::RouteTable
-    Properties:
-      VpcId: !Ref VPC
-      Tags:
-        - Key: Name
-          Value: Private Subnet AZ3
-        - Key: Network
-          Value: PrivateRT03
-
-  ################################################################################################
-  # Associate-Private-RouteTable: VPC_Private_Subnet_a,b Accsociate VPC_Private_RouteTable #
-  ################################################################################################
-
-  PrivateSubnet01RouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      SubnetId: !Ref PrivateSubnet01
-      RouteTableId: !Ref PrivateRouteTable01
-
-  PrivateSubnet02RouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      SubnetId: !Ref PrivateSubnet02
-      RouteTableId: !Ref PrivateRouteTable02
-
-  PrivateSubnet03RouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      SubnetId: !Ref PrivateSubnet03
-      RouteTableId: !Ref PrivateRouteTable03
-
-  ################################################################################################
-  # Add Prviate Routing Table
-  ################################################################################################
-
-  PrivateRoute01:
-    DependsOn:
-      - VPCGatewayAttachment
-      - NatGateway01
-    Type: AWS::EC2::Route
-    Properties:
-      RouteTableId: !Ref PrivateRouteTable01
-      DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId: !Ref NatGateway01
-
-  PrivateRoute02:
-    DependsOn:
-      - VPCGatewayAttachment
-      - NatGateway02
-    Type: AWS::EC2::Route
-    Properties:
-      RouteTableId: !Ref PrivateRouteTable02
-      DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId: !Ref NatGateway02
-
-  PrivateRoute03:
-    DependsOn:
-      - VPCGatewayAttachment
-      - NatGateway03
-    Type: AWS::EC2::Route
-    Properties:
-      RouteTableId: !Ref PrivateRouteTable03
-      DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId: !Ref NatGateway03
-  ########################################################
-  # Create-TGW-Subnet: TGWSubnet01,02,03
-  ########################################################
-
-  TGWSubnet01:
-    Type: AWS::EC2::Subnet
-    Metadata:
-      Comment: TGW Subnet 01
-    Properties:
-      VpcId: !Ref VPC
-      CidrBlock: !Ref TGWSubnet01Block
-      AvailabilityZone: !Ref AvailabilityZoneA
-      Tags:
-        - Key: Name
-          Value: !Sub "${AWS::StackName}-TGWSubnet01"
-        - Key: kubernetes.io/role/internal-elb
-          Value: 1
-
-  TGWSubnet02:
-    Type: AWS::EC2::Subnet
-    Metadata:
-      Comment: TGW Subnet 02
-    Properties:
-      VpcId: !Ref VPC
-      CidrBlock: !Ref TGWSubnet02Block
-      AvailabilityZone: !Ref AvailabilityZoneB
-      Tags:
-        - Key: Name
-          Value: !Sub "${AWS::StackName}-TGWSubnet02"
-        - Key: kubernetes.io/role/internal-elb
-          Value: 1
-
-  TGWSubnet03:
-    Type: AWS::EC2::Subnet
-    Metadata:
-      Comment: TGW Subnet 03
-    Properties:
-      VpcId: !Ref VPC
-      CidrBlock: !Ref TGWSubnet03Block
-      AvailabilityZone: !Ref AvailabilityZoneC
-      Tags:
-        - Key: Name
-          Value: !Sub "${AWS::StackName}-TGWSubnet03"
-        - Key: kubernetes.io/role/internal-elb
-          Value: 1
-
-  #####################################################################
-  # Create-TGW-RouteTable: TGWRT01,02,03,04
-  #####################################################################
-  TGWRouteTable01:
-    Type: AWS::EC2::RouteTable
-    Properties:
-      VpcId: !Ref VPC
-      Tags:
-        - Key: Name
-          Value: TGW Subnet AZ1
-        - Key: Network
-          Value: TGWRT01
-
-  TGWRouteTable02:
-    Type: AWS::EC2::RouteTable
-    Properties:
-      VpcId: !Ref VPC
-      Tags:
-        - Key: Name
-          Value: TGW Subnet AZ2
-        - Key: Network
-          Value: TGWRT02
-
-  TGWRouteTable03:
-    Type: AWS::EC2::RouteTable
-    Properties:
-      VpcId: !Ref VPC
-      Tags:
-        - Key: Name
-          Value: TGW Subnet AZ3
-        - Key: Network
-          Value: TGWRT03
-
-  ################################################################################################
-  # Associate-TGW-RouteTable: VPC_TGW_Subnet_a,b Accsociate VPC_TGW_RouteTable #
-  ################################################################################################
-
-  TGWSubnet01RouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      SubnetId: !Ref TGWSubnet01
-      RouteTableId: !Ref TGWRouteTable01
-
-  TGWSubnet02RouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      SubnetId: !Ref TGWSubnet02
-      RouteTableId: !Ref TGWRouteTable02
-
-  TGWSubnet03RouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      SubnetId: !Ref TGWSubnet03
-      RouteTableId: !Ref TGWRouteTable03
-
-  ######################################################################
-  # Create-System-Manager-Endpoint: Create VPC SystemManager Endpoint #
-  ######################################################################
-
-  SSMEndpoint:
-    Type: AWS::EC2::VPCEndpoint
-    Properties:
-      VpcId: !Ref VPC
-      ServiceName: !Sub "com.amazonaws.${AWS::Region}.ssm"
-      VpcEndpointType: Interface
-      PrivateDnsEnabled: True
-      SubnetIds:
-        - Ref: PrivateSubnet01
-        - Ref: PrivateSubnet02
-        - Ref: PrivateSubnet03
-      SecurityGroupIds:
-        - Ref: SSMSG
-
-  SSMMEndpoint:
-    Type: AWS::EC2::VPCEndpoint
-    Properties:
-      VpcId: !Ref VPC
-      ServiceName: !Sub "com.amazonaws.${AWS::Region}.ssmmessages"
-      VpcEndpointType: Interface
-      PrivateDnsEnabled: True
-      SubnetIds:
-        - Ref: PrivateSubnet01
-        - Ref: PrivateSubnet02
-        - Ref: PrivateSubnet03
-      SecurityGroupIds:
-        - Ref: SSMSG
-
-Outputs:
-  VpcId:
-    Description: The VPC Id
-    Value: !Ref VPC
-
-  PublicSubnet01:
-    Description: PublicSubnet01 ID in the VPC
-    Value: !Ref PublicSubnet01
-
-  PublicSubnet02:
-    Description: PublicSubnet02 ID in the VPC
-    Value: !Ref PublicSubnet02
-
-  PublicSubnet03:
-    Description: PublicSubnet03 ID in the VPC
-    Value: !Ref PublicSubnet03
-
-  PrivateSubnet01:
-    Description: PrivateSubnet01 ID in the VPC
-    Value: !Ref PrivateSubnet01
-
-  PrivateSubnet02:
-    Description: PrivateSubnet02 ID in the VPC
-    Value: !Ref PrivateSubnet02
-
-  PrivateSubnet03:
-    Description: PrivateSubnet03 ID in the VPC
-    Value: !Ref PrivateSubnet03
-
-  SecurityGroups:
-    Description: Security group for the cluster control plane communication with worker nodes
-    Value: !Join [",", [!Ref ControlPlaneSecurityGroup]]
-
-  TGWSubnet01:
-    Description: TGWSubnet01 ID in the VPC
-    Value: !Ref TGWSubnet01
-
-  TGWSubnet02:
-    Description: TGWSubnet02 ID in the VPC
-    Value: !Ref TGWSubnet02
-
-  TGWSubnet03:
-    Description: TGWSubnet03 ID in the VPC
-    Value: !Ref TGWSubnet03
-```
-
-</p></details>
-
-- 위 파일을 사용해 CloudFormation stack을 생성해보자.
+- 아래 명령어로 실행시켜보자.
 
   ```sh
   aws cloudformation deploy \
     --stack-name "planit-eks-vpc" \
-    --template-file "EKSVPC3AZ.yml" \
+    --template-file "eks-vpc-3az.yaml" \
     --capabilities CAPABILITY_NAMED_IAM
   ```
 
@@ -792,71 +162,12 @@ echo ${MASTER_ARN}
 
   ![picture 9](/images/AWS_DEVOPS_EKS_5.png)
 
-- eksctl이 참조할 파일은 아래와 같다.
-
-<details><summary>ekscluster-3az.yml</summary>
-
-<p>
-
-```yaml
-# A simple example of ClusterConfig object:
----
-apiVersion: eksctl.io/v1alpha5
-kind: ClusterConfig
-
-metadata:
-  name: ${ekscluster_name}
-  region: ${AWS_REGION}
-  version: "${eks_version}"
-
-vpc:
-  id: ${vpc_ID}
-  subnets:
-    private:
-      PrivateSubnet01:
-        az: ${AWS_REGION}a
-        id: ${PrivateSubnet01}
-      PrivateSubnet02:
-        az: ${AWS_REGION}b
-        id: ${PrivateSubnet02}
-      PrivateSubnet03:
-        az: ${AWS_REGION}c
-        id: ${PrivateSubnet03}
-
-secretsEncryption:
-  keyARN: ${MASTER_ARN}
-
-fargateProfiles:
-  - name: fp-managed-ng-public-01
-    selectors:
-      - namespace: planit-dev
-    subnets:
-      - ${PrivateSubnet01}
-      - ${PrivateSubnet02}
-      - ${PrivateSubnet03}
-
-  - name: fp-managed-ng-private-01
-    selectors:
-      - namespace: planit-dev
-    subnets:
-      - ${PrivateSubnet01}
-      - ${PrivateSubnet02}
-      - ${PrivateSubnet03}
-
-cloudWatch:
-  clusterLogging:
-    enableTypes:
-      ["api", "audit", "authenticator", "controllerManager", "scheduler"]
-```
-
-</p></details>
-
-- 이제 eksctl을 통해 EKS cluster를 생성하자.
+- 이제 EKS에 cluster를 생성해볼 것인데, [eks-cluster-3az.yaml](https://gist.github.com/sang-w0o/e095a70170cf7e699377bde5e09f1b7b)을 사용해 생성해자.
 
 - 먼저 아래 명령을 실행한다.
 
 ```sh
-cat << EOF > ekscluster-3az.yaml
+cat << EOF > eks-cluster-3az.yaml
 # A simple example of ClusterConfig object:
 ---
 apiVersion: eksctl.io/v1alpha5
@@ -885,17 +196,10 @@ secretsEncryption:
   keyARN: ${MASTER_ARN}
 
 fargateProfiles:
-  - name: fp-managed-ng-public-01
+  - name: planit-dev-fp
     selectors:
       - namespace: planit-dev
-    subnets:
-      - ${PrivateSubnet01}
-      - ${PrivateSubnet02}
-      - ${PrivateSubnet03}
-
-  - name: fp-managed-ng-private-01
-    selectors:
-      - namespace: planit-dev
+      - namespace: kube-system
     subnets:
       - ${PrivateSubnet01}
       - ${PrivateSubnet02}
@@ -909,10 +213,19 @@ cloudWatch:
 EOF
 ```
 
-- 그리고 아래 명령어로 eks cluster를 생성한다.
+> fargateProfiles에 fargate profile을 만들어야 리소스들이 fargate 상에서 생성된다.  
+> 이때 selectors가 있는데 selectors의 조건 중 하나라도 만족시키는 리소스가 fargate에서 실행되게 된다.  
+> 위에서는 애플리케이션이 실행될 namespace인 `planit-dev`, 그리고 이후에 볼 aws-load-balancer-controller 등의 리소스가 실행될  
+> namespace인 `kube-system`을 지정해주었다. 만약 지정하지 않으면 아래와 같이 pod가 실행될 공간이 지정되어 있지 않아 실행되지 않는다.
+>
+> ```
+> ingress 0/2 nodes are available: 2 node(s) had taint {eks.amazonaws.com/compute-type: fargate}, that the pod didn't tolerate.
+> ```
+
+- 이제 아래 명령어로 eks cluster를 생성해보자.
 
 ```sh
-eksctl create cluster --config-file=ekscluster-3az.yaml
+eksctl create cluster --config-file=eks-cluster-3az.yaml
 ```
 
 ### kubectl로 연결하기
@@ -929,33 +242,164 @@ aws eks update-kubeconfig --region ap-northeast-2 --name planit-dev-eks
 
 - 그리고 kubectl 명령어를 실행해보면, 아래의 에러가 발생한다.
 
-```sh
-# kubectl get svc
-error: exec plugin: invalid apiVersion "client.authentication.k8s.io/v1alpha1"
-```
+  ```sh
+  # kubectl get svc
+  error: exec plugin: invalid apiVersion "client.authentication.k8s.io/v1alpha1"
+  ```
 
-- 심지어 `kubectl version` 명령어를 수행해도 동일한 에러가 발생한다.
+  > 심지어 `kubectl version` 명령어를 수행해도 동일한 에러가 발생한다.
 
 - 이 문제는 kubernetes의 버전과 kubectl의 버전이 불일치해서 발생하는데, 현재 우리는 kubenetes를 1.21로 가동했다.  
-  따라서 이를 지원하는 kubectl 버전 1.22로 설치해 사용하도록 하자.
+   따라서 이를 지원하는 kubectl 버전 1.22로 설치해 사용하도록 하자.
 
-> kubectl 버전과 kubernetes 버전 관련 문서는 [여기](https://docs.aws.amazon.com/eks/latest/userguide/install-kubectl.html)에서 확인할 수 있다.
+  > kubectl 버전과 kubernetes 버전 관련 문서는 [여기](https://docs.aws.amazon.com/eks/latest/userguide/install-kubectl.html)에서 확인할 수 있다.
 
-```sh
-curl -o kubectl https://s3.us-west-2.amazonaws.com/amazon-eks/1.22.6/2022-03-09/bin/darwin/amd64/kubectl
-chmod +x ./kubectl
-mkdir -p $HOME/bin && cp ./kubectl $HOME/bin/kubectl && export PATH=$HOME/bin:$PATH
-echo 'export PATH=$PATH:$HOME/bin' >> ~/.zshrc
-kubectl version --short --client
-kubectl version
-```
+  - kubectl 1.22를 설치하는 과정은 아래와 같다.
 
-- 이후 `kubectl get svc`를 수행하면, 아래의 내용이 출력된다.
+  ```sh
+  curl -o kubectl https://s3.us-west-2.amazonaws.com/amazon-eks/1.22.6/2022-03-09/bin/darwin/amd64/kubectl
+  chmod +x ./kubectl
+  mkdir -p $HOME/bin && cp ./kubectl $HOME/bin/kubectl && export PATH=$HOME/bin:$PATH
+  echo 'export PATH=$PATH:$HOME/bin' >> ~/.zshrc
+  kubectl version --short --client
+  kubectl version
+  ```
 
-```sh
-kubectl get svc
-# NAME         TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
-# kubernetes   ClusterIP   172.20.0.1   <none>        443/TCP   43m
-```
+- 올바른 kubectl 버전을 설치한 후 `kubectl get svc`를 수행하면, 아래의 내용이 출력된다.
+
+  ```sh
+  # kubectl get svc
+  NAME         TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+  kubernetes   ClusterIP   172.20.0.1   <none>        443/TCP   43m
+  ```
+
+---
+
+## (4) - 애플리케이션 배포하기
+
+- 우선 애플리케이션 관련 리소스들이 위치할 kubernetes namespace를 생성하자.  
+  위에서 fargate profile을 생성할 때 selector에 `namespace: planit-dev`를 지정했는데, 이 값에 따라 `planit-dev`라는  
+  namespace에 생성되는 리소스가 fargate로 생성되게 된다.
+
+  ```sh
+  kubectl create ns planit-dev
+  ```
+
+### AWS Load Balancer Controller add-on 설치하기
+
+> 문서: [문서](https://docs.aws.amazon.com/eks/latest/userguide/aws-load-balancer-controller.html)
+
+- ALB Load Balancer Controller는 Kubernetes cluster를 위한 AWS ELB를 관리해준다.  
+  이 controller는 아래의 기능들을 제공한다.
+
+  - Kubernetes `Ingress` 생성 시 AWS ALB 프로비저닝
+  - Kubernetes `LoadBalancer` 생성 시 AWS NLB 프로비저닝
+
+- ALB Load Balancere Controller를 생성하기 전에, OIDC provider를 먼저 연동해야 한다.
+
+- 클러스터에 OIDC ID provider(IdP)를 설정하는 것은 클러스터 내에 실행되는 Fargate pod들이 IAM을 사용해 Service Account 기능을  
+  사용하도록 하기 위함이다. 아래 명령어를 통해 클러스터에 OIDC provider를 설정해주자.
+
+  ```sh
+  eksctl utils associate-iam-oidc-provider --cluster planit-dev-eks --approve
+  ```
+
+- 결과는 아래와 같다.
+
+  ```
+  2022-08-23 16:04:39 [ℹ]  will create IAM Open ID Connect provider for cluster "planit-dev-eks" in "ap-northeast-2"
+  2022-08-23 16:04:40 [✔]  created IAM Open ID Connect provider for cluster "planit-dev-eks" in "ap-northeast-2"
+  ```
+
+- 이제 본격적으로 EKS cluster에 AWS Load Balancer Controller를 배포하기 위해 아래의 과정들을 차례로 진행해보자.
+
+  - (1) IAM Policy 생성
+
+    - 아래 명령을 실행해 IAM Policy를 생성한다.
+
+      ```sh
+      curl -o iam_policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.4.3/docs/install/iam_policy.json
+
+      aws iam create-policy \
+      --policy-name AWSLoadBalancerControllerIAMPolicy \
+      --policy-document file://iam_policy.json
+      ```
+
+  - (2) IAM Role 생성
+
+    - AWS Load Balancer Controller를 위해 `aws-load-balancer-controller`라는 service account를 `kube-system`  
+       namespace에 생성할 것이다. 아래는 eksctl을 사용해 이를 만드는 방식이다.
+
+      ```sh
+      eksctl create iamserviceaccount \
+      --cluster=my-cluster \
+      --namespace=kube-system \
+      --name=aws-load-balancer-controller \
+      --role-name "AmazonEKSLoadBalancerControllerRole" \
+      --attach-policy-arn=arn:aws:iam::111122223333:policy/AWSLoadBalancerControllerIAMPolicy \
+      --approve
+      ```
+
+  - (3) Helm V3를 사용해 AWS Load Balancer Controller를 설치한다.  
+    Fargate 상에 controller를 배포할 때는 `cert-manager`에 의존하지 않는 Helm을 사용하는 것이 간편하다.
+
+    - (a) `eks-charts` 레포지토리 추가
+
+      ```sh
+      helm repo add eks https://aws.github.io/eks-charts
+      ```
+
+    - (b) 로컬 레포지토리 갱신
+
+      ```sh
+      helm repo update
+      ```
+
+    - (c) AWS Load Balancer 설치
+
+      - `602401143452.dkr.ecr.ap-northeast-2.amazonaws.com/amazon/aws-load-balancer-controller`
+
+      ```sh
+      helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
+      -n kube-system \
+      --set clusterName=planit-dev-eks \
+      --set serviceAccount.create=false \
+      --set serviceAccount.name=aws-load-balancer-controller \
+      --set region=ap-northeast-2 \
+      --set vpcId=vpc-0e88a2ed7a32c0336 \
+      --set image.repository=602401143452.dkr.ecr.ap-northeast-2.amazonaws.com/amazon/aws-load-balancer-controller
+      ```
+
+### 애플리케이션 (진짜) 배포하기
+
+- 내가 현재 띄우고 싶은 애플리케이션은 약 20개 이상의 환경 변수를 주입받아 사용한다. 그리고 이 값들 중에는 민감한 정보도 분명히  
+  있기 때문에 configmap 대신 secret을 생성해 사용할 것이다.
+
+> Secret은 base64 encoding되어 있는 값을 value로 지정해야 하는데, 아래 명령어로 encoding된 값을 받아 사용하도록 하자.  
+> echo의 `-n` 옵션과 base64의 `-w 0` 옵션이 적용되지 않으면 기본적으로 newline이 뒤에 붙어 encoding된다.
+>
+> ```sh
+> echo -n 'encoding되기 전 원래 값' | base64 -w 0
+> ```
+
+- 가장 먼저 secret을 생성해보자. [secret.yaml](https://gist.github.com/sang-w0o/de83fabd461eec7cdc97776d7a9bdb6a)처럼 환경 변수로 주입할 key, value들을 하나씩 상황에 맞게 채워놓는다.
+
+- 이후 다음 명령어로 secret을 생성한다.
+
+  ```sh
+  kubectl apply -f secret.yaml -n planit-dev
+  ```
+
+- 다음으로는 ingress를 생성할 것인데, 이 ingre
+
+- `secret.yaml`
+- `pod.yaml`
+- `loadbalancer.yaml`
+- kubectl -n planit-dev apply -f secret.yaml
+- kubectl -n planit-dev apply -f pod.yaml
+- kubectl -n planit-dev apply -f loadbalancer.yaml
+- kubectl -n planit-dev get pods,svc
+
+### 에러 처리과정
 
 ---
