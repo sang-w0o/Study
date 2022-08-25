@@ -1,6 +1,6 @@
 # EKS 배포하기
 
-- 이 글은 사이드 프로젝트로 개발하는 Spring Boot application을 EKS로 배포했던 과정을 설명한다.
+- 이 글은 사이드 프로젝트로 개발하는 Spring Boot application을 EKS + Fargate로 배포했던 과정을 설명한다.
 
 - 모든 과정은 [AWS Builders 2022 - EKS](https://awskocaptain.gitbook.io/aws-builders-eks/)를 참고해 진행되었으므로, 이 글의 과정과 매우 유사하다.
 
@@ -357,8 +357,6 @@ aws eks update-kubeconfig --region ap-northeast-2 --name planit-dev-eks
 
     - (c) AWS Load Balancer 설치
 
-      - `602401143452.dkr.ecr.ap-northeast-2.amazonaws.com/amazon/aws-load-balancer-controller`
-
       ```sh
       helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
       -n kube-system \
@@ -371,6 +369,8 @@ aws eks update-kubeconfig --region ap-northeast-2 --name planit-dev-eks
       ```
 
 ### 애플리케이션 (진짜) 배포하기
+
+#### 1. Secret 생성하기
 
 - 내가 현재 띄우고 싶은 애플리케이션은 약 20개 이상의 환경 변수를 주입받아 사용한다. 그리고 이 값들 중에는 민감한 정보도 분명히  
   있기 때문에 configmap 대신 secret을 생성해 사용할 것이다.
@@ -390,16 +390,213 @@ aws eks update-kubeconfig --region ap-northeast-2 --name planit-dev-eks
   kubectl apply -f secret.yaml -n planit-dev
   ```
 
-- 다음으로는 ingress를 생성할 것인데, 이 ingre
+#### 2. Pod 생성하기
 
-- `secret.yaml`
-- `pod.yaml`
-- `loadbalancer.yaml`
-- kubectl -n planit-dev apply -f secret.yaml
-- kubectl -n planit-dev apply -f pod.yaml
-- kubectl -n planit-dev apply -f loadbalancer.yaml
-- kubectl -n planit-dev get pods,svc
+- 다음으로 애플리케이션이 실행될 pod를 설정해보자. 파일은 아래와 같다.
 
-### 에러 처리과정
+  ```yaml
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+  name: planit-dev
+  labels:
+    app: planit
+  namespace: planit-dev
+  spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: planit
+  template:
+    metadata:
+      labels:
+        app: planit
+    spec:
+      containers:
+        - image: robbyra98/planit-dev:lamd64
+          imagePullPolicy: Always
+          name: planit-dev
+          envFrom:
+            - secretRef:
+                name: planit-dev-secret
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+  ```
+
+- `app:planit`을 label로 지정했고, containerPort는 Spring boot가 실행되는 기본 포트 번호인 8080으로 지정했다.  
+  `kubectl apply`를 해주면, pod가 생성된다.
+
+> pod의 로그는 `kubectl -n NAMESPACE logs POD_NAME --follow`로 실시간으로 확인할 수 있다.
+> 그리고 pod의 이름은 `kubectl -n NAMESPACE get pods`로 확인할 수 있다.
+
+#### 3. Service 생성하기
+
+- 다음으로 pod들을 관리해주는 service를 생성할 것인데, Fargate를 사용할 때는 무조건 Service의 타입이 `LoadBalancer`이거나  
+  `NodePort`여야만 한다. 여기서는 `NodePort`를 사용해보도록 하자.
+
+- 사용할 yaml 파일은 아래와 같다.
+
+  ```yaml
+  apiVersion: v1
+  kind: Service
+  metadata:
+  name: planit-dev-svc
+  namespace: planit-dev
+  spec:
+  selector:
+    app: planit
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+  type: NodePort
+  ```
+
+- Service가 외부에서 받는 요청을 80번 port에서 받도록 하고, pod의 8080번 port로 요청을 전달하도록 설정했다.  
+  그리고 이전에 pod에 부여했던 label을 selector로 지정해주었다.
+
+#### 4. Ingress 생성하기
+
+- 다음으로는 ingress를 생성할 것인데, 이 ingress는 외부에서 요청을 받아 pod로 전달해주는 역할을 한다.
+
+  - [Ingress 문서](https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.4/guide/ingress/annotations/)
+
+- 바로 yaml 파일을 살펴보자.
+
+  ```yaml
+  apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+  name: planit-dev-ingress
+  namespace: planit-dev
+  annotations:
+    alb.ingress.kubernetes.io/load-balancer-name: planit-dev-lb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/subnets: subnet-07f97eaa984b5ced2, subnet-02b5356084f4355cb, subnet-0a79d22a3acf610bf
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-northeast-2:598334522273:certificate/11ad2c0b-a72a-4c65-8a5b-e0d75db6afe5
+    alb.ingress.kubernetes.io/security-groups: sg-0a18b0bdf0a324210
+    alb.ingress.kubernetes.io/healthcheck-port: "8080"
+    alb.ingress.kubernetes.io/healthcheck-path: /actuator/health
+    alb.ingress.kubernetes.io/success-codes: "200"
+  spec:
+  ingressClassName: alb
+  rules:
+    - host: dev-eks-api.planit-study.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: planit-dev-svc
+                port:
+                  number: 80
+  ```
+
+> - 각 annotation에 대한 설명은 [여기](https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.4/guide/ingress/annotations/)에서 확인할 수 있다.
+
+- 간단히 spec을 살펴보면, 나는 Route53에 record를 생성해 ALB로 연결해줄 것이기 때문에 host에는 Route53 record의 domain을 넣어주었다.
+  그리고 그 아래의 내용은 모든 path의 요청을 `planit-dev-svc`라는 이름의 service로 전달해주겠다는 의미이다.
+
+- 참고로 `alb.ingress.kubernetes.io/healthcheck-port` annotation의 경우, ALB가 수행하는 health check는 pod로 직접
+  요청을 보내기 때문에 service의 port인 80이 아니라 pod의 port인 8080으로 설정해줘야 한다.
+
+- 이전에 aws-load-balancer-controller를 설치했기 때문에, 위 파일을 apply하면 ALB가 생성된다.
+
+  ![picture 12](/images/AWS_DEVOPS_EKS_7.png)
+
+- 이 ALB는 외부의 요청을 받아 fargate pod로 전달해주기 때문에, pod와는 달리 public subnet에 위치시켜야 한다.
+  생성된 listener rule과 target group을 차례로 보자.
+
+  - ALB listener rule은 아래와 같다.
+
+    ![picture 13](/images/AWS_DEVOPS_EKS_8.png)
+
+  - 그리고 target group은 아래와 같다.
+
+    ![picture 14](/images/AWS_DEVOPS_EKS_9.png)
+
+> 참고로 처음에는 위 사진처럼 target group이 healthy하다고 나오지 않는다.
+> 대신 unhealthy(request timed out)으로 나오는데, 이는 이후에 고칠 예정이다.
+
+### 문제 및 해결 - unhealthy, 504 gateway timeout
+
+- 위에서 언급했듯이 처음 위처럼 리소스를 생성하면, 정상적으로 ALB로의 요청이(Route53 domain도 마찬가지) 정상적으로 전달되지 않고,  
+  504 gateway timeout이 발생한다. 그리고 이에 따라 ALB의 target group에 대한 health check도 실패한다.
+
+- 이 문제는 pod가 8080번 port로의 inbound 요청을 허용하도록 security group이 구성되지 않았기 때문이다.  
+  참고로 fargate는 managed node group, node group이 아닌 fargate profile로 관리하게 된다.
+
+> AWS Console에 접속해 pod를 확인해도, 해당 pod들이 붙어있는 security group을 확인할 수 없기 때문에 별 수가 없다고  
+> 생각이 들었는데, ~~개고생 및 무한한 삽질 후~~ 해결했다.
+
+### 해결 - pod에 security group 부여하기
+
+- [이 문서](https://docs.aws.amazon.com/ko_kr/eks/latest/userguide/security-groups-for-pods.html#sg-pods-example-deployment)에 나와있는 방법을 따라하면 pod에 security group을 부여할 수 있다.
+
+- 문서 내용을 요약하자면, pod에 붙힐 security group은 아래의 속성을 갖춰야만 한다.
+
+  - Cluster security group으로부터의 TCP 53 inbound 허용
+  - Cluster security group으로부터의 UDP 53 inbound 허용
+
+- 우선 위 속성을 inbound rule에 추가하고, 우리가 원하는 8080번 port으로 inbound를 허용하는 규칙을 가지는 새로운  
+  security group을 생성하자.
+
+- 그리고 아래의 yaml 파일을 생성하고, 실행하자.
+
+  ```yaml
+  apiVersion: vpcresources.k8s.aws/v1beta1
+  kind: SecurityGroupPolicy
+  metadata:
+  name: planit-dev-sgp
+  namespace: planit-dev
+  spec:
+  podSelector:
+    matchLabels:
+      app: planit
+  securityGroups:
+    groupIds:
+      - ${위에서 만든 security group의 id}
+      - ${EKS Cluster에 적용되어 있는 security group의 id}
+  ```
+
+- 위 yaml 파일은 우리가 위에서 만든 pod들(`spec.podSelector.matchLabels`로 k8s가 판단한다)에게 security group을  
+  적용하게 되는데, 주의할 점은 기존에 실행 중인 pod들에게는 영향을 끼치지 않기 때문에 기존에 실행되던 pod들을 죽이고 재생성해야 한다.
+
+- 위 yaml 파일을 적용하고 pod를 재생성하면 정상적으로 ALB의 health check도 수행되고, 요청도 전달된다.
+
+  ![picture 15](/images/AWS_DEVOPS_EKS_10.png)
+
+---
+
+### 기타
+
+- 처음 EKS cluster를 생성하고, AWS Console에서 조회하면 root로 접속하더라도 아래의 경고가 뜨며 아무런 리소스도 보이지 않는다.
+
+```
+
+Your current user or role does not have access to Kubernetes objects on this EKS cluster This may be due to the current user or role not having Kubernetes RBAC permissions to describe cluster resources or not having an entry in the cluster’s auth config map.
+
+```
+
+- 이를 해결하기 위해 아래 명령어를 수행하자.
+
+```sh
+kubectl edit configmap aws-auth -n kube-system
+```
+
+- 그리고 `mapRoles`와 같은 depth에 아래의 `mapUsers`를 추가해준다.
+
+  ```yaml
+  mapUsers: |
+  - userarn: arn:aws:iam::[account_id]:root
+    groups:
+    - system:masters
+  ```
+
+- 이후 AWS Console을 새로고침하면, 모든 리소스가 정상적으로 확인된다.
 
 ---
