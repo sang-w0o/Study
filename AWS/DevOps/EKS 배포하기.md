@@ -519,8 +519,8 @@ aws eks update-kubeconfig --region ap-northeast-2 --name planit-dev-eks
 
     ![picture 14](/images/AWS_DEVOPS_EKS_9.png)
 
-> 참고로 처음에는 위 사진처럼 target group이 healthy하다고 나오지 않는다.
-> 대신 unhealthy(request timed out)으로 나오는데, 이는 이후에 고칠 예정이다.
+> 참고로 처음에는 위 사진처럼 target group이 healthy하다고 나오지 않는다.  
+> 대신 unhealthy(request timed out)으로 나오는데, 이는 바로 뒤에서 고칠 예정이다.
 
 ### 문제 및 해결 - unhealthy, 504 gateway timeout
 
