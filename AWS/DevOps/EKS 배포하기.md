@@ -112,7 +112,7 @@ echo "export PublicSubnet03=${PublicSubnet03}" | tee -a ~/.bash_profile
 echo "export PrivateSubnet01=${PrivateSubnet01}" | tee -a ~/.bash_profile
 echo "export PrivateSubnet02=${PrivateSubnet02}" | tee -a ~/.bash_profile
 echo "export PrivateSubnet03=${PrivateSubnet03}" | tee -a ~/.bash_profile
-source ~/.zshrc
+source ~/.bash_profile
 ```
 
 - 위 명령어를 실행하면 vpc id, subnet id가 모두 환경 변수에 저정되며 `vpc_subnet.txt`에 저장된다.  
@@ -146,7 +146,6 @@ subnet-0e3c3abe52dbe07e8 10.11.80.0/20 planit-eks-vpc-PrivateSubnet03
 ```sh
 export ekscluster_name="planit-dev-eks"
 export eks_version="1.21"
-export instance_type="t3a.medium"
 echo ${AWS_REGION}
 echo ${eks_version}
 echo ${PublicSubnet01}
@@ -260,7 +259,7 @@ aws eks update-kubeconfig --region ap-northeast-2 --name planit-dev-eks
   curl -o kubectl https://s3.us-west-2.amazonaws.com/amazon-eks/1.22.6/2022-03-09/bin/darwin/amd64/kubectl
   chmod +x ./kubectl
   mkdir -p $HOME/bin && cp ./kubectl $HOME/bin/kubectl && export PATH=$HOME/bin:$PATH
-  echo 'export PATH=$PATH:$HOME/bin' >> ~/.zshrc
+  echo 'export PATH=$PATH:$HOME/bin' >> ~/.bash_profile
   kubectl version --short --client
   kubectl version
   ```
@@ -577,9 +576,7 @@ aws eks update-kubeconfig --region ap-northeast-2 --name planit-dev-eks
 - 처음 EKS cluster를 생성하고, AWS Console에서 조회하면 root로 접속하더라도 아래의 경고가 뜨며 아무런 리소스도 보이지 않는다.
 
 ```
-
 Your current user or role does not have access to Kubernetes objects on this EKS cluster This may be due to the current user or role not having Kubernetes RBAC permissions to describe cluster resources or not having an entry in the cluster’s auth config map.
-
 ```
 
 - 이를 해결하기 위해 아래 명령어를 수행하자.
