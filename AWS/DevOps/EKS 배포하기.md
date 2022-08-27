@@ -503,6 +503,11 @@ aws eks update-kubeconfig --region ap-northeast-2 --name planit-dev-eks
 - 참고로 `alb.ingress.kubernetes.io/healthcheck-port` annotation의 경우, ALB가 수행하는 health check는 pod로 직접
   요청을 보내기 때문에 service의 port인 80이 아니라 pod의 port인 8080으로 설정해줘야 한다.
 
+- 이 Ingress는 ALB를 생성하고, ALB는 외부로부터 요청을 받아 pod로 forwarding하기 때문에 `alb.ingress.kubernetes.io/scheme`를  
+  internet-facing으로 지정해주었고, `alb.ingress.kubernetes.io/subnets`에는 public subnet들의 id를 지정해줬다.
+
+- 참고로 `alb.ingress.kubernetes.io/target-type`의 경우, Fargate를 사용할 때는 항상 ip 여야만 한다.
+
 - 이전에 aws-load-balancer-controller를 설치했기 때문에, 위 파일을 apply하면 ALB가 생성된다.
 
   ![picture 12](/images/AWS_DEVOPS_EKS_7.png)
