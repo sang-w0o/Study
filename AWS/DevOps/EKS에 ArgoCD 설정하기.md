@@ -145,3 +145,37 @@ spec:
   ![picture 31](/images/AWS_DEVOPS_EKS_ARGOCD_3.png)
 
 ---
+
+## 로그인하기
+
+- 처음 ArgoCD를 생성하면 ArgoCD가 자동으로 admin username에 대해 비밀번호를 설정해 놓는다.  
+  아래 명령어로 확인할 수 있다.
+
+  ```sh
+  kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d; echo
+  ```
+
+- 이제 아래 명령어로 로그인을 수행해보자.
+
+  ```sh
+  ❯ argocd login dev-argocd.planit-study.com
+  # Username: admin
+  # Password:
+  # 'admin:login' logged in successfully
+  # Context 'dev-argocd.planit-study.com' updated
+  ```
+
+- 아래 명령어로 비밀번호를 바꿀 수 있다.
+
+  ```sh
+  argocd account update-password
+  ```
+
+> 참고로 처음 ArgoCD가 생성한 비밀번호는 `argocd-initial-admin-secret`라는 이름의 Kubernetes Secret에 저장되어 있다.  
+> 비밀번호를 갱신하고 나서는 아래 명령어로 이를 삭제해주도록 하자.
+>
+> ```sh
+> kubectl -n argocd delete secret argocd-initial-admin-secret
+> ```
+
+---
