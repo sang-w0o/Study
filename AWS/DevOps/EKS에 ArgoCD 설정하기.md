@@ -84,9 +84,9 @@ brew install argocd
     alb.ingress.kubernetes.io/load-balancer-name: argocd-alb
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
-    alb.ingress.kubernetes.io/subnets: subnet-07f97eaa984b5ced2, subnet-02b5356084f4355cb, subnet-0a79d22a3acf610bf
-    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-northeast-2:598334522273:certificate/11ad2c0b-a72a-4c65-8a5b-e0d75db6afe5
-    alb.ingress.kubernetes.io/security-groups: sg-0a18b0bdf0a324210
+    alb.ingress.kubernetes.io/subnets: ${PUBLIC_SUBNET_IDs}
+    alb.ingress.kubernetes.io/certificate-arn: ${ACM_CERTIFICATE_ARN}
+    alb.ingress.kubernetes.io/security-groups: ${ALB_SECURITY_GROUP_ID}
     alb.ingress.kubernetes.io/backend-protocol: HTTPS
     alb.ingress.kubernetes.io/conditions.argogrpc: |
       [{"field":"http-header","httpHeaderConfig":{"httpHeaderName": "Content-Type", "values":["application/grpc"]}}]
@@ -177,5 +177,25 @@ spec:
 > ```sh
 > kubectl -n argocd delete secret argocd-initial-admin-secret
 > ```
+
+---
+
+## Github repository 연동 및 애플리케이션 설정하기
+
+- Path에는 Kubernetes 리소스 파일들이 명시된 디렉토리를 나타낸다.  
+  나의 경우 [이 레포지토리](https://github.com/Example-Collection/Spring-Boot-on-EKS)를 사용했는데, `k8s/` 폴더 내에 리소스 파일들이 모두  
+  존재해서 path로 k8s를 지정했다.
+
+- ArgoCD는 애플리케이션 단위로 구성하는데, 설정 값은 아래와 같다.
+
+  ![picture 32](/images/AWS_DEVOPS_EKS_ARGOCD_4.png)
+
+- 애플리케이션에 사용되는 프로젝트의 설정 값은 아래와 같다.
+
+  ![picture 33](/images/AWS_DEVOPS_EKS_ARGOCD_5.png)
+
+- 이제 특정 Kubernetes namespace 내의 모든 리소스를 관리할 수 있다.
+
+  ![picture 34](/images/AWS_DEVOPS_EKS_ARGOCD_6.png)
 
 ---
