@@ -57,3 +57,63 @@
   ![picture 35](/images/AWS_DEVOPS_EKS_PG_1.png)
 
 ---
+
+## EC2 Node Group 생성하기
+
+- Prometheus가 실행될 EC2 worker node가 사용할 IAM role을 먼저 생성하자.  
+  나는 아래와 같은 policy를 가진 role을 생성했다.
+
+  ![picture 36](/images/AWS_DEVOPS_EKS_PG_2.png)
+
+- 이전 글에서 eksctl로 EKS cluster를 생성했으나, 파일 기반으로 기존에 존재하는 eksctl로 만들어진 EKS cluster를 변경하는 방법은 존재하지 않는다.  
+  따라서 AWS Management Console에서 EKS에 접속한 후 `Cluster 선택 -> Compute -> Add node group`으로 node group 생성 페이지로 이동하자.
+
+- `Step 1: Configure node group`은 아래와 같이 입력하고, 나머지 부분들은 기본값으로 둔다.
+
+  ![picture 37](/images/AWS_DEVOPS_EKS_PG_3.png)
+
+- `Step 2: Set compute and scaling configuration`에서 Instance type만 `m5.large`로 변경 후, 나머지는 기본값으로 둔다.
+
+- `Step 3: Specify networking`은 private subnet이 있는 기본값으로 둔다.
+
+- 마지막으로 검토 후 생성한다.
+
+- 우선 위처럼 node group을 생성하면 해당 node group의 status는 계속 `Creating`에 머물고, 실제로 `Nodes` 탭으로 가서 node 중 하나를 선택해보면  
+  아래처럼 status가 `Not ready`이며 `Taints`에 `node.kubernetes.io/not-ready:NoSchedule`, `node.kubernetes.io/unreachable:NoExecute`가 있다.
+
+  ![picture 38](/images/AWS_DEVOPS_EKS_PG_4.png)
+  ![picture 39](/images/AWS_DEVOPS_EKS_PG_5.png)
+
+- 이를 해결하기 위해 [이 문서](https://docs.aws.amazon.com/eks/latest/userguide/cni-iam-role.html)처럼 Amazon VPC CNI plugin을 설정하자.
+
+  - (1) eksctl로 Kubernetes service account에 IAM role 부여
+
+    ```sh
+    eksctl create iamserviceaccount \
+      --name aws-node \
+      --namespace kube-system \
+      --cluster $EKS_CLUSTER_NAME \
+      --role-name "AmazonEKSVPCCNIRole" \
+      --attach-policy-arn arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy \
+      --override-existing-serviceaccounts \
+      --approve
+    ```
+
+  - (2) Amazon VPC CNI 재배포
+
+    - 인증을 위한 환경 변수를 적용하기 위해 이미 존재하는 pod들을 삭제한다. 아래 명령은 `aws-node` DaemonSet pod들을 삭제하고 다시 배포한다.
+
+      ```sh
+      kubectl delete pods -n kube-system -l k8s-app=aws-node
+      ```
+
+    - 아래와 같이 응답이 오면 재배포가 잘 된 것이다.
+
+      ```sh
+      ❯ kubectl get pods -n kube-system -l k8s-app=aws-node
+      NAME             READY   STATUS    RESTARTS   AGE
+      aws-node-6szct   1/1     Running   0          4s
+      aws-node-nz5cd   1/1     Running   0          8s
+      ```
+
+---
