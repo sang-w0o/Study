@@ -191,3 +191,97 @@
   ![picture 41](/images/AWS_DEVOPS_EKS_PG_7.png)
 
 ---
+
+## Grafana 설정하기
+
+- 우선 Grafana를 위한 Kubernetes namespace를 생성해주자.
+
+  ```sh
+  kubectl create ns grafana
+  ```
+
+- 그리고 Grafana 설치를 위한 Manifest 파일을 아래처럼 작성하자.
+
+  ```yaml
+  datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        url: http://prometheus-server.prometheus.svc.cluster.local
+        access: proxy
+        isDefault: true
+  ```
+
+- 다음으로 아래 명령으로 Grafana를 설치하자.
+
+  ```sh
+  helm install grafana grafana/grafana \
+    --namespace grafana \
+    --set persistence.storageClass="gp2" \
+    --set persistence.enabled=true \
+    --set adminPassword='demoGrafana' \
+    --values grafana.yaml \
+    --set service.type=NodePort
+  ```
+
+- 이후 아래처럼 service를 보면, pod가 3000번 포트를 사용함을 알 수 있다.
+
+  ![picture 42](/images/AWS_DEVOPS_EKS_PG_8.png)
+
+- 따라서 worker node가 실행되는 EC2 console로 들어가 3000번 포트의 inbound 요청을 허용하는 security group을 연결시켜주자.
+
+- 마지막으로 외부에 Grafana를 노출시키기 위한 Kubernetes ingress를 생성하자.
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grafana-ingress
+  namespace: grafana
+  annotations:
+    alb.ingress.kubernetes.io/load-balancer-name: grafana-alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/subnets: ${PUBLIC_SUBNET_IDs}
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/certificate-arn: ${ACM_CERT_ARN}
+    alb.ingress.kubernetes.io/security-groups: ${ALB_SECURITY_GROUP_ID}
+    alb.ingress.kubernetes.io/healthcheck-port: "3000"
+    alb.ingress.kubernetes.io/healthcheck-path: /api/health
+spec:
+  ingressClassName: alb
+  rules:
+    - host: grafana-dev.planit-study.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: grafana
+                port:
+                  number: 80
+```
+
+- ALB를 Route53에 연결하면 아래처럼 접속이 정상적으로 된 모습을 확인할 수 있다.
+
+  ![picture 43](/images/AWS_DEVOPS_EKS_PG_9.png)
+
+> 참고: ALB가 동작하지 않을 때는 우선 `ALB -> Listeners -> View/edit rules`로 가서 target group으로 넘어가 이들의 health check가 성공하는지 확인한다.  
+> 만약 실패한다면 위의 ingress yaml 파일 중 `alb.ingress.kubernetes.io/target-type`을 instance로 변경 후 apply해보고, 다시 ip로 변경해 apply해보자.
+
+- username은 admin, 비밀번호는 `helm install grafana`로 생성할 때 지정한 값으로 로그인한다.
+
+- 다음으로 Dashboard를 import해볼 것인데, 아래처럼 값으로 3119를 입력하자.
+
+  ![picture 44](/images/AWS_DEVOPS_EKS_PG_10.png)
+
+- 마지막으로 하단에 있는 Prometheus data source는 prometheus(default)를 선택하자.
+
+  ![picture 45](/images/AWS_DEVOPS_EKS_PG_11.png)
+
+- 이제 아래처럼 정상적으로 Grafana가 Prometheus에서 수집해오는 metric data를 시각화하는 모습을 확인할 수 있다.
+
+  ![picture 46](/images/AWS_DEVOPS_EKS_PG_12.png)
