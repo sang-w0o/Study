@@ -56,6 +56,8 @@
 
   ![picture 35](/images/AWS_DEVOPS_EKS_PG_1.png)
 
+> 실제 aws ebs csi driver를 설치하는 과정은 뒤에서 다룬다.
+
 ---
 
 ## EC2 Node Group 생성하기
@@ -115,5 +117,77 @@
       aws-node-6szct   1/1     Running   0          4s
       aws-node-nz5cd   1/1     Running   0          8s
       ```
+
+---
+
+## Prometheus 설정하기
+
+### Helm repository 추가
+
+- 우선 Prometheus를 실행하기 위한 컴포넌트들을 helm으로 설치하자.
+
+  ```sh
+  helm repo add aws-ebs-csi-driver https://kubernetes-sigs.github.io/aws-ebs-csi-driver
+  helm repo add kube-state-metrics https://kubernetes.github.io/kube-state-metrics
+  helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+  helm repo add grafana https://grafana.github.io/helm-charts
+  helm repo update
+  ```
+
+### EBS CSI driver 설치하기
+
+- Kubernetes 애플리케이션이 stateful workload들에 EBS volume을 사용할 수 있도록 하는 EBS CSI driver를 아래 명령어로 설치하자.
+
+  ```sh
+  helm upgrade --install aws-ebs-csi-driver \
+    --version=1.2.4 \
+    --namespace kube-system \
+    --set serviceAccount.controller.create=false \
+    --set serviceAccount.snapshot.create=false \
+    --set enableVolumeScheduling=true \
+    --set enableVolumeResizing=true \
+    --set enableVolumeSnapshot=true \
+    --set serviceAccount.snapshot.name=ebs-csi-controller-irsa \
+    --set serviceAccount.controller.name=ebs-csi-controller-irsa \
+    aws-ebs-csi-driver/aws-ebs-csi-driver
+  ```
+
+### Prometheus 설치하기
+
+- 우선 Prometheus 관련 리소스들을 관리할 Kubernetes namespace를 생성하자.
+
+  ```sh
+  kubectl create ns prometheus
+  ```
+
+- Prometheus는 2개의 EBS 기반의 PV를 필요로 한다. 하나는 prometheus-server가 사용하며, 나머지 하나는 prometheus-alertmanager가 사용한다.  
+   이 EBS volume들은 AZ 단위로 동작하기 때문에 우선 cluster 내의 node가 위치한 AZ를 파악하고, 이 위치에 EBS volume을 설정해야 한다.  
+   아래 명령어로 EBS를 생성할 AZ를 환경 변수로 두자.
+
+  ```sh
+  ❯ EBS_AZ=$(kubectl get nodes -o=jsonpath="{.items[0].metadata.labels['topology\.kubernetes\.io\/zone']}")
+  ❯ echo $EBS_AZ
+  ap-northeast-2a
+  ```
+
+- 이제 아래 명령어로 Prometheus를 설치하자. 모든 pod가 실행되기까지는 수 분이 걸릴 수도 있다.
+
+  ```sh
+  helm upgrade -i prometheus prometheus-community/prometheus \
+    --namespace prometheus \
+    --set alertmanager.persistentVolume.storageClass="gp2",server.persistentVolume.storageClass="gp2"
+  ```
+
+  ![picture 40](/images/AWS_DEVOPS_EKS_PG_6.png)
+
+- 아래처럼 port forward를 수행해보자.
+
+  ```sh
+  kubectl port-forward -n prometheus deploy/prometheus-server 8081:9090 &
+  ```
+
+- 그리고 `localhost:8081/targets`로 접속했을 때 아래 화면이 보이면 성공이다.
+
+  ![picture 41](/images/AWS_DEVOPS_EKS_PG_7.png)
 
 ---
