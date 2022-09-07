@@ -182,6 +182,9 @@ spec:
 
 ## Github repository 연동 및 애플리케이션 설정하기
 
+> Private repository의 경우, username에는 github username을 명시하고 password에는 Personal Access Token을 명시하면 된다.  
+> PAT를 발급 받는 방법은 [여기](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token)에 있다.
+
 - Path에는 Kubernetes 리소스 파일들이 명시된 디렉토리를 나타낸다.  
   나의 경우 [이 레포지토리](https://github.com/Example-Collection/Spring-Boot-on-EKS)를 사용했는데, `k8s/` 폴더 내에 리소스 파일들이 모두  
   존재해서 path로 k8s를 지정했다.
