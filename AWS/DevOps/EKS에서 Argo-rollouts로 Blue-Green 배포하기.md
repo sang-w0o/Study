@@ -261,3 +261,17 @@ gh pr create -B master --title "Deploy product image(tag: $COMMIT_HASH)" --body 
   ![picture 57](/images/AWS_DEVOPS_EKS_ARGOROLLOUT_BG_6.png)
 
 ---
+
+## Dashboard 사용하기
+
+- Rollout이 배포된 namespace에 대해 아래 명령을 수행하자.
+
+```sh
+kubectl argo rollouts dashboard -n $ROLLOUT_NAMESPACE
+```
+
+- 이후 `localhost:3100`에 접속하면, 아래처럼 볼 수 있다.
+
+  ![picture 52](/images/AWS_DEVOPS_EKS_ARGOROLLOUT_BG_2.png)
+
+---
