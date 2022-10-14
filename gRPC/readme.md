@@ -10,13 +10,13 @@
   서버는 이러한 인터페이스를 구현하고 클라이언트의 요청을 처리하기 위해 gRPC 서버를 사용한다.  
   클라이언트 측에서는 stub를 사용해 서버와 동일한 메소드를 제공한다.
 
-![picture 1](../images/GRPC_OVERVIEW.png)
+![picture 1](/images/GRPC_OVERVIEW.png)
 
 - gRPC 클라이언트와 서버는 다양한 환경에서 서로 소통할 수 있다.  
   물론 gRPC가 지원하는 언어를 사용해야 한다. 예를 들어, Java로 작성된 gRPC를 Go로 작성된 클라이언트와  
   소통하게 할 수 있다.
 
-## Wroking with Protocol Buffers
+## Working with Protocol Buffers
 
 - 기본적으로 gRPC는 Protocol Buffer를 사용한다. 이는 Google에서 만든 구조화된 데이터를 직렬화하는  
   메커니즘을 가진 오픈 소스이다. 간단히 어떻게 작동하는지 보자.
