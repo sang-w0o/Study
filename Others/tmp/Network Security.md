@@ -369,4 +369,38 @@
 
   ![picture 25](../../images/TMP_NS_23.png)
 
+### 기타
+
+- Base64 encoding: text 중 ascii 영역에서 display되는 64개의 문자만을 사용해 encoding한 것.  
+  6bit씩 끊어 하나의 문자를 표현한다. 4글자씩 끊어 사용하며, padding은 `=`로 수행한다.
+
+- PEM encoding(Privacy Enhancing Mail): Base64 encoding을 사용해 인증서를 인코딩한 것.
+
+- ASN.1(Abstract Syntax Notation One)
+
+  - IDL(Interface Description Language)
+  - serializable, deserializable
+  - 통신, 암호 분야에서 많이 사용
+
+  ```asn1
+  FooProtocol DEFINITIONS ::= BEGIN
+
+    FooQuestion ::= SEQUENCE {
+  trackingNumber INTEGER,
+  question IA5String
+    }
+
+    FooAnswer ::= SEQUENCE {
+  questionNumber INTEGER,
+  answer BOOLEAN
+    }
+
+    myQuestion FooQuestion ::= {
+  trackingNumber 1234,
+  question "Anybody there?"
+    }
+  ```
+
+- DER encoding: ASN.1을 encoding할 때 주로 사용한다.
+
 ---
