@@ -146,3 +146,99 @@
 - 난수의 특성
   - 무작위성: 균등 분포, 독립성
   - 예측 불가능성
+
+---
+
+## (3)
+
+### 메시지 인증
+
+- Source authentication: 진짜 발신자로 표기된 그 사람이 보냈는가?
+- Message integritiy: 그 사람이 보낸 메시지 내용이 변조되지 않았는가?
+
+- 대칭 암호를 이용한 메시지 인증
+
+  - Source authentication
+
+    - 송수신자가 동일한 key를 **둘 사이에서만** 공유하고 있다는 전제
+    - 오직 진짜 송신자만이 수신자에게 보내는 메시지를 성공적으로 암호화할 수 있다.
+
+    ![picture 9](../../images/TMP_NS_7.png)
+
+  - Message integrity
+    - 암호문 변조 시 제대로된 복호화 불가
+    - ECB를 사용하면 1개 block만 교체할 수도 있기에 CBC mode 등을 사용해야 한다.
+      ![picture 10](../../images/TMP_NS_8.png)
+
+### MAC(Message Authentication Code) - 메시지 인증 코드
+
+- 무결성을 위해 사용
+- $MAC_m = F(K_{AB}, M)$
+
+  - $M$: 메시지
+  - $F$: 인증 코드 생성 함수
+  - $K_{AB}$: A와 B의 공유 키
+  - ![picture 11](../../images/TMP_NS_9.png)
+
+- 일방향 hash 함수
+  - hash value = $H(m)$
+    - $H()$ : hash function
+    - $m$: 메시지
+  - **key가 없으므로 source authentication, message integrity 검증 불가**
+
+#### 일방향 hash function으로 MAC 구현하기
+
+- 대칭 암호 사용
+
+  - Hash value를 암호화해 전송
+
+    ![picture 12](../../images/TMP_NS_10.png)
+
+- 공개 키 암호 사용
+
+  ![picture 13](../../images/TMP_NS_11.png)
+
+- 비밀값 사용
+
+  ![picture 14](../../images/TMP_NS_12.png)
+
+### 안전한 hash function
+
+- 안전한 hash function의 요건
+
+  - (1) 임의 크기의 데이터 블록에 적용 가능
+  - (2) 일정한 길이의 출력
+  - (3) 계산의 용이성 및 구현 가능성
+  - (4) **일방항 성질**
+    - $h$에 대해 $H(x) = h$가 성립되는 $x$를 찾아내는 것이 계산적으로 불가능해야 한다.
+    - $H()$가 일방향이 아니라면 공격자는 secret key를 찾아낼 수 있다.
+  - (5) **약한 충돌 저항성**
+    - 주어진 블록 $x$에 대해 $H(x) = H(y)$를 만족하는 $y \ne x$를 찾아 내는 것이 계산적으로 불가능해야 한다.
+    - 즉 주어진 메시지의 hash value와 동일한 hash value를 갖는 다른 메시지를 찾을 수 없어야 한다.
+  - (6) **강한 충돌 저항성**
+    - $H(x) = H(y)$를 만족하는 쌍 (x, y)를 찾는 것이 계산적으로 불가능해야 한다.
+    - 즉 동일한 hash value를 내는 서로 다른 2개의 값을 찾을 수 없어야 한다.
+    - Collision을 이용한 공격: X, Y를 찾아냈다면 일종의 서명 문서 위조 가능
+      ![picture 15](../../images/TMP_NS_13.png)
+
+- $n$ bit hash code에 대한 공격 난이도
+
+  - 일방향 성질: $2^n$
+  - 약한 충돌 저항성: $2^n$
+  - 강한 충돌 저항성: $2^{n/2}$
+
+### SHA: Secure Hash Algorithm
+
+- SHA-256: 입력은 512 bit, 출력은 256 bit
+- SHA-512: 입력은 1024 bit, 출력은 512 bit
+
+  ![picture 16](../../images/TMP_NS_14.png)
+
+### HMAC
+
+- 암호적 hash code를 이용한 MAC
+- $MAC = HMAC(Key, Message)$
+- HMAC의 특징(대칭 key 사용 MAC 대비)
+  - 빠른 속도
+  - 코드 획득의 용이성(암호적 hash function에 대한 코드를 쉽게 구현 가능)
+  - 수출 규제 X
