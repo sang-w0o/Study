@@ -703,3 +703,114 @@
 - 교차 인증(CA들끼리 인증서를 주고받는 것)
 
 ---
+
+## (7)
+
+### 네트워크 접근 통제(NAC: Network Access Control)
+
+- 사용자의 네트워크 로그인 인증 및 권한 검사
+- 사용자의 컴퓨터나 모바일 기기(종단 기기)가 안전한지 점검
+
+### 네트워크 접근 통제 시스템 구성 요소
+
+- 접근 요청자(AR: Access Requestor)
+
+  - 네트워크에 접근을 시도하는 node
+  - NAC가 관리하는 모든 장치
+
+- 정책 서버(Policy Server)
+
+  - AR의 입장과 정의된 정책에 기반해 접근 허가 여부 결정
+  - AR의 상태 확인
+
+- 네트워크 접근 서버(NAS: Network Access Server)
+
+  - 원격 사용자가 네트워크 연결 시 접근 통제 지점
+
+- AR과 NAS 간의 인증 목적
+  - ID 확인: ID에 따른 접근 제어
+  - 세션 키 교환
+
+### 네트워크 접근 통제 적용 방법
+
+- 통제(enforcement) 수단
+  - IDEE 802.1X: 어떤 port에 접근할 수 있는지
+  - VLANs(Virtual Local Area Networks): VLAN으로 세그먼트 분할 및 AR을 VLAN에 접속 허용하는 방식
+  - Firewall: 트래픽을 차단하는 방식
+  - DHCP(Dynamic Host Configuration Protocol): DHCP 할당 여부로 제어
+
+### 확장 인증 프로토콜(EAP: Extensible Authentication Protocol)
+
+- 네트워크 접근 및 인증 프로토콜의 프레임워크 역할
+- 클라이언트와 인증 서버 간의 다양한 인증 방법을 캡슐화할 수 있는 일련의 프로토콜 메시지 제공
+- Peer-to-peer link, LAN 및 기타 네트워크 및 네트워크 링크 계층 장치에서 작동
+- 다양한 링크와 네트워크에서 필요로하는 인증 기능 제공
+
+### EAP 계층 구조
+
+![picture 47](../../images/TMP_NS_45.png)
+
+### EAP 인증 수단
+
+- EAP-PWD: pw 기반
+- EAP-TLS(EAP Transport Layer Security)
+- EAP-TTLS
+- EAP-GPSK
+- EAP-IKEv2
+
+### EAP 교환
+
+- EAP 인증자를 통해 인증서버에 접근해 인증한다.
+- EAP 인증자가 접근 통제를 수행한다.
+- 그리고 peer와 EAP 인증자 사이의 메시지 구조를 정의한다.
+
+![picture 48](../../images/TMP_NS_46.png)
+
+### IEEE 802.1X 포트-기반 NAC
+
+- EAPOL: LAN 상의 EAP 기반 NAC
+- AP가 채널, 포트를 통해 통제한다.
+
+![picture 49](../../images/TMP_NS_47.png)
+
+### 클라우드 컴퓨팅의 5가지 핵심적 특성
+
+- 광범위한 네트워크 접근(broad network access)
+- 신속한 탄력성(rapid elasticity)
+- 측정된 서비스(measured service)
+- 주문형 셀프 서비스(on-demand self service)
+- 자원 풀링(resource pooling)
+
+### 클라우드 컴퓨팅의 3가지 서비스 모델
+
+- SaaS: 사용자가 제공자가 클라우드 기반 구조에서 구동되도록 올려놓은 응용 프로그램 이용
+- PaaS: 사용자는 자신이 생성했거나 프로그래밍 언어로 만든 프로그램 또는 제공자가 지원하는 도구를 클라우드 기반 구조에 배치
+- IaaS: 사용자는 저장소, 네트워크 및 기본적 컴퓨팅 자원을 사용자가 배치할 수 있는 곳에 제공하고 OS와 응용 프로그램을 포함한  
+  모든 응용 프로그램을 구동
+
+### 클라우드의 주요 보안 위협 및 대응 방안
+
+- 클라우드 컴퓨팅의 오용 및 비도덕적 활용
+- 안전하지 않은 인터페이스와 API
+- 악의적 내부자(관리)
+- 공유 기술 문제(resource pooling과 연관)
+- 데이터 손실 및 노출
+
+### 클라우드 데이터 보호
+
+- 클라우드 암호화의 4개 주체
+
+  - 데이터 소유자
+  - 사용자(시스템에 요청하는 인적 개체)
+  - 클라이언트
+  - 서버
+
+### 동형 암호
+
+- 암호화된 상태에서 연산 수행
+
+![picture 50](../../images/TMP_NS_48.png)
+
+### 클라우드 기반 보안 서비스
+
+- SecaaS(Security as a Service): 클라우드로 제공하는 보안 서비스 패키지
