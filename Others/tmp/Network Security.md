@@ -404,3 +404,174 @@
 - DER encoding: ASN.1을 encoding할 때 주로 사용한다.
 
 ---
+
+## (5)
+
+### 인증 개념
+
+- B가 A의 id에 대한 확인
+- A, B는 사람, 컴퓨터 모두 가능하다.
+- 상호 인증
+
+- 인증 단계
+
+  - 식별 단계(identification step)
+  - 검증 단계(verfication step)
+
+- 인증 방법
+
+  - 개인이 알고 있는 것: pw, pin 등
+  - 개인이 소지하고 있는 것: 스마트 카드, 물리적 키 등, 이를 모두 token이라 한다.
+  - 개인 자체: 지문, 망막 등
+  - 개인이 수행하는 것: 음성 패턴, 타이핑 리듬 등
+
+- 인증 구분
+
+  - Standalone 컴퓨터에서 인증(단말 앞에서 인증)
+
+    - 생체 인증(사진 공격 등 방지), PW 인증(cracking, guessing 방지)
+
+  - 네트워크 상의 원격 인증
+    - 네트워크 공격에 대응해야 한다.(도청, replay, 위조 변조 등)
+
+### 단순한 인증
+
+![picture 26](../../images/TMP_NS_24.png)
+
+- Standalone에서는 문제 없다.
+- Bob은 사전에 등록된 Alice의 pw를 갖고 있어야 한다(**인증은 본인 확인과 별개!!**)
+- 네트워크 인증에는 불충분 => **Replay attack 가능!**
+  - Alice, Bob 사이에 Trudy가 등장해 Bob에게 Alice의 pw를 말해 인증할 수 있다.
+
+### pw 보호
+
+- pw 대신 hash 값을 사용한다.
+  - pw 보호는 가능하지만 replay attack은 여전히 가능하다.
+
+### Challenge - Response
+
+![picture 27](../../images/TMP_NS_25.png)
+
+- Challenge로 Nonce(number once, random number)를 전달한다.
+- pw, nonce를 모두 hash해 전달한다.
+- Replay attack을 방지할 수 있다! (nonce가 매번 다르기 때문)
+
+### 대칭 키 활용 인증
+
+![picture 28](../../images/TMP_NS_26.png)
+
+- R은 nonce, $K_{AB}$는 대칭 key로 사전에 공유하고 있다.
+- Replay attack을 방지할 수 있다!
+
+### 상호 인증 - 서로를 인증한다.
+
+![picture 29](../../images/TMP_NS_27.png)
+
+- 위처럼 하면 Alice는 Bob을 인증할 수 있지만 Bob은 Alice를 인증할 수 없다.
+- 3번 과정은 replay일 수 있지만 의미가 없다.
+
+![picture 30](../../images/TMP_NS_28.png)
+
+- 이렇게 하면 Replay attack은 불가능하지만 아래와 같이 공격이 가능하다.
+
+![picture 31](../../images/TMP_NS_29.png)
+
+- 즉 Trudy(제3자)가 마치 Alice인 것처럼 Bob에게 인증을 받을 수 있다.  
+  아래처럼 누가 encryption을 진행했는지를 넣어 encryption을 진행하면 위 공격을 막을 수 있다.
+
+  ![picture 32](../../images/TMP_NS_30.png)
+
+### 공개 키 notation
+
+- Alice의 public key로 암호화: $\{M\}_Alice$
+- Alice의 private key로 암호화: $[M]_Alice$
+
+### 공개 키 활용 인증
+
+![picture 33](../../images/TMP_NS_31.png)
+
+- 위 인증 방법은 아래와 같은 공격 때문에 안전하지 않다.
+
+![picture 34](../../images/TMP_NS_32.png)
+
+- Trudy(제 3자)는 이 프로토콜을 사용해 Alice에게 무엇이든 decrypt 시킬 수 있다.
+
+  - 이전에 도청한 메시지 M도 마찬가지이다.
+  - 따라서 **message encryption을 위한 키 쌍과 인증을 위한 키 쌍을 별개로 사용해야 한다.**
+
+### 공개 키 인증 프로토콜
+
+![picture 35](../../images/TMP_NS_33.png)
+
+- 여전히 Trudy는 Alice에게 무엇이든 sign하게 할 수 있다.  
+  **인증과 전자 서명에 다른 키 쌍을 사용해야 한다.**
+
+### 공개 키 인증
+
+![picture 36](../../images/TMP_NS_34.png)
+
+- 암호화와 인증에 동일한 키 쌍을 사용하면 서명에 의해 메시지가 decrypt될 가능성이 있다.  
+  따라서 **공개 키 메커니즘은 용도 별로 다른 키 쌍을 사용해야 한다.**
+
+### 세션 키
+
+- 해당 세션의 암호화, 인증에 사용한다.
+
+  - 보통 대칭 키가 세션 키로 사용되며 암호화, MAC에 사용된다.
+  - 보통 인증 과정에 세션 키를 교환하게 된다.
+
+### 인증과 세션 키 교환
+
+![picture 37](../../images/TMP_NS_35.png)
+
+- 안전하지만(key 노출 X), 상호 인증은 불가하다. 즉 Bob은 Alice를 인증할 수 있지만 Alice는 Bob을 인증할 수 없다.
+
+![picture 38](../../images/TMP_NS_36.png)
+
+- 이렇게 서명을 사용하면 상호 인증은 가능하지만 key가 노출된다.  
+  $[R, K]_{Bob}$을 $\{K\}_{Bob}$으로 복호화할 수 있기 때문이다. $[R+1, K]_{Alice}$도 마찬가지이다.
+
+- 이를 해결하기 위해 **암호화와 서명을 같이 사용**한다.  
+  즉 서명을 암호화한다.
+
+  ![picture 39](../../images/TMP_NS_37.png)
+
+- 이렇게 하면 상호 인증과 key 노출을 모두 해결할 수 있다.
+- K를 Alice가 Bob에게 다시 보내는 이유는 Bob이 Alice가 K를 풀 수 있음을 검증하기 위함이다.
+
+### PES(Perfect Forward Secrecy)
+
+- 문제 시나리오
+
+  - Alice가 $K_{AB}$로 암호화한 암호문을 Bob에게 전송
+  - Trudy가 암호문을 sniffing해 저장
+  - 추후 Alice나 Bob의 컴퓨터가 해킹되어 $K_{AB}$가 노출되면 Trudy는 이전에 저장한 암호문을 복호화할 수 있다.
+
+- PES: Key가 노출되어도 암호문의 복호화가 불가능해지는 보안성  
+  즉 Trudy가 $K_{AB}$를 알아도 이전에 저장한 암호문을 복호화할 수 없다.
+
+- PES를 위해서는 $K_{AB}$를 암호화에 사용하면 안된다.  
+  대신 세션 키 $K_S$를 사용해 암호화한 후 이를 완벽히 지워야 한다.  
+  그렇다면 이 세션 키 $K_S$는 어떻게 교환할까?
+
+### Naive Session Key Protocol
+
+![picture 40](../../images/TMP_NS_38.png)
+
+- 이렇게 하면 Trudy가 $E(K_{AB}, K_S)$를 sniffing해 저장하고 이후 $K_{AB}$가 노출되면 $K_S$를 알 수 있다.
+
+- 이렇게 하지 말고 아래처럼 Diffie-Hellman을 사용해보자.
+
+  - 세션 키 $K_S = g^{ab} \mod p$
+  - $K_S$ 생성 후 Alice는 a 삭제, Bob은 b 삭제
+  - Alice, Bob도 $K_S$를 이후에 복구할 수 없다.
+
+  ![picture 41](../../images/TMP_NS_39.png)
+
+- 그렇다면 MITM(Man in the Middle) 공격은 어떻게 막을 수 있을까?
+
+![picture 42](../../images/TMP_NS_40.png)
+
+- 위처럼 하면 상호 인증도 가능하고 a, b는 세션 키 생성 후 바로 지우기 때문에 세션 키를 복구할 수 없다.
+
+---
