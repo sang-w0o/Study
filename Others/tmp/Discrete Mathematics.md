@@ -448,3 +448,70 @@
 - 보수 법칙: $A \cup A^c = U, A \cap A^c = \emptyset$
 
 ---
+
+## 2.3 함수(function)
+
+- 정의: 집합 A에서 집합 B로의 함수 f는 A의 각 원소에 B의 원소를 **단 하나만** 대응시키는 대응 규칙이다.  
+  $f: A \rightarrow B$로 표현한다.
+
+- 함수 $f: A \rightarrow B$에서:
+
+  - A: f의 정의역(domain)
+  - B: f의 공역(codomain)
+  - 만약 $f(a) = b$이면:
+    - b: a의 상(image)
+    - a: b의 원상(preimage)
+  - f의 치역(range): A의 원소에 대응되는 모든 상들의 집합, $f(A)$로 표기한다.
+
+### 단사 함수(일대일 함수, one-to-one)
+
+- 정의: f의 정의역에 속한 모든 a, b에 대해 $f(a) = f(b)$이면 $a = b$일 때 f를 단사함수라 한다.
+
+  - $\forall a \forall b(f(a) = f(b) \rightarrow a = b)$
+
+### 전사 함수(onto)
+
+- 공역 B의 임의의 원소 b에 대해 $f(a) = b$인 원소 a가 A에 존재할 경우 f를 전사함수라 한다.
+
+  - $\forall y \exists x (f(x) = y)$
+  - 치역과 공역이 같은 함수!!
+
+### 전단사 함수(bijections, one-to-one correspondence, 일대일 대응 함수)
+
+- 정의: 단사함수 이면서 전사함수인 함수
+
+### 함수 f가 단사 또는 전사임을 보이는 방법
+
+![picture 52](../../images/TMP_DM_2.png)
+
+### 역함수(inverse)
+
+- f가 A에서 B로의 전단사함수라고 하면 f의 역함수는 B의 원소 b에서 A의 원소 a를 대응시키는 함수이다.  
+  $f(a) = b$인 f의 역함수는 $f^{-1}(b) = a$로 표기한다.
+
+- 역함수는 전단사함수에 대해서만 존재한다!!
+
+### 합성함수(composition)
+
+- $f: B \rightarrow C, g: A \rightarrow B$에 대해 f와 g의 합성함수는 아래와 같다.
+
+  - $f \circ g = f \circ g(x) = f(g(x))$
+
+  - ex) $f: R \rightarrow R, g: R \rightarrow R$에서 $f(x) = 2x + 1, g(x) = x^2$일 때  
+    $(g \circ f)(x)와 (f \circ g)(x)$를 구하고 이 둘이 같은지 판별해라.
+    - 답: $(g \circ f)(x) = g(f(x)) = g(2x + 1) = (2x + 1)^2$  
+      $(f \circ g)(x) = f(g(x)) = f(x^2) = 2x^2 + 1$  
+      따라서 두 값은 다르다.
+
+### 중요한 함수들
+
+- 바닥 함수(floor function): x와 같거나 작은 수 중에서 x와 가장 가까운 정수를 대응시키는 함수. $f(x) = \lfloor x \rfloor$로 표기한다.
+- 천정 함수(ceiling function): x와 같거나 큰 수 중에서 x와 가장 가까운 정수를 대응시키는 함수. $f(x) = \lceil x \rceil$로 표기한다.
+
+  - ex) $\lceil 3.5 \rceil = 4$, $\lfloor 3.5 \rfloor = 3$, $\lceil -1.5 \rceil = -1$, $\lfloor -1.5 \rfloor = -2$
+
+  ![picture 53](../../images/TMP_DM_3.png)
+
+- 계승 함수(factorial function): $f(n) = n!, f(0) = 1$
+
+---
