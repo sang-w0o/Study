@@ -258,3 +258,50 @@
   - $(p \land q) \rightarrow (p \lor q)$ = $\lnot(p \land q) \lor (p \lor q)$ = $(\lnot p \lor \lnot q) \lor (p \lor q)$ = $(\lnot p \lor p) \lor (\lnot q \lor q)$ = $T \lor T$ = $T$
 
 ---
+
+### 1.4 술어와 한정 기호
+
+- 명제 함수(propositional functions)
+
+  - 명제 함수는 정의역(domain)에서 변수 x에 특정 값이 할당되면 $P(x)$는 명제가 되고 T, F를 판정할 수 있게 된다.
+    - ex) $P(x)$가 "X \> 3"을 나타내는 명제 함수라고 하면 $P(2)$는 F, $P(5)$는 T가 된다.
+    - ex) $R(x, y, z)$가 "x + y = z"를 나타내는 명제 함수라고 하면 $R(1, 2, 3)$은 T, $R(0, 0, 1)$은 F가 된다.
+
+- 전칭 한정기호(universal quantifier)
+
+  - $P(x)$의 전칭 한정이란 "정의역에 속하는 x의 모든 값에 대해 $P(x)$이다"라는 뜻이고 $\forall x P(x)$로 표기하며  
+    "For all $x, P(x)$" 또는 "For every $x, P(x)$"라고 읽는다.
+    - ex) $P(x)$가 "x + 1 \> x"라 하면 $\forall x P(x)$는 T이다.
+    - ex) $Q(x)$가 "x \< 2"라 하고 정의역이 모든 실수라면 $\forall x Q(x)$는 F이다. (반례: x = 3)
+    - ex) 정의역이 모든 실수일 때 $\forall x (x^2 \ge x)$의 진리값은 F이다.(반례: x = 0.5)
+    - ex) 정의역이 모든 정수일 때 $\forall x (x^2 \ge x)$의 진리값은 T이다.
+
+- 존재 한정기호(existential quantifier)
+
+  - $P(x)$의 존재 한정이란 "정의역에 속하는 적어도 하나의 x에 대해 $P(x)$이다."라는 뜻이고 $\exists x P(x)$로 표기하며  
+    "There exists $x$ such that $P(x)$"라고 읽는다.
+    - ex) $P(x)$가 "x \> 3"라 하면 $\exists x P(x)$는 T이다.
+    - ex) $Q(x)$가 "x = x + 1"라 하고 정의역이 모든 실수라면 $\exists x Q(x)$는 F이다.
+    - ex) 정의역이 모든 실수일 때 $\exists x (x^2 \gt 10)$의 진리값은 T이다.(ex. x = 4)
+
+- 유일 한정기호
+
+  - $\exists! x P(x)$로 표기하며 "There exists a unique $x$ such that $P(x)$ is true."라고 읽는다.
+    - ex) 정의역이 실수 집합인 경우 $\exists! x ((x-1)^2 \le 0)$은 T이다. (ex. x = 1)
+
+### 한정기호에 대한 드 모르간의 법칙(중요!)
+
+- $\lnot \forall x P(x) \equiv \exists x \lnot P(x)$
+  - "모든 x에 대해 성립하지 않는 것 == 어떤 x에 대해 성립하지 않는 것"
+- $\lnot \exists x P(x) \equiv \forall x \lnot P(x)$
+
+  - "어떤 x에 대해 성립하지 않는 것 == 모든 x에 대해 성립하지 않는 것"
+
+- 한정기호에 대한 드 모르간의 법칙: `부정-부정-부정-P(x)`
+
+  - $\exists x$의 부정 = $\forall x$, $\forall x$의 부정 = $\exists x$
+
+- ex) $\forall x (x^2 \gt x)$의 부정 = $\exists x (x^2 \le x)$
+- ex) $\exists x (x^2 = 2)$의 부정 = $\forall x (x^2 \ne 2)$
+
+---
