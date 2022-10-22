@@ -1,6 +1,6 @@
 # Discrete Mathematics
 
-## (1)
+## 1.1 명제 논리
 
 ### 명제(proposition)
 
@@ -156,5 +156,31 @@
   | T   | F   | F         | T         | F                 | T                             | T                 |
   | F   | T   | T         | F         | T                 | F                             | F                 |
   | F   | F   | T         | T         | T                 | T                             | T                 |
+
+---
+
+## 1.2 명제 논리의 응용
+
+### 문장을 논리로 변환하기
+
+- 문장을 논리 표현으로 바꾸는 과정:
+
+  - 복잡한 문장을 기본 문장들로 나누고, 명제 변수로 적절하게 표현한다.
+  - 그리고 적절한 논리 연산자를 사용해 결합한다.
+
+  - ex) "If I go to Harry's or to the country, I will not go shopping."
+
+    - $p$: I go to Harry's.
+    - $q$: I go to the country.
+    - $r$: I go shopping.
+    - 논리 표현: $(p \lor q) \rightarrow \lnot r$
+
+  - ex) "You can access the internet from campus only if you are a computer science major or you are not a freshman."
+    - $p$: You can access the internet from campus.
+    - $q$: You are a computer science major.
+    - $r$ : You are a freshman.
+    - 논리 표현: $p \rightarrow (q \lor \lnot r)$
+
+---
 
 ---
