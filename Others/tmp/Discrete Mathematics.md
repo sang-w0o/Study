@@ -94,7 +94,7 @@
 
 ### 역(converse), 이(inverse), 대우(contrapositive)
 
-- $p$ \rightarrow q$에서 아래의 조건문을 만들어낼 수 있다.
+- $p \rightarrow q$에서 아래의 조건문을 만들어낼 수 있다.
 
   - $q \rightarrow p$ (역): is the **converse** of $p \rightarrow q$.
   - $\lnot p \rightarrow \lnot q$ (이): is the **inverse** of $p \rightarrow q$.
@@ -182,5 +182,79 @@
     - 논리 표현: $p \rightarrow (q \lor \lnot r)$
 
 ---
+
+## 1.3 명제의 동치(propositional equivalences)
+
+### 항진명제, 모순, 불확정명제
+
+- 항진명제(tautology): 항상 T인 명제
+  - ex) $p \lor \lnot p$
+- 모순(contradiction): 항상 F인 명제
+  - ex) $p \land \lnot p$
+- 불확정 명제(contingency): T 또는 F인 명제
+
+  | $p$ | $\lnot p$ | $p \lor \lnot p$ | $p \land \lnot p$ |
+  | --- | --------- | ---------------- | ----------------- |
+  | T   | F         | T                | F                 |
+  | F   | T         | T                | F                 |
+
+### 논리적 동치(logically equivalent)
+
+- 두 복합명제 $p, q$에 대해 $p \leftrightarrow q$가 항진 명제이면,  
+  $p$와 $q$는 **논리적 동치** 이며 $p \equiv q$로 표기한다.
+
+- 두 명제가 동치임을 판정하는 방법 중 하나는 **진리표**를 이용하는 것이다.  
+  아래의 진리표로 $\lnot p \lor q$와 $p \rightarrow q$가 동치임을 보여보자.
+
+  | $p$ | $q$ | $\lnot p$ | $\lnot p \lor q$ | $p \rightarrow q$ |
+  | --- | --- | --------- | ---------------- | ----------------- |
+  | T   | T   | F         | T                | T                 |
+  | T   | F   | F         | F                | F                 |
+  | F   | T   | T         | T                | T                 |
+  | F   | F   | T         | T                | T                 |
+
+### 드 모르간의 법칙
+
+- $\lnot(p \land q) \equiv \lnot p \lor \lnot q$
+- $\lnot(p \lor q) \equiv \lnot p \land \lnot q$
+
+  | $p$ | $q$ | $\lnot p$ | $\lnot q$ | $p \lor q$ | $\lnot(p \lor q)$ | $\lnot p \land \lnot q$ |
+  | --- | --- | --------- | --------- | ---------- | ----------------- | ----------------------- |
+  | T   | T   | F         | F         | T          | F                 | F                       |
+  | T   | F   | F         | T         | T          | F                 | F                       |
+  | F   | T   | T         | F         | T          | F                 | F                       |
+  | F   | F   | T         | T         | F          | T                 | T                       |
+
+### 논리적 동치
+
+- Identity laws: $p \land T \equiv p$, $p \lor F \equiv p$
+- Domination laws: $p \lor T \equiv T$, $p \land F \equiv F$
+- Double negation law: $\lnot(\lnot p) \equiv p$
+- Negation laws: $p \lor \lnot p \equiv T$, $p \land \lnot p \equiv F$
+
+- Commutative laws(교환): $p \land q \equiv q \land p$, $p \lor q \equiv q \lor p$
+- Associative laws(결합): $(p \land q) \land r \equiv p \land (q \land r)$, $(p \lor q) \lor r \equiv p \lor (q \lor r)$
+- Distributive laws(분배): $p \land (q \lor r) \equiv (p \land q) \lor (p \land r)$, $p \lor (q \land r) \equiv (p \lor q) \land (p \lor r)$
+- Absorption laws(흡수): $p \land (p \lor q) \equiv p$, $p \lor (p \land q) \equiv p$
+
+### 조건문을 포함한 논리적 동치(중요!)
+
+- $p \rightarrow q \equiv \lnot p \lor q$
+- $p \rightarrow q \equiv \lnot q \rightarrow \lnot p$
+- $p \leftrightarrow q \equiv (p \rightarrow q) \land (q \rightarrow p)$
+
+### 새로운 논리적 동치 만들기
+
+- ex) $\lnot(p \rightarrow q) \equiv p \land \lnot q$ 임을 보여라!
+
+  - $\lnot(p \rightarrow q)$ = $\lnot(\lnot p \lor q)$ = 드모르간 = $\lnot(\lnot p) \land \lnot q$ = $p \land \lnot q$
+
+- ex) $\lnot(p \lor (\lnot p \land q))$ 와 $\lnot p \land \lnot q$와 논리적 동치임을 보여라!
+
+  - $\lnot(p \lor (\lnot p \land q))$ = $\lnot((p \lor \lnot p) \land (p \lor q))$ = $\lnot(T \land (p \lor q))$ = $\lnot(p \lor q)$ = $\lnot p \land \lnot q$
+
+- ex) $(p \land q) \rightarrow (p \lor q)$ 가 tautology(항진 명제)임을 보여라.
+
+  - $(p \land q) \rightarrow (p \lor q)$ = $\lnot(p \land q) \lor (p \lor q)$ = $(\lnot p \lor \lnot q) \lor (p \lor q)$ = $(\lnot p \lor p) \lor (\lnot q \lor q)$ = $T \lor T$ = $T$
 
 ---
