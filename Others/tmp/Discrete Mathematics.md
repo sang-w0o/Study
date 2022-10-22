@@ -579,3 +579,46 @@
     만약 $f(x) = \frac{x}{1-x^2}$ 이면 $f: (-1, 1) \rightarrow \mathbb{R}$이고 일대일 함수이므로 이 둘의 개수는 동일하다.
 
 ---
+
+## 2.6 행렬
+
+- 행렬(matrix): A rectangular array of numbers.  
+  A matrix with _m_ rows and _n_ columns is called an _m_ x _n_ matrix.
+
+- 두 행렬은 모든 원소 각각의 위치와 행, 열의 값이 동일하면 같다.
+
+![picture 54](../../images/TMP_DM_4.png)
+
+### 행렬의 덧셈
+
+- 행렬의 덧셈은 크기가 동일한 행렬 끼리만 가능하다.
+- 두 행렬 A, B에 대해 $A + B = [a_{ij} + b_{ij}]$
+  ![picture 55](../../images/TMP_DM_5.png)
+
+### 행렬의 곱
+
+- A가 m x n 행렬이고 B가 n x p 행렬이면 AB는 m x p 행렬이다.
+  ![picture 56](../../images/TMP_DM_6.png)
+  ![picture 57](../../images/TMP_DM_7.png)
+
+- 행렬의 곱은 교환 법칙이 성립하지 않는다.
+
+### 항등 행렬(identity matrix)
+
+- $I_n$: n x n 행렬 중에서 대각선 원소가 1이고 나머지 원소가 0인 행렬
+- (어떠한 n x n 행렬) \* $I_n$ = (어떠한 n x n 행렬)
+
+### 행렬의 거듭 제곱(powers of matrices)
+
+- A가 n x n matrix일 때 $A^0 = I_n$ 이고 $A^r$ = $A \cdot A \cdot \cdots \cdot A$ (r번 곱함)
+
+### 전치 행렬(transpose matrix)
+
+- A가 m x n 행렬일 때 A의 전치 행렬 $A^t$는 n x m 행렬이되며 A의 각 원소의 행, 열을 바꿔치기한 행렬이다.
+
+![picture 58](../../images/TMP_DM_8.png)
+
+### 대칭 행렬(symmetric matrix)
+
+- n x n 행렬 A에 대해 $A = A^t$인 행렬을 대칭 행렬이라고 한다.
+  - ex) $A = \begin{bmatrix} 1 & 2 & 3 \\ 2 & 4 & 5 \\ 3 & 5 & 6 \end{bmatrix}$
