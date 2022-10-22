@@ -622,3 +622,75 @@
 
 - n x n 행렬 A에 대해 $A = A^t$인 행렬을 대칭 행렬이라고 한다.
   - ex) $A = \begin{bmatrix} 1 & 2 & 3 \\ 2 & 4 & 5 \\ 3 & 5 & 6 \end{bmatrix}$
+
+---
+
+## 4.1 가분성과 나머지 산술
+
+- 나눗셈(division): $a \ne 0$인 두 정수 a, b가 있을 때 $b = ac$인 정수 c가 존재하면 _a divides b_.
+
+  - $a$ is a factor or a divisor of $b$.
+  - $b$ is a multiple of $a$.
+  - 표기: $a | b$ (a가 b를 나눈다)
+  - b가 a로 나눠지지 않는 경우: $a \nmid b$
+
+- 나눗셈의 속성들: $a \ne 0$인 3개 정수 $a, b, c$에 대해:
+
+  - $a | b$이고 $a | c$이면 $a | (b + c)$
+    - b = am, c = an => b + c = am + an = a(m + n)
+  - $a | b$이면 모든 c에 대해 $a | (bc)$
+  - $a | b$이고 $b | c$이면 $a | c$
+
+### Division algorithm
+
+- $a$가 정수이고 $d$가 양의 정수일 때 $a = dq + r$을 만족시키는 unique한 두 정수 $q, r$이 존재한다. ($0 \le r \lt d$)
+
+  - $d$: divisor(약수)
+  - $a$: dividend(나뉠 수)
+  - $q$: quotient(몫)
+  - $r$: remainder(나머지)
+  - q = a div d (몫), r = a mod d (나머지)
+
+  - ex) -11을 3으로 나눌 때의 quotient, remainder는? => quotient: -4, remainder: 1
+
+### 합동식(congruence relation)
+
+- 두 정수 a, b와 양의 정수 m에 대해 m이 (a-b)로 나눠지면 **a is congruent to b modulo m**이라고 한다.
+
+  - 표기: $a \equiv b \pmod{m}$
+  - m으로 나누었을 때 나머지가 같은 두 수는 합동이다.
+  - a, b가 합동이 아닌 경우 $a \not\equiv b \pmod{m}$ 로 표기한다.
+  - ex) Is 17 congruent to 5 modulo 6? => YES
+  - ex) Are 24 and 14 congruent modulo 6? => NO
+
+- $a \equiv b \pmod{m}$이면 $a = b + km$인 정수 k가 존재한다.
+
+### (mod m)과 mod m의 관계
+
+- $a \equiv b \pmod{m}$은 "a와 b가 m으로 나눈 나머지가 같다는 관계" 를 나타낸다.
+- a mod m = b 에서 mod는 "a를 b로 나눈 나머지를 뜻하는 함수" 이다.
+
+### 합동식의 속성
+
+- $a \equiv b \pmod{m}$이고 $c \equiv d \pmod{m}$이면 $a + c \equiv b + d \pmod{m}$이다.
+- $a \equiv b \pmod{m}$이고 $c \equiv d \pmod{m}$이면 $ac \equiv bd \pmod{m}$이다.
+- (a+b)(mod m) = ((a mod m) + (b mod m)) mod m
+- ab mod m = ((a mod m) \* (b mod m)) mod m
+- $a + {_m}b = (a + b)$ mod m
+  - ex) $7 + {_{11}}9$ = (7+9)mod11 = 5
+- $a \cdot {_m}b = (a \cdot b)$ mod m
+
+  - ex) $7 \cdot {_{11}}9$ = (7\*9)mod11 = 8
+
+- 연습문제(4.1.39)
+
+  - $(99^2 mod 32)^3 mod 15$
+    - 답: 9
+  - $(3^4 mod 17)^2 mod 11$
+    - 답: 4
+  - $(19^3 mod 23)^2 mod 31$
+    - 답: 25
+  - $(89^3 mod 79)^4 mod 26$
+    - 답: 0
+
+---
