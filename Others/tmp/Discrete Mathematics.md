@@ -413,3 +413,38 @@
   - ex) A = {a, b}, B = {1, 2, 3}일 때 $A \times B$ = {(a, 1), (a, 2), (a, 3), (b, 1), (b, 2), (b, 3)}
   - ex) A = {0, 1}, B = {1, 2}, C = {0, 1, 2}일 때 $A \times B \times C$는?  
     $A \times B \times C$ = {(0, 1, 0), (0, 1, 1), (0, 1, 2), (0, 2, 0), (0, 2, 1), (0, 2, 2), (1, 1, 0), (1, 1, 1), (1, 1, 2), (1, 2, 0), (1, 2, 1), (1, 2, 2)}
+
+---
+
+## 집합의 연산(set operations)
+
+- 합집합(union): 두 집합 A, B에 모두 속하거나 둘 중 어느 한 곳에 속하는 원소들의 모임. $A \cup B$로 표기한다.
+- 교집합(intersection): 두 집합 A와 B 모두에 속하는 원소들의 모임. $A \cap B$로 표기한다.
+- 여집합: 전체집합 U의 부분집합 A에 대해 $x \subseteq U$이고 $x \not\subseteq A$인 원소들의 모임. $A^c$로 표기한다.
+- 차집합(difference): A, B에 대해 A에는 속하지만 B에는 속하지 않는 원소들의 모임.
+  - $A - B = \{x | x \subseteq A \land x \not\subseteq B\}$
+  - $A - B = A \cap B^c$
+
+### 합집합의 원소의 개수
+
+- 집합 A, B가 모두 유한집합이면 $|A \cup B| = |A| + |B| - |A \cap B|$
+
+### 대칭 차집합(symmetric difference)
+
+- A, B에 대해 $A \oplus B = (A - B) \cup (B - A)$
+  ![picture 51](../../images/TMP_DM_1.png)
+
+### 집합의 항등
+
+- 항등 법칙: $A \cup \emptyset = A, A \cap U = A$
+- 지배 법칙: $A \cup U = U, A \cap \emptyset = \emptyset$
+- 멱등 법칙: $A \cup A = A, A \cap A = A$
+- 보원 법칙: $(A^c)^c = A$
+- 교환 법칙: $A \cup B = B \cup A, A \cap B = B \cap A$
+- 결합 법칙: $A \cup (B \cup C) = (A \cup B) \cup C, A \cap (B \cap C) = (A \cap B) \cap C$
+- 분배 법칙: $A \cup (B \cap C) = (A \cup B) \cap (A \cup C), A \cap (B \cup C) = (A \cap B) \cup (A \cap C)$
+- 드 모르간 법칙: $(A \cup B)^c = A^c \cap B^c, (A \cap B)^c = A^c \cup B^c$
+- 흡수 법칙: $A \cup (A \cap B) = A, A \cap (A \cup B) = A$
+- 보수 법칙: $A \cup A^c = U, A \cap A^c = \emptyset$
+
+---
