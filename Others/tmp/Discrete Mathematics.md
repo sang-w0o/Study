@@ -817,3 +817,68 @@
     ![picture 63](../../images/TMP_DM_13.png)
 
 ---
+
+## 4.4 합동 풀기(solving congruences)
+
+### 선형 합동(linear congruence)
+
+- 양의 정수 m, 정수 a, b, 그리고 변수 x에 대해 $ax \equiv b \pmod m$ 형태의 합동을 선형 합동이라고 한다.
+
+- $ax \equiv b \pmod m$을 만족하는 모든 정수 x를 해(solution)라 한다.
+
+### modulo m의 역(inverse of a module m)
+
+- $ax \equiv 1 \pmod m$을 만족하는 정수 x를 modulo m에서 a의 역(inverse of a module m)이라 한다.
+
+  - ex) 5는 3 modulo 7의 역이다.
+    - 5 \* 3 = 15, $15 \equiv 1 \pmod 7$
+
+- 연습 문제
+
+  - 101 modulo 4620의 inverse를 구하라.
+
+    - 답: 1601
+    - 풀이
+      ![picture 64](../../images/TMP_DM_14.png)
+
+  - 4.4.5.(a): a = 4, m = 9일 때 a modulo m의 역을 구하라.
+    - 답: 7
+      ![picture 65](../../images/TMP_DM_15.png)
+  - 4.4.5.(b): a = 19, m = 141일 때 a modulo m의 역을 구하라.
+    - 답: 52
+      ![picture 66](../../images/TMP_DM_16.png)
+  - 4.4.5.(c): a = 55, m = 89일 때 a modulo m의 역을 구하라.
+    - 답: 34
+      ![picture 67](../../images/TMP_DM_17.png)
+  - 4.4.5.(d): a = 89, m = 232일 때 a modulo m의 역을 구하라.
+    - 답: 73
+      ![picture 68](../../images/TMP_DM_18.png)
+
+### 역을 이용해 합동 풀기
+
+- 연습 문제
+
+![picture 69](../../images/TMP_DM_19.png)
+
+- 풀이
+
+![picture 70](../../images/TMP_DM_20.png)
+
+### 페르마의 작은 정리
+
+- 소수 p와 p와 서로소인 정수 a가 있다면 $a^{p-1} \equiv 1 \pmod p$이다.  
+  또한 모든 정수 a에 대해 $a^p \equiv a \pmod p$ 가 성립한다.
+
+- 연습 문제
+
+  - $7^222 \pmod 11$을 구하라.
+
+    - 답: 7
+      ![picture 71](../../images/TMP_DM_21.png)
+
+  - $7^121 \pmod 13$을 구하라.
+
+    - 답: 7
+      ![picture 72](../../images/TMP_DM_22.png)
+
+---
