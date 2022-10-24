@@ -271,7 +271,7 @@
 
 - 사용성
 
-  - (1) B가 한 쌍의 key($PU_B$, $PR_B$)를 생성하는 것이 계산적으로 쉬워야 한다.
+  - (1) B가 한 쌍의 key $(PU_B, PR_B)$를 생성하는 것이 계산적으로 쉬워야 한다.
   - (2) Public key와 평문 $M$을 알고 있는 송신자 A는 암호문을 계산적으로 쉽게 구할 수 있어야 한다.  
     $C = E(PU_B, M)$
   - (3) 수신자 B가 암호문을 자신의 private key를 사용해 복호화하는 것이 계산적으로 쉬워야 한다.  
@@ -290,8 +290,8 @@
 
 #### RSA 알고리즘
 
-- Public key($PU$): `{e, n}`
-- Private key($PR$): `{d, n}`
+- Public key$(PU)$: `{e, n}`
+- Private key$(PR)$: `{d, n}`
 - 공개 키로 암호화한다.
   - $C = M^e \mod n$
   - $M = C^d \mod n = (M^e)^d \mod n = M^{ed} \mod n$
@@ -483,8 +483,8 @@
 
 ### 공개 키 notation
 
-- Alice의 public key로 암호화: $\{M\}_Alice$
-- Alice의 private key로 암호화: $[M]_Alice$
+- Alice의 public key로 암호화: { $M_{Alice}$ }
+- Alice의 private key로 암호화: { $[M]_{Alice}$ }
 
 ### 공개 키 활용 인증
 
@@ -529,7 +529,7 @@
 ![picture 38](../../images/TMP_NS_36.png)
 
 - 이렇게 서명을 사용하면 상호 인증은 가능하지만 key가 노출된다.  
-  $[R, K]_{Bob}$을 $\{K\}_{Bob}$으로 복호화할 수 있기 때문이다. $[R+1, K]_{Alice}$도 마찬가지이다.
+  $[R, K]_{Bob}$ 을 ${K}_{Bob}$으로 복호화할 수 있기 때문이다. $[R+1, K]_{Alice}$도 마찬가지이다.
 
 - 이를 해결하기 위해 **암호화와 서명을 같이 사용**한다.  
   즉 서명을 암호화한다.
@@ -643,7 +643,7 @@
 ### 공개 키를 이용한 비밀 키 분배
 
 - Diffie-Hellman 키 교환을 이용 시
-  - MITM Attack rksmd
+  - MITM Attack 가능
   - 두 사용자 사이에 별도의 인증 방법 필요
 - 공개 키 인증서를 활용 시
   - (1) 메시지 준비
