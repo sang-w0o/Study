@@ -37,7 +37,8 @@
 ![picture 75](../../images/TMP_DB_3.png)
 
 - 아래 schedule은 conflict serializable하지 않은 schedule이다.
-  ![picture 76](../../images/TMP_DB_4.png)
+
+![picture 76](../../images/TMP_DB_4.png)
 
 - View Serializability: 2개 schedule S, S'가 있다고 해보자. 이 둘은 아래 조건들을 모두 만족해야 view serializable하다.
 
@@ -48,7 +49,7 @@
 
   ![picture 77](../../images/TMP_DB_5.png)
 
-  - 위 schedule은 <$T_5$, $T_6$, $T_7$> 형태의 serial schedule과 view equivalent하다.
+  - 위 schedule은 < $T_5, T_6, T_7$ > 형태의 serial schedule과 view equivalent하다.
     - 둘 다 $T_5$가 initial value read, $T_7$가 final value write하기 때문.
 
 - 아래 그림처럼 conflict serializable은 view serializable의 부분집합이다.
@@ -72,10 +73,12 @@
 
 - Recovarable schedule: $T_i$에 의해 write된 item을 $T_j$가 읽는다면, $T_i$의 commit이 $T_j$의 commit보다 먼저 일어나야 한다.  
   아래 표는 recovarable하지 않은 schedule이다.
+
   ![picture 80](../../images/TMP_DB_8.png)
 
 - Cascading rollbacks: 트랜잭션 하나의 실패가 수많은 트랜잭션의 rollback을 일으키는 것.  
-  아래 schedule에서 그 어떤 tx도 commit하지 않았는데, 만약 $T_10$이 실패하면 $T_11, T_12$도 rollback되어야 한다.
+  아래 schedule에서 그 어떤 tx도 commit하지 않았는데, 만약 $T_{10}$이 실패하면 $T_{11}, T_{12}$도 rollback되어야 한다.
+
   ![picture 81](../../images/TMP_DB_9.png)
 
   - 참고로 위 schedule은 recoverable하다.
@@ -380,8 +383,8 @@
 - Simple logging: Normal processing
 
   - Log들은 stable storage에 보관된다.
-  - Tx $T_i$가 start하면 <$T_i$, start> log record가 생기고 만약 X의 값을 $V_1$에서 $V_2$로 바꾸게 되면  
-    <$T_i, X, V_1, V_2$>의 log record가 생긴다. 마지막으로 $T_i$가 마지막 연산을 수행하면 <$T_i$ commit> log record가 생긴다.
+  - Tx $T_i$가 start하면 < $T_i$, start > log record가 생기고 만약 X의 값을 $V_1$에서 $V_2$로 바꾸게 되면  
+    < $T_i, X, V_1, V_2$ >의 log record가 생긴다. 마지막으로 $T_i$가 마지막 연산을 수행하면 < $T_i$ commit > log record가 생긴다.
 
 - Simple logging: Checkpoint
 
@@ -397,17 +400,17 @@
   - System이 crash로부터 회복하면 아래와 같은 과정을 거친다.
 
     - (1) "undo-list", "redo-list"를 empty list로 초기화.
-    - (2) 로그를 <checkpoint L> record가 발견될 때까지 마지막(가장 최근)에서 처음으로 역순으로 scan한다.
-      - 이 과정에서 <$T_i$ commit>이 발견되면 $T_i$를 "redo-list"에 $T_i$를 추가한다.
-      - 이 과정에서 <$T_i$ start>가 발견되었지만 "redo-list"에 없다면 "undo-list"에 $T_i$를 추가한다.
+    - (2) 로그를 \<checkpoint L\> record가 발견될 때까지 마지막(가장 최근)에서 처음으로 역순으로 scan한다.
+      - 이 과정에서 < $T_i$ commit >이 발견되면 $T_i$를 "redo-list"에 $T_i$를 추가한다.
+      - 이 과정에서 < $T_i$ start >가 발견되었지만 "redo-list"에 없다면 "undo-list"에 $T_i$를 추가한다.
     - (3) L에 있는 모든 tx에 대해 "redo-list"에 없는 tx들을 "undo-list"에 추가한다.
 
   - 이제 복구 과정은 아래처럼 수행된다.
 
-    - (1) "undo-list"에 있는 모든 tx에 대해 가장 최근 log부터 역순으로 <$T_x$, start> record가 만날 때까지 scan한다.  
+    - (1) "undo-list"에 있는 모든 tx에 대해 가장 최근 log부터 역순으로 < $T_x$, start > record가 만날 때까지 scan한다.  
       scan과정에 있던 $T_x$ 관련된 모든 log record를 undo 한다.
-    - (2) 가장 최근 <checkpoint L> record를 찾는다.
-    - (3) <checkpoint L>부터 log의 마지막까지 scan을 수행한다.
+    - (2) 가장 최근 \<checkpoint L\> record를 찾는다.
+    - (3) \<checkpoint L\>부터 log의 마지막까지 scan을 수행한다.
       - scan 과정에서 "redo-list"에 있는 tx에 대해 모든 log record를 redo한다.
 
   ![picture 95](../../images/TMP_DB_23.png)
@@ -469,32 +472,32 @@
 - Log record가 buffering될 때는 아래의 규칙들이 지켜져야 한다.
 
   - Log record는 항상 생겨난 순서대로 stable storage로 보내져야 한다.
-  - Tx $T_i$는 <$T_i$ commit> log record가 stable storage로 보내진 후에 commit되어야 한다.
+  - Tx $T_i$는 < $T_i$ commit > log record가 stable storage로 보내진 후에 commit되어야 한다.
   - 변경된 data block이 disk에 쓰여지기 전, 먼저 관련 log record들이 stable storage에 보내져야 한다.(WAL: Write-Ahead Logging)
 
 - Recovery algorithm
 
   - 일반적인 상태에 log는 아래처럼 생긴다.
-    - <$T_i$ start> => <$T_i, X_j, V_1, V_2$>, <$T_i$ commit>
+    - < $T_i$ start > => < $T_i, X_j, V_1, V_2$ >, < $T_i$ commit >
   - Tx $T_i$의 rollback은 아래처럼 이뤄진다.
 
-    - (1) 마지막(가장 최근)부터 거꾸로 scan하며 <$T_i, X_j, V_1, V_2$> 형태의 log record들 각각에 대해
+    - (1) 마지막(가장 최근)부터 거꾸로 scan하며 < $T_i, X_j, V_1, V_2$ > 형태의 log record들 각각에 대해
       - undo를 수행한다. 이때 undo를 하는 log record를 생성한다!
-      - 이러한 log record를 CLR(Compensation Log Record)라 하며 <$T_i, X_j, V_1$> 형태로 생긴다.
-    - (2) <$T_i$ start> record가 보이면 scan을 중지하고 <$T_i$ abort> record를 생성한다.
+      - 이러한 log record를 CLR(Compensation Log Record)라 하며 < $T_i, X_j, V_1$ > 형태로 생긴다.
+    - (2) < $T_i$ start > record가 보이면 scan을 중지하고 < $T_i$ abort > record를 생성한다.
 
   - Failure로부터의 recovery는 2개 phase로 이뤄진다.(REDO FIRST!!)
     - Redo phase, Undo phase
     - Redo phase:
-      - 마지막 <checkpoint L> record를 찾고 undo-list에 L을 넣는다.
-      - <checkpoint L>부터 scan을 시작한다.
-        - <$T_i, X_j, V_1, V_2$>가 보이면 redo 한다.
-  - <$T_i$ start>가 발견되면 $T_i$를 undo-list에 넣는다.
-  - <$T_i$ commit> 또는 <$T_i$ abort>를 만나면 undo-list에서 $T_i$를 제거한다.
+      - 마지막 \<checkpoint L\> record를 찾고 undo-list에 L을 넣는다.
+      - \<checkpoint L\>부터 scan을 시작한다.
+        - < $T_i, X_j, V_1, V_2$ >가 보이면 redo 한다.
+        - < $T_i$ start >가 발견되면 $T_i$를 undo-list에 넣는다.
+        - < $T_i$ commit > 또는 < $T_i$ abort >를 만나면 undo-list에서 $T_i$를 제거한다.
     - Undo phase: 로그를 마지막(가장 최근) 순서대로 거꾸로 scan 한다.
-      - $T_i$가 undo-list에 있고 <$T_i, X_j, V_1, V_2$>가 발견되면 undo를 수행한다.  
-        그리고 CLR인 <$T_i, X_j, V_1$>을 생성한다.
-      - $T_i$가 undo-list에 있고 <$T_i$ start>가 발견되면 <$T_i$ abort>를 생성하고 undo-list에서 $T_i$를 제거한다.
+      - $T_i$가 undo-list에 있고 < $T_i, X_j, V_1, V_2$ >가 발견되면 undo를 수행한다.  
+        그리고 CLR인 < $T_i, X_j, V_1$ >을 생성한다.
+      - $T_i$가 undo-list에 있고 < $T_i$ start >가 발견되면 < $T_i$ abort >를 생성하고 undo-list에서 $T_i$를 제거한다.
       - 이 과정을 undo-list가 empty할 때까지 반복한다.
 
   ![picture 98](../../images/TMP_DB_26.png)
@@ -503,7 +506,7 @@
 
   - Checkpoint 생성 중 processing을 가능하게끔 해준다. 과정은 아래와 같다.
     - (1) tx에 의한 모든 갱신 작업을 일시중지한다.
-    - (2) <checkpoint L> log record를 생성하고 log record들을 stable storage로 force output한다.
+    - (2) \<checkpoint L\> log record를 생성하고 log record들을 stable storage로 force output한다.
     - (3) 수정된 buffer block들의 리스트 M을 생성한다.
     - (4) tx들이 작업을 수행하도록 재개한다.
     - (5) M에 있는 모든 수정된 block들을 disk에 write한다.
@@ -517,7 +520,7 @@
     - (1) Main memory에 있는 모든 log record를 stable storage로 보낸다.
     - (2) Buffer에 있는 모든 block들을 disk에 쓴다.
     - (3) 데이터베이스의 내용을 stable storage로 복사한다.
-    - (4) <dump>라는 log record를 생성하고 stable storage로 보낸다.
+    - (4) \<dump\>라는 log record를 생성하고 stable storage로 보낸다.
   - Dump 과정에는 어떠한 tx도 작업할 수 없다.
 
   - Nonvolatile storage의 failure로부터 복구하는 과정은 아래와 같다.
@@ -540,7 +543,8 @@
     - one-safe: primary에만 log record가 write되면 tx commit
       - primary가 장애가 났을 때 갱신 작업이 backup에 도달하지 못한 상황일 수 있다.
     - two-very-safe: primary와 secondary에 모두 log record가 write되면 tx commit
-    - two-safe: primary가 동작중일 때 primary에만 log record가 write 되어도 tx commit
+    - two-safe: primary, secondary 모두 동작할 때는 둘 다 write되어야 commit처리.  
+      primary가 동작중일 때 primary에만 log record가 write 되어도 tx commit
       - two-very-safe보다 가용성이 높다.
 
 ---
