@@ -339,3 +339,350 @@
     ![picture 92](../../images/TMP_DB_20.png)
 
 ---
+
+## 3. 복구(Recovery)
+
+### 3.1 장애 및 복구
+
+- Transaction failure
+- System failure(crash)
+- Disk failure
+
+- Failures happen without prior warning, any time, and anywhere.
+
+- Recovery algorithms: 장애에도 불구하고 데이터베이스의 일관성과 tx의 atomicity, durability를 보장하기 위한 것.
+
+- Storage structure
+
+  - Volatile storage: Does not survive system crashes (main memory, cache memory)
+  - Nonvolatile storage: Survives system crashes(disk, tape, etc.)
+  - Stable storage: 모든 failure를 다 survive하는 storage, 주로 여러 개의 copy를 사용해 구현
+
+- Stable storage implementation
+
+  - 동일한 data block을 서로 다른 2개 이상의 disk에 write
+  - bad checksum등을 통해 잘못된 data block이 발생하면 overwrite
+  - 이렇게 copy를 원격으로 두면 화재, 홍수 등의 재난 상황에 대응 가능
+
+- Data location
+
+  - 아래 그림처럼 disk에서 buffer로 buffer manager가 데이터를 불러오고, 각 tx는 연산을 처리하기 위한 임시 공간을 할당받아 사용.
+
+  ![picture 93](../../images/TMP_DB_21.png)
+
+### 3.2 Log
+
+- Recovery의 2가지 접근 방법
+
+  - Log-based recovery
+  - Shadow-paging(주로 text editor에서 사용됨)
+
+- Simple logging: Normal processing
+
+  - Log들은 stable storage에 보관된다.
+  - Tx $T_i$가 start하면 <$T_i$, start> log record가 생기고 만약 X의 값을 $V_1$에서 $V_2$로 바꾸게 되면  
+    <$T_i, X, V_1, V_2$>의 log record가 생긴다. 마지막으로 $T_i$가 마지막 연산을 수행하면 <$T_i$ commit> log record가 생긴다.
+
+- Simple logging: Checkpoint
+
+  - Checkpointing:
+    - main memory에 쌓인 log record들을 stable storage에 write.
+    - buffer에 있는 수정된 data block들을 disk에 write.
+    - <checkpoint L> 이라는 log record가 생성되고, L은 checkpoint 시점에 활성화된 모든 tx들의 목록을 의미한다.
+
+  ![picture 94](../../images/TMP_DB_22.png)
+
+- Simple logging: Recovery
+
+  - System이 crash로부터 회복하면 아래와 같은 과정을 거친다.
+
+    - (1) "undo-list", "redo-list"를 empty list로 초기화.
+    - (2) 로그를 <checkpoint L> record가 발견될 때까지 마지막(가장 최근)에서 처음으로 역순으로 scan한다.
+      - 이 과정에서 <$T_i$ commit>이 발견되면 $T_i$를 "redo-list"에 $T_i$를 추가한다.
+      - 이 과정에서 <$T_i$ start>가 발견되었지만 "redo-list"에 없다면 "undo-list"에 $T_i$를 추가한다.
+    - (3) L에 있는 모든 tx에 대해 "redo-list"에 없는 tx들을 "undo-list"에 추가한다.
+
+  - 이제 복구 과정은 아래처럼 수행된다.
+
+    - (1) "undo-list"에 있는 모든 tx에 대해 가장 최근 log부터 역순으로 <$T_x$, start> record가 만날 때까지 scan한다.  
+      scan과정에 있던 $T_x$ 관련된 모든 log record를 undo 한다.
+    - (2) 가장 최근 <checkpoint L> record를 찾는다.
+    - (3) <checkpoint L>부터 log의 마지막까지 scan을 수행한다.
+      - scan 과정에서 "redo-list"에 있는 tx에 대해 모든 log record를 redo한다.
+
+  ![picture 95](../../images/TMP_DB_23.png)
+
+### 3.3 Data Buffer
+
+- Buffer management
+
+  - 데이터베이스 파일들은 block이라는 고정된 storage unit으로 분할된다.
+  - Block: storage 할당, data transfer의 단위
+  - Buffer: disk block의 복사본을 저장할 수 있는 main memory의 일부
+  - Buffer manager: main memory에 buffer space 할당하는 역할
+
+  - 이미 block이 buffer에 있다면 buffer manager는 해당 block의 main memory 주소를 반환한다.
+  - block이 buffer에 없다면?
+    - block을 위한 space를 buffer에 할당한다.
+      - 이때 기존 block을 해제하거나 교체하도록 할 수 있다.
+
+- Buffer management policies
+
+  - LRU(Least Recently Used): 새로운 block 공간이 필요하면 가장 오래 전에 사용된 block을 buffer에서 해제한다.  
+    data의 반복적인 scan이 필요한 상황에서 비효율적이다.
+
+  - MRU(Most Recently Used): 새로운 block 공간이 필요하면 가장 최근에 사용된 block을 buffer에서 해제한다.
+
+  - Buffer manager는 recovery를 위해 block을 강제로 disk로 write(forced output)할 수도 있다.
+
+- Data page buffering
+
+  - 데이터베이스는 data block의 in-memory buffer를 유지한다.
+  - 수정된 데이터를 disk에 write하기 전 항상 log record를 먼저 stable storage로 보낸다.(WAL: Write-Ahead Logging)
+  - Data block을 disk에 write하는 동안에는 어떠한 update 작업도 일어나서는 안된다.
+  - Database buffer는 대부분 virtual memory로 구현된다.
+
+- Slotted page structure
+
+  - Page header, slot으로 구성된다. Slot은 해당 페이지에 저장되는 record의 주소를 가진다.
+
+    ![picture 96](../../images/TMP_DB_24.png)
+
+- Steal, Force policy
+
+  - Force policy: Update된 block들을 commit 시점에 disk에 write한다.
+  - Not-force policy: update된 block들을 tx가 commit해도 꼭 disk에 write하진 않는다.
+    - Commit된 data block이 disk로 내려가지 않을 수도 있기에 "REDO" 가 필요하다.
+  - Steal: Uncommit된 변경사항을 가진 block들을 commit되기 전에 disk에 write하기도 한다.
+
+    - Commit되지 않은 data block이 disk로 내려갈 수 있기에 "UNDO" 가 필요하다.
+
+  - 좋은 policy는 "steal + not-force" policy이다.
+
+  ![picture 97](../../images/TMP_DB_25.png)
+
+### 3.4 Log based recovery
+
+- Log record들은 stable storage로 직접 보내지기 전 main memory에 buffering된다.  
+  그리고 I/O cost를 낮추기 위해 여러 개의 log record들이 한번에 stable storage로 보내지기도 한다.(group commit)
+
+- Log record가 buffering될 때는 아래의 규칙들이 지켜져야 한다.
+
+  - Log record는 항상 생겨난 순서대로 stable storage로 보내져야 한다.
+  - Tx $T_i$는 <$T_i$ commit> log record가 stable storage로 보내진 후에 commit되어야 한다.
+  - 변경된 data block이 disk에 쓰여지기 전, 먼저 관련 log record들이 stable storage에 보내져야 한다.(WAL: Write-Ahead Logging)
+
+- Recovery algorithm
+
+  - 일반적인 상태에 log는 아래처럼 생긴다.
+    - <$T_i$ start> => <$T_i, X_j, V_1, V_2$>, <$T_i$ commit>
+  - Tx $T_i$의 rollback은 아래처럼 이뤄진다.
+
+    - (1) 마지막(가장 최근)부터 거꾸로 scan하며 <$T_i, X_j, V_1, V_2$> 형태의 log record들 각각에 대해
+      - undo를 수행한다. 이때 undo를 하는 log record를 생성한다!
+      - 이러한 log record를 CLR(Compensation Log Record)라 하며 <$T_i, X_j, V_1$> 형태로 생긴다.
+    - (2) <$T_i$ start> record가 보이면 scan을 중지하고 <$T_i$ abort> record를 생성한다.
+
+  - Failure로부터의 recovery는 2개 phase로 이뤄진다.(REDO FIRST!!)
+    - Redo phase, Undo phase
+    - Redo phase:
+      - 마지막 <checkpoint L> record를 찾고 undo-list에 L을 넣는다.
+      - <checkpoint L>부터 scan을 시작한다.
+        - <$T_i, X_j, V_1, V_2$>가 보이면 redo 한다.
+  - <$T_i$ start>가 발견되면 $T_i$를 undo-list에 넣는다.
+  - <$T_i$ commit> 또는 <$T_i$ abort>를 만나면 undo-list에서 $T_i$를 제거한다.
+    - Undo phase: 로그를 마지막(가장 최근) 순서대로 거꾸로 scan 한다.
+      - $T_i$가 undo-list에 있고 <$T_i, X_j, V_1, V_2$>가 발견되면 undo를 수행한다.  
+        그리고 CLR인 <$T_i, X_j, V_1$>을 생성한다.
+      - $T_i$가 undo-list에 있고 <$T_i$ start>가 발견되면 <$T_i$ abort>를 생성하고 undo-list에서 $T_i$를 제거한다.
+      - 이 과정을 undo-list가 empty할 때까지 반복한다.
+
+  ![picture 98](../../images/TMP_DB_26.png)
+
+- Fuzzy checkpointing
+
+  - Checkpoint 생성 중 processing을 가능하게끔 해준다. 과정은 아래와 같다.
+    - (1) tx에 의한 모든 갱신 작업을 일시중지한다.
+    - (2) <checkpoint L> log record를 생성하고 log record들을 stable storage로 force output한다.
+    - (3) 수정된 buffer block들의 리스트 M을 생성한다.
+    - (4) tx들이 작업을 수행하도록 재개한다.
+    - (5) M에 있는 모든 수정된 block들을 disk에 write한다.
+      - Write 도중에 block들은 수정되어서는 안된다.
+      - WAL을 준수한다.
+    - (6) Disk에 "last_checkpoint"라는 이름으로 checkpoint record를 가리키는 포인터를 생성한다.
+
+- Failure of nonvolatile storage
+
+  - Nonvolatile storage(disk 등)의 failure에는 checkpoint와 비슷한 기술이 쓰인다.
+    - (1) Main memory에 있는 모든 log record를 stable storage로 보낸다.
+    - (2) Buffer에 있는 모든 block들을 disk에 쓴다.
+    - (3) 데이터베이스의 내용을 stable storage로 복사한다.
+    - (4) <dump>라는 log record를 생성하고 stable storage로 보낸다.
+  - Dump 과정에는 어떠한 tx도 작업할 수 없다.
+
+  - Nonvolatile storage의 failure로부터 복구하는 과정은 아래와 같다.
+    - (1) 가장 최근 dump로부터 복원
+    - (2) Log record를 통해 dump 이후에 commit된 tx들의 작업을 redo.
+
+### 3.6 원격 백업
+
+- Disaster: 자연재해 등
+
+- Remote backup systems
+
+  - 고가용성을 제공하기 위해 primary에 disaster가 발생해도 tx가 처리되도록 한다.
+    ![picture 99](../../images/TMP_DB_27.png)
+  - primary의 모든 log record를 secondary로 보내 동기화한다.
+
+- Time to Commit
+  - tx의 갱신 작업이 backup에도 저장되어야 commit되도록 해 durability 향상.
+  - 전략들:
+    - one-safe: primary에만 log record가 write되면 tx commit
+      - primary가 장애가 났을 때 갱신 작업이 backup에 도달하지 못한 상황일 수 있다.
+    - two-very-safe: primary와 secondary에 모두 log record가 write되면 tx commit
+    - two-safe: primary가 동작중일 때 primary에만 log record가 write 되어도 tx commit
+      - two-very-safe보다 가용성이 높다.
+
+---
+
+## 4. 저장 장치(Storage Devices)
+
+### 4.1 물리적 저장 매체
+
+- Cache: 가장 빠른 접근 시간. CPU 내에 위치
+- Main memory: nanosecond 단위의 접근 시간
+- Flash memory: main memory만큼 빠른 읽기 시간.  
+  write는 느리고 삭제는 더 느리다. 또한 overwrite가 안됨.
+- NAND flash memory: 주로 storage에 사용.
+- Optical disk: DVD 같은 것
+- Magnetic disk: 대용량 데이터 저장 장치
+- Magnetic tape: 대용량 데이터 저장 장치의 저렴한 방식
+
+- Storage hierarchy
+
+  ```
+  cache - main memory - flash memory - magnetic disk - optical disk - magnetic tapes
+  [FASTER] -------------------------------------------------------- [LARGER STORAGE]
+  ```
+
+### 4.2 자기 디스크(Magnetic Disk)
+
+- Magnetic Disks
+
+  ![picture 100](../../images/TMP_DB_28.png)
+
+- Disk Controller
+
+  - Computer system과 disk drive hardware 사이의 인터페이스
+    - sector에 대해 read, write하라는 high level command 받아 수행
+    - disk arm 움직이기, data 읽고 쓰기 등의 action 수행 지시
+
+- Disk Connection
+
+  - DAS(Directly Attached Storage)
+    - disk가 컴퓨터에 직접 연결되어 있음
+  - SAN(Storage Area Network)
+    - disk들이 high-speed network를 통해 여러 컴퓨터들에 연결되어 있음.
+    - SCSI, SAS 등 block storage를 위한 protocol 사용
+    - any-to-any connection 지원
+    - Block level operation만 가능(file이라는 단위가 없다.)
+  - NAS(Network Attached Storage)
+    - 컴퓨터가 NFS 등의 file system protocol을 통해 disk에 연결 및 사용
+
+- Disk 성능 평가
+
+  - Access time: read 또는 write request가 disk에 도달한 후에 응답을 받는데 걸리는 시간(seek time + rotational latency)
+  - Data-transfer rate: 데이터를 disk로 보내거나 받아오는 속도
+  - MTTF(Mean Time To Failure): Disk가 장애 없이 사용 가능한 평균 시간
+
+- 성능 향상
+
+  - Block: 데이터는 disk와 main memory 사이에서 block 단위로 움직인다.
+  - File organization: 데이터의 access 방식에 따라 block을 정렬해 block access time을 최소화한다.
+    - 밀접하게 관련된 정보들을 동일하거나 근처의 cylinder에 저장하기
+
+### 4.3 RAID
+
+- RAID: Redundent Arrays of Independent Disks
+
+- Improvement of reliability via redundancy
+
+  - Redundancy(중복): disk failure 시 원본 데이터를 복구하기 위해 원본 데이터에 추가적인 데이터를 함께 저장하는 것.
+  - Mirroring: 모든 disk를 중복한다. 즉 logical disk는 2개의 physical disk로 구성된다.
+
+- Improvement of performance via parallelism
+
+  - 데이터를 여러 개의 disk에 분산(stripe)시킴으로써 transfer rate를 향상시킨다.
+  - Bit-level striping: byte내의 bit들을 여러 디스크에 분산시킨다.
+  - Block-level striping: n개의 디스크가 있을 때 파일의 i 번째 block을 $i \pmod n + 1$ 번째 디스크에 저장한다.
+
+- RAID levels
+
+  - Level 0: Block striping, non-redundant
+    - 데이터의 누락이 어느정도 허용되는 high performance application에서 사용
+    - 즉 data safety가 중요하지 않을 때만 사용
+  - Level 1: Mirrored disks with block striping
+    - 최고의 write performance
+    - Database system에 log file 저장하는 등에 많이 사용
+  - Level 2: ECC with bit striping
+    - 하나의 bit가 손상되었을 때 복구하기 위해 추가적인 bit들을 저장
+    - Level 3에 subsume되어 사용 x
+  - Level 3: Bit-interleaved parity
+    - Level 2의 장점을 모두 지원하며 더 저렴하다.
+    - Bit-striping이 single block이 모든 disk에 접근하도록 하기에 사용 x
+  - Level 4: Block-interleaved parity
+    - Block-level striping을 사용하며 별도의 원본 데이터가 저장된 disk와 다른 disk에 parity block을 저장한다.
+    - Parity block이 병목 지점이 된다.
+    - Level 5에 subsume되어 사용 X
+  - Level 5: Block-interleaved distributed parity
+    - 데이터와 parity를 N+1개 disk들로 partition한다.
+    - Level 4가 parity block이 병목 지점이 되는 것을 없앤다.
+  - Level 6: P+Q redundancy scheme
+
+    - Level 5와 유사하지만 여러 개의 disk에 장애가 났을 때를 방지하기 위해 추가적으로 redundant한 정보를 저장한다.
+    - Level 5보다 높은 비용이지만 Level 5보다 더 높은 reliability를 제공한다.
+    - Rarely used.
+
+  - Choices
+
+    - Level 1은 Level 5보다 훨씬 나은 write performance 제공
+    - Level 1은 Level 5보다 storage cost가 높다.
+    - Level 5는 update 빈도가 적은 대용량 애플리케이션에 적합
+    - 일반적인 경우는 Level 1 사용
+
+  - Software RAID: RAID 구현을 hardware 지원 없이 software로만 구현한 것.
+  - Hardware RAID: RAID를 특별한 hardware로 구현한 것.
+
+- Hardware issues
+
+  - Latent failure(bit rot): 성공적으로 write되어 있는 데이터가 훼손되는 것
+  - Data scrubbing: 지속적으로 latent failure를 탐지해 copy, parity를 사용해 복구하는 것
+  - Hot swapping: disk를 교체할 때 시스템을 중단하지 않고 disk를 교체하는 것
+
+### 4.4 파일 구성
+
+- Database는 file들의 모음이다.
+- 파일은 record들의 모음이다.
+- record는 field들의 모음이다.
+
+- Fixed-length records
+
+  - 일반적으로 record의 크기는 고정되지 않아있기에 사용하지 않음.
+
+- Variable-length records
+
+  - 주로 사용된다.
+  - offset, length로 특정 record가 어느 부분을 차지하는지 표현
+
+- File 내의 record 구성
+
+  - heap: file 내에 있는 공간 어디든지 record를 저장할 수 있다.
+  - sequential: record들을 순차적으로 저장한다.(record의 search key 기반)
+  - hashing: hash function을 record의 일부 attribute에 저장해 file의 어디에 저장할지 결정
+
+- Multitable clusturing file organization
+
+  - 여러 개의 table을 하나의 file에 저장한다.
+  - join query를 지원하기에 좋지만 단일 테이블만을 조회하는 query에는 비효율적이다.
+
+---
