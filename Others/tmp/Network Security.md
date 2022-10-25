@@ -734,7 +734,7 @@
 ### 네트워크 접근 통제 적용 방법
 
 - 통제(enforcement) 수단
-  - IDEE 802.1X: 어떤 port에 접근할 수 있는지
+  - IEEE 802.1X: 어떤 port에 접근할 수 있는지
   - VLANs(Virtual Local Area Networks): VLAN으로 세그먼트 분할 및 AR을 VLAN에 접속 허용하는 방식
   - Firewall: 트래픽을 차단하는 방식
   - DHCP(Dynamic Host Configuration Protocol): DHCP 할당 여부로 제어
