@@ -83,3 +83,87 @@ spec:
 - PV는 namespace에 종속되지 않고 PVC는 namespace에 종속된다.
 
 ---
+
+## ServiceAccount, RBAC
+
+- kubectl로 수행하는 모든 명령어는 kube-apiserver를 통해 수행된다. 수행 과정은 아래와 같다.
+
+  - (1) 사용자가 kubectl로 명령어 수행
+  - (2) kube-apiserver의 HTTP handler가 요청 수신
+  - (3) Authentication, Authorization 수행
+  - (4) Admission Controller 기능 수행 후 작업 수행
+
+### ServiceAccount, Role, ClusterRole
+
+- ServiceAccount: 체계적으로 권한을 관리하기 위한 K8S object, 한 명의 사용자나 애플리케이션에 해당한다. 그리고 namespace에 종속적이다.
+
+- Role, ClusterRole은 부여할 권한을 나타내는 K8S object이다.  
+  단지 ClusterRole은 cluster 단위의 권한을 정의할 때 사용한다는 차이점만을 가진다.
+
+- 아래는 Role object의 예시이다.
+
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: default
+  name: service-reader
+rules:
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["get", "watch", "list"]
+```
+
+- 이렇게 생성한 Role, ClusterRole은 RoleBinding, ClusterRoleBinding object로 ServiceAccount에 연결한다.
+
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: service-reader-rolebinding
+  namespace: default
+subjects:
+  - kind: ServiceAccount # 권한 부여 대상이 ServiceAccount
+    name: some-service-account
+    namespace: default
+roleRef:
+  kind: Role # Role에 정의된 권한 부여
+  name: service-reader
+  apiGroup: rbac.authorization.k8s.io
+```
+
+- ClusterRole은 다른 ClusterRole의 권한을 포함해 사용할 수 있다. 이를 Role aggregation이라 한다.
+
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: parent-clusterrole
+  labels:
+    rbac.authorization.k8s.io/aggregate-to-child-clusterrole: "true"
+rules:
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["get", "list"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: child-clusterrole
+aggregationRule:
+  clusterRoleSelectors:
+    - matchLables:
+      rbac.authorization.k8s.io/aggregate-to-child-clusterrole: "true"
+rules: [] # 어떠한 권한도 정의하지 않는다.
+```
+
+- 위처럼 했을 때 `child-clusterrole`은 아무런 권한이 없도록 선언되어 있지만 `aggregationRule.clusterRoleSelectors.matchLabels`  
+  에 의해 `parent-clusterrole`의 권한을 포함하게 된다.
+
+### User, Group
+
+- User는 실제 사용자를 뜻하며 Group은 여러 User들을 모아 놓은 집합을 의미한다.  
+  따라서 RoleBinding이나 ClusterRoleBinding의 `subjects.kind`에 User, Group을 지정할 수 있다.
+
+---
