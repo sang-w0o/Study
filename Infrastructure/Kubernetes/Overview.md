@@ -344,3 +344,233 @@ spec:
 - LimitRange에서 maxLimitRequestRatio를 사용해 pod의 container에서 overcommit되는 자원의 비율을 제한할 수 있다.
 
 ---
+
+## K8S Scheduling
+
+- Scheduling: 컨테이너나 VM 같은 인스턴스를 새롭게 생성할 때, 해당 인스턴스를 어느 서버에 생성할지 결정하는 일
+
+### Pod가 실제로 node에 생성되기까지의 과정
+
+- (1) ServiceAccount, RoldBinding 등을 이용해 pod 생성을 요청한 사용자의 인증 및 인가 작업 수행
+- (2) ResourceQuota, LimitRange 등의 admission controller가 해당 pod 생성 요청을 적절히 mutate(변경)하거나 validate(검증)
+- (3) Admission controller의 검증을 통과해 최종적으로 pod 생성 요청이 승인되면 worker node들 중 하나에 생성
+
+- 여기서는 위의 3단계 중 (3)번 단계를 좀 더 자세히 살펴보도록 하자.
+
+- K8S에는 여러 가지 핵심 컴포넌트들이 실행되고 있으며, 이들은 kube-system namespace에서 실행되고 있다.  
+  예를 들어 kubectl 명령을 처리하는 kube-apiserver 등이 있다. 추가적으로 scheduling에 관여하는 kube-scheduler, etcd도 있다.  
+  kube-scheduler는 K8S scheduler에 해당하며 etcd는 K8S cluster의 전반적인 상태 데이터를 저장하는 일종의 데이터베이스 이다.
+
+- etcd는 distributed coordinator로 클라우드 플랫폼 등의 환경에서 여러 컴포넌트가 정상적으로 상호 작용할 수 있도록 데이터를 조정한다.  
+  예를 들어 현재 생성된 deployment나 pod의 목록과 정보, cluster 자체의 정보 등의 대부분의 데이터가 etcd에 저장되어 있다.
+
+- etcd에 저장된 데이터는 무조건 kube-apiserver로만 접근할 수 있다. 그리고 etcd에 저장된 pod의 데이터에는 해당 pod가 어떤 worker  
+  node에서 실행되고 있는지를 나타내는 nodeName 항목이 존재한다.
+
+- 처음 인증, 인가, admission controller 등의 단계를 모두 거친 pod 생성 요청은 kube-apiserver에 의해 etcd에 pod의 데이터를  
+  기록한다. 이때 nodeName은 설정되어 있지 않다.(scheduling 전이기 때문)
+
+- kube-scheduler는 이후 kube-apiserver의 watch를 통해 nodeName이 설정되지 않은 pod 데이터가 저장되었다는 사실을 전달받고,  
+  해당 pod들을 scheduling 대상으로 판단한다. 이러한 pod들을 할당할 적절한 node를 선택한 다음, kube-apiserver에게 해당 node와  
+  pod를 binding할 것을 요청한다. 그 후에 nodeName에 해당 node의 이름이 기록된다.
+
+### Pod가 생성될 node를 선택하는 scheduling 과정
+
+- 가장 중요한 것은 **"scheduler가 적절한 node를 어떻게 설정하느냐"** 이다.  
+  Scheduler는 크게 node filtering, node scoring의 단계를 거쳐 최종적으로 node를 선택한다.
+
+  - Node filtering: Pod를 할당할 수 있는 node와 그렇지 않은 node를 filtering하는 단계이다. 예를 들어 CPU, memory가 요청하는  
+    것보다 적은 node라면 해당 node는 pod를 할당할 수 없다. 이러한 filtering을 통해 적절한 node를 선택한다.
+
+  - Node scoring: K8S의 소스 코드에 미리 정의된 알고리즘의 가중치에 따라 node의 점수를 계산한다. 예를 들어, pod가 실행할 image가  
+    이미 node에 존재할 때 더욱 빠르게 pod를 생성할 수 있으므로 더 높은 점수가 부여된다. 이러한 알고리즘들의 값을 합산함으로써  
+    후보 node들의 점수를 모두 계산한 다음, 가장 점수가 높은 node를 최종적으로 선택한다.
+
+### NodeSelector, Node Affinity, Pod Affinity
+
+- 특정 worker node에 pod를 할당하는 가장 확실한 방법은 pod의 yaml 파일에 nodeName을 직접 명시하는 것이다.
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+spec:
+  nodeName: node01
+  containers:
+    - name: nginx
+      image: nginx:latest
+```
+
+- 이렇게 nodeName을 사용하면 pod가 실행될 node를 확실히 지정할 수 있지만, node의 이름을 고정으로 설정했기에 다른 환경에서 yaml 파일을  
+  보편적으로 사용하기 어렵다는 문제가 있고, 장애 발생시에도 유연하게 대처할 수 없다.
+
+- nodeName 대신 사용 가능한 선택지로는 node의 label을 사용하는 것이다. 즉, 특정 label이 적용되어 있는 node에만 pod가 생성되도록 하는 것이다.
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-nodeselector
+spec:
+  nodeSelector:
+    mylabel/disk: hdd
+  containers:
+    - name: nginx
+      image: nginx:latest
+```
+
+- nodeSelector도 나쁘지 않은 방법이지만, 단순히 label의 key-value pair가 같은지만 비교해 node를 선택하기에 활용 방법이 다양하진 않다.  
+  이를 보완하기 위해 K8S는 Node affinity라는 scheduling 방법을 제공한다.
+
+- Node Affinity는 nodeSelector에서 조금 더 확장된 label 선택 기능을 제공하며, 반드시 충족해야 하는 조건(Hard)과  
+  선호하는 조건(Soft)을 별도로 정의할 수 있다.
+
+- Node Affinity에는 2가지의 옵션이 있다.
+
+  - `requiredDuringSchedulingIgnoredDuringExecution`
+  - `preferredDuringSchedulingIgnoredDuringExecution`
+
+- 먼저 `requiredDuringSchedulingIgnoredDuringExecution`을 보자.
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-nodeaffinity-required
+spec:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+	nodeSelectorTerms:
+	  - matchExpressions:
+	      - key: mylabel/disk
+		operator: In
+		values:
+		  - ssd
+		  - hdd
+  containers:
+    - name: nginx
+      image: nginx:latest
+```
+
+- 위 yaml 파일의 `operator: In`은 key, value pair 중 하나라도 만족하는 node에 pod를 scheduling하도록 하는 것이다.  
+  이러한 operator에는 `In`, `NotIn`, `Exists`, `DoesNotExist`, `Gt`, `Lt`가 있다.
+
+- `requiredDuringSchedulingIgnoredDuringExecution`는 반드시 만족시켜야 하는 조건을 명시할 때 사용하는 반면,  
+  `preferredDuringSchedulingIgnoredDuringExecution`는 "선호하는 제약 조건"을 의미한다.  
+  "선호" 하기 때문에 선호도를 아래처럼 지정할 수 있다.
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-nodeaffinity-preferred
+spec:
+  affinity:
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 80 # 조건을 만족하는 node에 1~100의 가중치 부여
+	  preference:
+	    matchExpressions:
+	      - key: mylabel/disk
+	        operator: In
+		values:
+		  - ssd
+  containers:
+    - name: nginx
+      image: nginx:latest
+```
+
+- 즉 `preferredDuringSchedulingIgnoredDuringExecution`를 사용하면 조건에 맞는 node가 가중치가 부여돼 선택될 확률이  
+  높아지기에 이를 Soft 하다고 하는 것이다.
+
+- Node Affinity가 특정 조건을 만족하는 node를 선택하는 방법이라면, Pod Affinity는 특정 조건을 만족하는 pod와 함께 실행되도록  
+  scheduling해준다. Node Affinity와 동일한 option들을 사용할 수 있다.
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-podaffinity
+spec:
+  affinity:
+    podAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+	- labelSelector:
+	    matchExpressions:
+	      - key: mylabel/database
+	        operator: In
+		values:
+		  - mysql
+	  topologyKey: failure-domain.beta.kubernetes.io/zone
+  containers:
+    - name: nginx
+      image: nginx:latest
+```
+
+- 이번에는 `spec.affinity`에 nodeAffinity 대신 podAffinity를 사용했고, topologyKey라는 항목이 추가되었다.  
+  위 yaml 파일은 `requiredDuringSchedulingIgnoredDuringException`을 통해 이전과 비슷한 의미로 사용되고 있지만,  
+  이 label을 갖는 pod와 무조건 같은 node에 할당하라는 뜻은 아니다. topologyKey는 해당 label을 갖는 topology 범위의  
+  node를 선택하라는 것을 의미한다.
+
+- 예를 들어 K8S node들이 topologyKey에 설정된 label의 key-value pair에 따라 여러 개의 group(topology)로  
+  분류된다고 해보자. 그리고 kubernetes.io/zone이라는 key의 value가 ap-northeast-2a, ap-northeast-2b인  
+  group이 있는 상황이라고 해보자. 이때 matchExpression의 label 조건을 만족하는 pod가 위치한 group의 node들 중 하나에  
+  pod를 할당한다. 따라서 조건을 만족하는 pod와 동일한 node에 할당될 수도 있지만, 해당 node와 동일한 group(topology)에  
+  속하는 다른 node에 pod가 할당될 수도 있다.
+
+- PodAffinity와 반대되는 기능으로 Pod Anti-Affinity가 있다. Pod Affinity가 특정 pod와 동일한 topology에 속하는  
+  node를 선택했다면, Pod Anti-Affinity는 특정 pod와 같은 topology에 속하는 node를 선택하지 않는다.  
+  사용법은 아주 간단한데, 단지 podAffinity를 podAntiAffinity로 바꿔주기만 하면 된다.
+
+### Taints, Tolerations 사용하기
+
+- Taint: taint(얼룩)을 특정 node에 지정함으로써 해당 node에 pod가 할당되는 것을 막는다.
+- Toleration: taint에 대응하는 toleration을 지정해 taint가 설정된 node에도 pod가 할당되도록 한다.
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-toleration-test
+spec:
+  tolerations:
+    - key: some/taint
+      value: dirty
+      operator: Equal # some/taint가 dirty인 taint가 있다면
+      effect: NoSchedule # 해당 node에 pod를 할당하지 않는다.
+  containers:
+    - image: nginx:latest
+      name: nginx
+```
+
+- Taint의 effect에는 NoSchedule외에 PreferNoSchedule과 NoExecute가 있다.  
+  NoSchedule은 node에 설정되더라도 기존에 실행 중이던 pod는 정상적으로 동작하는 반면, NoExecute는 해당 node에서 실행 중인 pod를 종료시킨다.
+
+### Cordon, Drain, PodDistributionBudget
+
+- Taint, toleration을 사용해 node에 pod가 scheduling되는 것을 막을 수도 있지만, K8S는 이보다 더 명시적인 방법인 cordon을  
+  제공한다. `kubectl cordon $NODE_NAME` 명령어를 사용하면 된다. Cordon을 해제하려면 `kubectl uncordon $NODE_NAME` 명령어를 사용하면 된다.
+
+- Drain은 cordon과 마찬가지로 특정 node에 scheduling을 금지한다는 점은 같지만, node에서 기존에 실행 중이던 pod를 다른 node로  
+  옮겨가도록 evict한다는 점이 다르다. Drain을 사용하면 해당 node에는 pod가 실행되지 않기에 kernel version upgrade, 유지보수 등의  
+  이유로 잠시 node를 중지해야 할 때 유용하게 사용할 수 있다. `kubectl drain $NODE_NAME`
+
+- Drain으로 인해 pod가 evict될 때 애플리케이션이 중단될 수도 있다. 이를 방지하기 위해 PodDistributionBudget을 사용할 수 있다.  
+  PodDistributionBudget은 `kubectl drain`으로 pod에 eviction이 발생할 때 특정 개수 또는 비율 만큼의 pod는 반드시  
+  정상적인 상태를 유지하기 위해 사용한다.
+
+```yaml
+apiVersion: policy/v1beta1
+kind: PodDistributionBudget
+metadata:
+  name: simple-pdb-example
+spec:
+  maxUnavailable: 1 # 비활성화될 수 있는 pod의 최대 개수 또는 비율
+  selector:
+    matchLabels:
+      app: webserver # PDB의 대상이 될 pod를 선택하는 label selector
+```
+
+---
