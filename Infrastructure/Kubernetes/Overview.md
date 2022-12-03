@@ -794,3 +794,75 @@ spec:
 - targetCPUUtilizationPercentage는 pod의 절대적인 리소스 사용량이 아닌, pod에 requests로 할당된 리소스 대비 사용률을 의미한다.
 
 ---
+
+## Custom Resource와 Controller
+
+### K8S controller의 개념과 동작 방식
+
+- K8S는 명령형(imperative)이 아닌 선언형(declarative) 접근법을 선호하며, `kubectl apply -f some.yaml` 명령어에서  
+  some.yaml은 K8S가 "최종적으로 도달해야 하는 상태"를 의미하며, 이 명령어가 수행되면 K8S는 현재 상태에서 해당 yaml 파일과  
+  상태가 일치하도록 특정 동작을 수행한다. 그리고 **어떤 동작을 취해야 하는지는 K8S의 controller가 결정한다.**
+
+- 이러한 controller는 kube-system namespace 내의 kube-controller-manager 컴포넌트가 처리한다.
+
+### Custom Resource
+
+- Custom Resource는 말그대로 직접 정의해 사용하는 사용자 정의 리소스를 의미한다.  
+  Deployment, Service 등의 object의 묶음을 custom resource로 추상화함으로써 K8S resource들을 묶어놓은 패키지처럼  
+  사용할 수도 있고, K8S와 전혀 관련없는 로직을 custom resource와 연동할 수도 있다.
+
+- Custom resource를 사용하는 과정은 아래와 같다.
+
+  - (1) 현재 상태를 custom resource에 대한 desired state로 변화시킬 수 있는 controller를 구현하고 실행한다.
+  - (2) Custom resource의 상세 정보를 정의하는 CRD(Custom Resource Definition) 리소스를 생성한다.
+  - (3) CRD에 정의된 데이터에 맞춰 custom resource를 생성한다.
+  - (4) (1)에서 실행한 controller가 custom resource의 생성을 감지하고, custom resource가 원하는  
+    desired state가 되도록 적절한 작업을 수행한다.
+
+### CRD(Custom Resource Definition)
+
+- K8S에서 custom resource는 CRD를 통해 정의할 수 있다.
+
+```yaml
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: crd.sangwoo.com # CRD의 이름
+spec:
+  group: sangwoo.com # custom resource의 api group
+  version: v1alpha1 # custom resource의 api version
+  scope: Namespaced # custom resource가 namespace 종송적인지의 여부
+  names:
+    plural: sangwoos # custom resource의 복수형 이름, ex) kubectl get sangwoos
+    singular: sangwoo # custom resource의 단수형 이름 ex) kubectl get sangwoo
+    kind: Sangwoo # YAML 파일 등에서 사용될 custom resource의 kind
+    shortNames: ["sw"] # custom resource의 짧은 이름 ex) kubectl get sw
+  validation:
+    openAPIV3Schema: # custom resource의 데이터 정의
+      required: ["spec"] # custom resource에 반드시 "spec"이 존재해야 함을 명시
+      properties: # custom resource에 저장할 데이터 형식 정의
+        spec:
+	  required: ["myvalue"]
+	  properties:
+	    myvalue:
+	      type: "string"
+	      minimum: 1
+```
+
+- 위의 CRD로 통해 아래의 custom resource를 생성할 수 있게 된다.
+
+```yaml
+apiVersion: sangwoo.com/v1alpha1
+kind: Sangwoo
+metadata:
+  name: my-custom-service-sangwoo
+spec:
+  myvalue: "This is mandatory"
+```
+
+- 이렇게 CRD로부터 생성한 custom resource는 etcd에 저장된 단순한 데이터일 뿐, 실제로 동작하고 있는 pod나 service는 아니다.  
+  Custom resource를 생성했을 때 특정 동작을 수행하도록 정의하는 controller를 별도로 구현해야만 한다.  
+  예를 들어, replicaSet의 목적은 "labelSelector가 일치하는 일정 개수의 pod 생성" 이었고, 이는 kube-controller-manager가  
+  수행하게 된다.
+
+---
