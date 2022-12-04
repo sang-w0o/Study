@@ -574,3 +574,223 @@ spec:
 ```
 
 ---
+
+## K8S 애플리케이션 상태와 배포
+
+### Deployment를 통한 rolling update
+
+- 일반적으로는 deployment를 생성하고, deployment에 속하는 replicaSet이 pod를 생성하도록 한다.  
+  Pod를 생성할 때 deployment를 사용하는 이유는 replicaSet의 변경 사항을 저장하는 revision을 deployment에서  
+  관리함으로써 애플리케이션의 배포를 쉽게 하기 위함이다.
+
+- Deployment에 변경 사항이 생기면 새로운 replicaSet이 생성되고, 그에 따라 새로운 버전의 애플리케이션이 배포된다.  
+  이때 --record option을 적용해 새로운 deployment를 배포하면 기존 replicaSet의 정보가 deployment의 history에  
+  기록된다. 그리고 revision을 이용해 언제든지 원하는 버전의 replicaSet으로 rollback할 수 있다.
+
+  - `kubectl apply -f my-deployment.yaml --record`
+
+- Deployment를 통해 새로운 버전의 pod를 생성하는 작업 그 자체는 매우 단순하지만, 배포 중에 애플리케이션이 일시적으로 중단되어도  
+  괜찮은지에 따라 어떠한 배포 방법을 선택할 것인지 고민해야 한다.
+
+- 일시적으로 사용자의 요청을 처리하지 못해도 괜찮은 애플리케이션이라면 K8S가 제공하는 ReCreate 방법을 사용하면 된다.  
+  이 방법은 기존 버전의 pod를 모두 삭제한 후, 새로운 버전의 pod를 생성한다.
+
+- 이러한 배포 전략은 deployment yaml 파일의 `spec.strategy`에서 선택할 수 있다.
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment-recreate
+spec:
+  replicas: 3
+  strategy:
+    type: ReCreate
+```
+
+- 하지만 만약 사용자의 요청을 배포 도중에도 언제든지 처리하려면 어떻게 해야 할까? 바로 K8S가 제공하는 Rolling update를 사용하면 된다.  
+  Rolling update를 사용하면 deployment를 업데이트하는 도중에도 사용자의 요청을 처리할 수 있는 pod가 계속 존재하기 때문에  
+  애플리케이션의 중단이 발생하지 않는다.
+
+- Deployment의 기본 배포 방식은 rolling update이며, 기존 pod는 몇 개씩 삭제할 것인지, 새로운 버전의 pod는 몇 개씩 생성할 것인지를  
+  아래와 같이 직접 설정할 수 있다.
+
+```yaml
+#..
+spec:
+  replicas: 3
+  stragegy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 2 # rolling update 도중 전체 pod 개수가 spec.replicas보다 얼마나 더 많이 존재할 수 있는지. %도 사용 가능.
+      maxUnavailable: 2 # rolling update 도중 사용 불가능한 상태가 되는 pod의 최대 개수 설정. %도 사용 가능
+```
+
+### Pod의 lifecycle
+
+- Pod의 lifecycle은 아래와 같은 state들로 이뤄진다.
+
+  - `Pending`: Pod 생성 요청은 승인되었지만, 어떠한 이유로 인해 실제로 생성되지는 않은 상태. ex) scheduling 되기 전
+  - `Running`: Pod에 포함된 컨테이너들이 모두 생성되어 pod가 정상적으로 실행된 상태
+  - `Completed`: Pod가 정상적으로 실행되어 종료된 상태.(init process의 exit code가 0)
+  - `Error`: Pod가 정상적으로 실행되지 않은 상태로 종료된 상태.(init process의 exit code가 0이 아님)
+  - `Terminating`: Pod가 삭제 또는 evict되기 위해 삭제 상태에 머물러 있는 경우
+
+- Pod가 종료된 후에 재시작 여부를 결정하는 restartPolicy는 기본적으로 항상 재실행 시키는 Always로 설정되어 있고,  
+  추가적으로 절대로 재시작하지 않는 Never, 0이 아닌 exit code를 반환했을 때만 재시작시키는 OnFailure가 있다.
+
+- Pod는 재시작하는 기간을 exponential backoff로 두는데, CrashLoopBackoff는 종료 후 재시도하기 전의 상태를 의미한다.
+
+- Pod를 생성하고, Running 상태가 되었다고 해서 컨테이너 내부의 애플리케이션이 제대로 동작할 것이라는 보장은 없다.  
+  이를 위해 K8S에서는 init container, postStart, livenessProve, readinessProbe라는 기능을 제공한다.
+
+  - init container: Pod의 컨테이너 내부에서 애플리케이션이 실행되기 전, 초기화를 수행하는 컨테이너
+
+    - 만약 init container 중 하나라도 실행에 실패하면 pod의 애플리케이션 컨테이너는 실행되지 않으며 restartPolicy에 의해 재시작된다.
+
+  ```yaml
+  apiVersion: v1
+  kind: Pod
+  metadata:
+    name: init-container-example
+  spec:
+    initContainers: # 초기화 컨테이너 지정
+      - name: my-init-container
+        image: busybox
+        command: ["sh", "-c", "echo Hello from the init container"]
+    containers:
+      - name: nginx
+        image: nginx
+  ```
+
+  - postStart: Pod의 컨테이너가 실행되거나 삭제될 때 특정 작업을 수행하도록 하는 lifecycle hook이다.  
+    이러한 hook에는 컨테이너가 시작될 때 실행되는 postStart와 종료될 때 실행되는 preStop이 있다.
+
+    - postStart는 컨테이너가 시작된 직후 특정 주소로 HTTP 요청을 보내는 HTTP, 컨테이너 시작 직후 컨테이너 내부에 특정  
+      명령어를 실행시키는 exec이 있다.
+
+  ```yaml
+  apiVersion: v1
+  kind: Pod
+  metadata:
+    name: poststart-hook
+  spec:
+    containers:
+      - name: poststart-hook
+        image: nginx
+        lifecycle:
+          postStart:
+            exec:
+              command: ["sh", "-c", "touch /myFile"]
+  ```
+
+  - postStart의 exec 명령이나 HTTP request가 제대로 실행되지 않으면 컨테이너는 running 상태로 전환되지 않으며,  
+    init container와 마찬가지로 restartPolicy에 의해 재시작한다.
+
+  - livenessProbe: 컨테이너 내부의 애플리케이션이 살아있는지(liveness) 검사한다. 검사에 실패할 경우, 해당 컨테이너는  
+    restartPolicy에 의해 재시작된다.
+
+  - readinessProbe: 컨테이너 내부의 애플리케이션이 사용자 요청을 처리할 준비가 되었는지(readiness) 검사한다.  
+    검사에 실패할 경우, 해당 컨테이너는 **service의 routing 대상에서 제외한다.**
+
+  - livenessProbe에 실패했다는 것은 애플리케이션 내부에 무언가 문제가 생겼다는 것이기에 정상 상태로 되돌리기 위해 컨테이너를  
+    재시작하지만, readinessProbe에 실패한 것은 애플리케이션이 실행 직후 초기화 등의 작업으로 아직 준비가 되지 않았다는  
+    뜻이기에 사용자의 요청이 전달되지 않도록 service의 routing 대상에서 pod의 IP를 제거한다.
+
+  ```yaml
+  apiVersion: v1
+  kind: Pod
+  metadata:
+    name: livenessprobe-pod
+  spec:
+    containers:
+      - name: livenessprobe-pod
+        image: nginx
+        livenessProbe: # 이 컨테이너에 대해 livenessProbe 설정
+          httpGet: # HTTP GET 요청을 통해 애플리케이션의 상태 검사
+            port: 80 # $POD_IP:80으로 요청
+            path: /
+  ```
+
+  - livenessProbe, readinessProbe는 httpGet외에 exec, tcpSocket을 사용할 수 있다.  
+    tcpSocket은 TCP connection이 맺어질 수 있는지를 체크함으로써 상태를 검사한다.
+
+  - readinessProbe를 사용하는 예시는 아래와 같다.
+
+  ```yaml
+  apiVersion: v1
+  kind: Pod
+  metadata:
+    name: readinessprobe-pod
+  spec:
+    containers:
+      - name: readinessprobe-pod
+        image: nginx
+        readinessProbe:
+          httpGet:
+            port: 80
+            path: /
+  ```
+
+  - 만약 컨테이너가 너무 빨리 시작되어 readinessProbe를 적용하기 어렵거나, 초기화 시간이 어느정도 필요한 경우에는  
+    `spec.minReadySeconds`를 사용하면 된다. 이 옵션에 지정된 시간 동안 readinessProbe는 검사를 대기하게 된다.
+
+  - 마지막으로 readinessProbe, livenessProbe는 아래의 옵션들을 제공한다.
+
+    - periodSeconds: 검사 진행 주기
+    - initDelaySeconds: pod 생성 후 검사를 시작할 때 까지의 대기 시간
+    - timeoutSeconds: 요청에 대한 timeout
+    - successThreshold: 상태 검사를 성공으로 판단하는 검사 성공 횟수
+    - failureThreshold: 상태 검사를 실패로 판단하는 검사 실패 횟수
+
+  ```yaml
+  apiVersion: v1
+  #...
+  readinessProbe:
+    httpGet:
+      port: 80
+      path: /
+    periodSeconds: 10 # 10초마다 검사
+    initDelaySeconds: 5 # pod 생성 후 5초 후 검사 시작
+    timeoutSeconds: 1 # 1초 이상 응답이 없으면 실패로 판단
+    successThreshold: 1 # 1번의 검사 성공으로 성공으로 판단
+    failureThreshold: 3 # 3번의 검사 실패로 실패로 판단
+  ```
+
+- 마지막으로 pod를 종료할 때 벌어지는 상황을 보자.
+
+  - (1) 리소스가 삭제될 예정이라는 의미인 deletionTimestamp값이 pod의 데이터에 추가되고, pod가 `Terminating` 상태로 바뀐다.
+  - (2) 아래 내용들이 동시에 수행된다.
+    - Pod에 preStop lifecycle hook이 있다면 실행한다.
+    - Pod가 replicaSet으로부터 생성된 경우, replicaSet의 관리 영역에서 벗어나며 replicaSet은 새로운 pod를 생성하려 시도한다.
+    - Pod가 service의 routing 대상에서 제외된다.
+  - (3) preStop hook이 완료되면 linux의 SIGTERM 시그널이 pod의 컨테이너에 전달된다.
+  - (4) 특정 유예 기간이 지나도 컨테이너 내부의 프로세스가 여전히 종료되지 않으면 SIGKILL 시그널이 전달된다.  
+    이 유예 기간은 yaml의 `spec.terminationGracePeriodSeconds`에 지정할 수 있고, 기본값은 30초이다.
+
+- 개발자는 애플리케이션을 gracefully shutdown하기 위해 SIGTERM을 수신했을 때 어떠한 행동을 취할지를 정의할 수 있다.
+
+### HPA를 활용한 auto scaling
+
+- HPA(Horizontal Pod Autoscaler)는 리소스 사용량에 따라 deployment의 pod 개수를 자동으로 조절하는 K8S가 제공하는 기능이다.  
+  비록 기본 기능이지만, 리소스 metric 수집 도구인 metrics-server를 설치해야지만 autoscaling을 사용할 수 있다.  
+  왜냐하면 CPU, memory 사용량 등을 수집해야 하기 때문이다.
+
+```yaml
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: simple-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: hostname-deployment # hostname-deployment의 자원 사용량 중
+  targetCPUUtilizationPercentage: 50 # CPU 활용률이 50% 이상인 경우
+  maxReplicas: 5 # pod 개수를 최대 5개까지 늘린다.
+  minReplicas: 1 # pod 개수를 최소 1개까지 줄인다.
+```
+
+- targetCPUUtilizationPercentage는 pod의 절대적인 리소스 사용량이 아닌, pod에 requests로 할당된 리소스 대비 사용률을 의미한다.
+
+---
