@@ -164,3 +164,69 @@
 - 원본 데이터의 크기에 비해 bitmap의 크기는 매우 작다.
 
 ---
+
+## 6. Query Processing
+
+- Steps in query processing
+
+  - Parsing and translation
+  - Optimization
+  - Evaluation
+
+- Query optimization
+
+  - 하나의 query는 여러 개의 relational algebra expression으로 변환될 수 있다.
+  - 각 relational algebra expression들은 다르게 평가될 수 있다.
+  - 따라서 연산의 비용을 계산하고, 가장 적은 비용을 가지는 expression을 선택한다.
+
+- Measurements of query cost
+
+  - Query 비용은 대부분 disk access 횟수에 의해 좌우된다.
+  - 아래 용어를 사용하자.
+    - $t_T$: Time to transfer 1 block
+    - $t_s$: Time for 1 seek
+    - B block의 transfer와 S번의 seek 비용: $B * t_T + S * t_s$
+
+- Selection operation
+
+  - A1(linear search)
+
+    - Scan each file block and test all records to see whether thy satisfy the selection condition
+    - Cost estimate: $b_r * t_T + t_S$
+      - 모든 block들이 물리적으로 인접하다고 가정
+      - $b_r$ : Number of blocks of relation $r$
+    - 만약 selection이 key attribute에 대한 것이라면 cost는 $1/2 * b_r * t_T + t_S$가 된다.
+    - Linear search는 언제든지 적용 가능하다.
+
+  - A2(primary index, equality on key)
+
+    - 동등 조건을 만족하는 하나의 record 반환
+    - Cost: $(h_i + 1) * (t_T + t_s)$
+      - $h_i$ : Index의 height
+
+  - A3(primary index, equality on non-key)
+
+    - 동등 조건을 만족하는 모든 record 반환
+    - Cost: $h_i * (t_T + t_s) + t_s + t_T * b$
+      - $b$ : 조건을 만족시키는 record들을 포함한 block 개수
+
+  - A4(secondary index, equality on non-key)
+
+    - search key가 candidate key이면 단일 record 반환
+      - cost: $(h_i + 1) * (t_T + t_s)$
+    - search key가 candidate key가 아니면 여러 개의 record 반환
+      - cost: $(h_i + n) * (t_T + t_s)$
+      - $n$ : 조건을 만족시키는 record의 개수
+
+  - A5(primary index, comparison)
+
+    - 값 크기 비교 연산
+    - 조건을 만족하는 tuple을 찾고, 해당 tuple부터 linear scan
+    - Index를 사용한다면 index 기준으로 linear scan
+      - Linear file scan이 index를 사용하는 것보다 더 빠를 수 있다.
+
+### 3. Sorting
+
+- External sort-merge
+
+  -
