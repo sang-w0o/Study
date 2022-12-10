@@ -126,3 +126,41 @@
   - `/etc/sysctl.conf`에서 `net.Ipv4.Ip_forward=1`로 수정
 
 ---
+
+## (10)
+
+- AI 와 보안
+
+  - Security by AI: 악성 코드 탐지, 네트워크 침입 탐비, 보안 관제, 사용자 인증
+  - Security for AI: 학습 데이터 요염, 기만 공격
+  - Threats by AI: AI Hacker, Deepfake, privacy 침투
+  - Safety of AI
+
+> Security: 악의적인 공격자의 공격을 방어하는 관점
+> Safety: 오류, 결함, 실수 등에 대한 대응
+
+- AI에 대한 적대적 공격(Security for AI)
+
+  - Backdoor attack: 학습 데이터를 오염시켜 모델을 공격
+  - Inversion attack: 학습된 모델에 질의해 학습 데이터를 재현해낸다. -> 학습 데이터의 노출
+  - Physical attack: noise를 추가해 결과를 다르게 도출해낸다.
+
+- 방어 기술
+
+  - 적대적 학습: 적대적 예제를 학습 데이터로 활용
+  - 탐지: 적대적 예제의 특성을 고려해 정상 데이터와 구분
+  - 필터링: 적대적 예제에 추가된 noise 제거
+
+### 실습 - SSL MITM
+
+- `PC(브라우저)` <- HTTPS -> `AWS(공격자 서버)` <- HTTPS -> `website`
+
+- MITM 유도 방법
+
+  - ARP spoofing
+  - DNS spoofing: DNS query에 대한 잘못된 response를 주도록 해 가짜 webserver에 접속하게 함
+  - DNS보다 먼저 참조하는 hosts 파일 변경
+
+- 피싱, 파밍은 가짜 사이트를 만들어 운용하는 것이지만, MITM은 진짜 사이트를 중계(relay)하기 때문에 모든 인증 수단도 중계 가능
+
+---
