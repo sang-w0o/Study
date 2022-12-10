@@ -1,0 +1,128 @@
+## (9)
+
+### 웹 보안
+
+- 위협: 무결성, 기밀성, 서비스 거부, 인증
+
+- TCP/IP에서 보안 기능의 위치
+
+  - 네트워크 레벨: IP/IPSec
+  - 전송 레벨: SSL, TLS
+  - 응용 레벨: S/MIME, Kerberos..
+
+### TLS: 전송 계층 보안
+
+- TLS는 현재 SSL로 진화했으며 SSL만 사용된다.
+
+- 구조: 2 계층의 프로토콜로 구성
+
+  - 상위 프로토콜: 상호 인증, 키 교환
+  - 레코드 프로토콜: MAC, 암호화
+
+- 개념:
+
+  - TLS session:
+
+    - 한 클라이언트와 서버 사이의 association
+    - 세션 시작은 handshake protocol 사용
+    - 세션에서 암호적 보안 매개변수 정의
+    - 매 연결 시마다 보안 매개변수들을 협상하지 않기 위해 session 사용
+
+  - TLS connection: 암호화 단위, MAC 단위 -> 즉, key 사용 단위
+
+- Session 상태 매개변수
+
+  - 세션 식별자(session identifier)
+  - 대등 인증서(peer certificate)
+  - 압축 방법(compression method)
+  - 암호 명세(cipher spec)
+  - 마스터 비밀(master secret): TLS connection들은 master secret으로부터 유효한 key들을 사용한다.
+
+- Connection 상태 매개변수: 모두 master secret으로부터 생성됨
+
+  - 서버 기록 MAC 비밀(server write MAC secret): for MAC
+  - 클라이언트 기록 MAC 비밀(cleint write MAC secret): for MAC
+  - 서버 기록 key: for encryption
+  - 클라이언트 기록 key: for encryption
+  - initialization vectors
+
+- TLS record protocol의 동작
+
+  - `응용 데이터` -> `단편화` -> `압축` -> `MAC 첨부` -> `암호화` -> `SSL record 헤더 붙이기`
+
+- TLS record protocol payload
+
+  - Handshake protocol: 1byte(type) + 3byte(length) + _n_ byte(content)
+  - 상위-경고 프로토콜: TLS 동작 간 warning, error 전달 수단
+  - 상위-handshake protocol
+
+    - server, client의 상호 인증
+    - class 1(key 교환), class 2(server 인증), class 3(client 인증)이 있는데 대부분 class 1, 2까지만 수행
+    - 암호화, MAC, SSL record 내의 데이터를 보호하는 데에 사용할 master secret 교환
+    - 4단계: `보안 기능 설정` -> `서버 인증과 키 교환` -> `클라이언트 인증과 키 교환` -> `종료`
+
+  - 과정
+
+    |  방향  |         이름          | 단계 |      부가 설명       |
+    | :----: | :-------------------: | :--: | :------------------: |
+    | c -> s |    `client_hello`     |  1   |          -           |
+    | s -> c |    `server_hello`     |  1   |          -           |
+    | s -> c |     `certificate`     |  2   |  공개 key + 서명 값  |
+    | s -> c | `server_key_exchange` |  2   |          -           |
+    | s -> c | `certificate_request` |  2   | class 3 할 때만 수행 |
+    | s -> c |  `server_hello_done`  |  2   |          -           |
+    | c -> s |     `certificate`     |  3   | class 3 할 때만 수행 |
+    | c -> s | `client_key_exchange` |  3   | class 3 할 때만 수행 |
+    | c -> s | `certificate_verify`  |  3   | class 3 할 때만 수행 |
+    | c -> s | `change_cipher_spec`  |  4   |          -           |
+    | c -> s |      `finished`       |  4   |          -           |
+    | s -> c | `change_cipher_spec`  |  4   |          -           |
+    | s -> c |      `finished`       |  4   |          -           |
+
+  - handshake 이후 client, server는 pre master secret을 각각 가지고 있다.  
+    그리고 이 pre master secret으로부터 master secret을 계산해낸다.
+
+- Heardbeat protocol: 정상 동작을 나타내기 위해 보내는 주기적 신호
+
+### HTTPS
+
+- HTTPS 암호화 요소
+
+  - 요청 문서 URL
+  - 문서 내용
+  - Cookie, HTTP header
+
+- 연결 개시
+
+  - HTTP client
+    - TLS handshake 마무리 후 첫 번째 HTTP request 전송
+    - 모든 데이터는 TLS 응용 데이터로 전송
+
+- 불완전 종료: 상대방이 종료 경보를 보낼 때까지 기다리지 않고 연결을 종료할 경우
+
+### SSH
+
+- 네트워크 통신을 위한 프로토콜
+- 파일 전송, 전자 메일 기능 제공
+- 사용자 인증을 위한 프로토콜이 따로 있으며, 서버 인증을 SSH 전송 층 프로토콜에서 진행
+
+- 전송 계층의 host key
+
+  - 서버 인증: 서버는 여러 개의 host key 가질 수 있음
+  - 클라이언트는 서버의 host key를 사전에 알고 있어야 한다.
+
+  - 신뢰 방식
+
+    - (1): Client가 관리하는 host 공개 key local database
+    - (2): PKI : 클라이언트는 오직 CA의 public key만 알고 있으며 CA가 인증한 모든 host key를 검증할 수 있다.
+
+### 실습 - VPN
+
+- Tunneling: 인터넷의 일정 구간에 별도의 channel을 형성해 사용하는 기법
+- VPN(Virtual Private Network): Tunneling을 통해 마치 전용 회선을 가진 것처럼 동작
+
+- VPN 되려면 ip forwarding 되어야함.
+
+  - `/etc/sysctl.conf`에서 `net.Ipv4.Ip_forward=1`로 수정
+
+---
