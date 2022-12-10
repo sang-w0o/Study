@@ -164,3 +164,83 @@
 - 피싱, 파밍은 가짜 사이트를 만들어 운용하는 것이지만, MITM은 진짜 사이트를 중계(relay)하기 때문에 모든 인증 수단도 중계 가능
 
 ---
+
+## (11)
+
+### 이메일 구조 및 형식
+
+- SMTP: Simple Mail Transfer Protocol, 메일 전송을 위한 프로토콜
+  - `MSA` -> `MTA` -> `MDA`
+- IMAP, POP3: 메일 서버에서 메시지를 수신하기 위해 사용
+
+- SMTP client-server protocol
+
+  - Client가 server에 TCP 접속을 하면 시작
+  - client -> server 명령: 1줄의 텍스트, 4글자 명령 + argument
+    - ex) `HELO bar.com`, `RCPT TO:<foo@bar.com>`, `DATA`, `QUIT`
+  - server -> client 응답: 1줄 이상의 텍스트, 3자리수 코드 + 추가정보
+    - ex) `250 OK`, `550 No such user here`
+
+- POP3
+
+  - POP3 user agent는 TCP를 통해 서버에 연결(port 110)
+  - username, password 입력 후 통과하면 메일 검색, 삭제 등을 위한 POP3 명령어 사용
+
+- IMAP
+
+  - TCP port 143
+  - POP3보다 강화된 인증
+  - POP3에서 제공하지 않는 기능 제공
+    - 메시지 읽음 표시 기능
+    - email 수신 시 장치로 push
+
+### 이메일 format
+
+- 봉투(envelope): SMTP가 사용, 전송하고 배달 완수를 위한 모든 정보 입력
+- 컨텐츠: 수신자에게 전달하려하는 객체로 구성
+
+  - 여러 개의 header들과 body로 구성
+
+- SMTP/5322의 한계
+
+  - 실행 파일이나 바이너리 객체 전송 불가
+  - 크기 제한이 있음, 모두 text로만 전송 가능
+
+- MIME: 다국어, 바이너리 전송을 위한 포맷으로 SMTP/5322의 확장이다.
+
+### 이메일 위협과 이메일 보안
+
+- 이메일 보안 위협
+
+  - 인증 관련 위협: 기업 이메일 시스템에 허가받지 않은 접근 허용
+  - 무결성 관련 위협: 이메일 컨텐츠의 허가받지 않은 수정 허용
+  - 기밀성 관련 위협: 민감한 정보의 허가받지 않은 노출 허용
+  - 가용성 관련 위협: 종단 사용자가 메일 전송이나 수신 방해
+
+- 기타 위협: 위장된 송신 주소, 도메인 등을 사용한 평판 실추
+- 완화 방법: 도메인 기반 인증 기술 도입, 이메일에 디지털 서명 도입, 이메일 전송의 TLS 암호화, e2e 암호화
+
+### `S/MIME`
+
+- RSA PKCS#7을 MIME type에 추가
+- 기능:
+
+  - 디지털 서명
+  - 메시지 암호화
+  - 압축
+
+- S/MIME contents type
+
+  - signedData, envelopedData, compressedData
+  - encoding: 모두 BER(Base Encoding Rules) 포맷을 사용한다.  
+    외부 MIME message 안에서 base64로 전
+  - envelopedData의 recipient info에는 수신자의 공개 key 인증서 식별자가 있다.
+    - 생성 과정: pseudo random session key 생성 -> 수신자의 RSA 공개 key로 session key 암호화 -> recipient info 준비 -> session key로 메시지 암호화
+  - signedData 생성과정:
+    - (1) 메시지 digest 알고리즘 선택(SHA or MD5)
+    - (2) 서명될 내용의 message digest나 hash function 값 계산
+    - (3) 서명자의 개인 키를 이용해 message digest 암호화
+    - (4) signer info block 생성:
+      - 서명자의 공개 키 인증서, message digest 알고리즘 식별자, 암호화된 message digest(서명값) 포함
+
+---
