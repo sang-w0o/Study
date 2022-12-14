@@ -1422,3 +1422,156 @@ V(mutex);
 - Thrashing: process의 실행 시간 중 page fault 처리 시간이 execution time보다 긴 상황
 
 ---
+
+## 11. Memory management(2)
+
+### Page replacement
+
+- Over allocation of memory: 모든 user process가 사용하는 page 수보다 frame 수가 적은 상황
+- 해결법: page fault 처리에 page replacement 추가
+
+- Page replacement: physical memory에 위치한 page를 disk에 저장하고, 요구된 page가 해당 frame을 할당받도록 하는 방법
+- 과정은 아래와 같다.
+
+  - (1) Disk에서 요구된 page의 위치를 찾는다.
+  - (2) Physical memory에서 free frame을 찾는다.
+  - (3) Free frame이 있다면 사용한다.
+  - (4) Free frame이 없다면 page replacement algorithm을 사용해 교체할 victim frame을 선택한다.
+  - (5) victim frame을 disk에 저장하고, page table을 변경한다.
+  - (6) User process 재시작
+
+  ![picture 98](../../images/TMP_OS_22.png)
+
+- Page replacement 시 고려할 사항들
+
+  - 각각의 user process에게 어떻게 frame을 분배할 것인가? => Frame allocation algorithm
+  - Page 교체 시 victim page를 어떻게 선택할 것인가? => Page replacement algorithm
+
+### Page replacement algorithms
+
+- 좋은 page replacement algorithm: 가장 낮은 page fault 발생 빈도를 가진 algorithm.  
+  즉, 가장 낮은 I/O 작업 횟수를 요구하는 algorithm
+
+- 여러 알고리즘의 비교를 위해 아래 상황을 가정하자.
+
+  - 3개의 frame이 할당되어 있다.
+  - page 참조 순서: 7, 0, 1, 2, 0, 3, 0, 4, 2, 3, 0, 3, 2, 1, 2, 0, 1, 7, 0, 1
+  - 한 번 참조된 page는 page replacement가 일어나기 전까지는 physical memory에 위치한다.
+
+#### Optimal algorithm
+
+- 앞으로 가장 오랫동안 사용되지 않을 page부터 교체
+
+  - 이론상 최적의 알고리즘
+  - 하지만 앞으로 어떤 page가 사용될지를 미리 알 수는 없으므로 실제 구현이 불가능하다.
+
+#### FIFO algorithm
+
+- 먼저 frame이 할당된 page를 교체
+
+  - 가장 단순하고, FIFO queue로 구현할 수 있다.
+  - Multimedia data에 유용하다.
+
+  ![picture 99](../../images/TMP_OS_23.png)
+
+  - page fault 발생 횟수: 15번
+
+#### SCR algorithm(Second Chance Replacement)
+
+- FIFO 기법의 단점을 보완한다.
+- FIFO queue를 만들고, reference bit를 두어 page를 관리한다.
+- Reference bit: 최초로 frame에 load될 때와 page가 참조되었을 때 1로 설정된다.  
+  그리고 일정 주기마다 다시 0으로 초기화된다.
+
+- Victim page의 reference bit가 1이면 최근에 사용된 page이므로 제거하지 않고 reference bit만 0으로 초기화한다.
+
+#### Clock algorithm
+
+- SCR 기법의 발전형
+- 환형 queue를 사용해 frame을 관리한다.
+- 다음에 제거될 page를 가리키는 hand라는 포인터를 둔다.  
+  hand는 queue를 따라 1칸씩 이동한다.
+- SCR과 마찬가지로 reference bit이 있다.
+
+#### LFU Algorithm(Least Frequently Used)
+
+- 사용 빈도가 가장 적은 page를 교체하는 기법
+- 지금까지 가장 적게 참조된 page가 교체 대상으로 선택된다.
+- 하지만 program 실행 초기에만 많이 사용된 page가 그 후로 사용되지 않더라도 frame을 계속 차지하는 문제가 있다.
+
+#### NRU Algorithm(Not Recently Used)
+
+- 최근에 사용하지 않은 page를 교체한다.
+- Page마다 reference bit와 modified bit을 두어 관리한다.
+- reference bit: page가 참조되었을 때 1로 설정된다. 그리고 일정 주기마다 다시 0으로 초기화된다.
+- modified bit: 최초로 frame에 load될 때 0으로 설정된다. 그리고 page가 수정되었을 때 1로 설정된다.
+
+#### LRU Algorithm(Least Recently Used)
+
+- 가장 오랜 시간동안 참조되지 않은 page부터 먼저 교체한다.
+- 구현 방법:
+
+  - Counter 사용: 참조된 시간 기록
+  - Queue 사용: 한 번 사용한 page를 queue의 가장 위로 이동
+
+### Swapping
+
+- Page out으로 memory 부족을 해결하지 못하는 경우에 필요한 기법
+- Swap out 대상이 된 process 전체를 secondary storage로 보낸다.
+- 이렇게 page out, swapping에 사용되는 secondary storage를 swap 영역이라 한다.
+
+### Contiguous memory allocation
+
+- Single partition allocation <1>
+
+  - User program 영역을 한 번에 1개의 user program만 사용하도록 한다.
+
+- Multiple partition allocation <2>
+
+  - <1>에 multiprogramming 개념을 추가해 user program 영역을 여러 개의 user program이 사용하도록 한다.
+
+- No partition <3>
+
+  - 각 program이 필요에 따라 전체 user program 영역을 사용할 수도 있게 한다.  
+    이 경우, page/swap out 시 garbage collection이 필요하다.
+
+![picture 100](../../images/TMP_OS_24.png)
+
+### Memory allocation problem
+
+- User program이 load될 때, physical memory의 OS 영역을 제외한 user 영역에 배치된다.
+
+  - Protection, relocation, swap 기법 사용
+  - Program을 memory에 load할 때, memory의 빈 공간 중 어디에 load할지에 대한 고려가 필요하다.
+
+- First-fit: 발견한 첫 번째 free memory에 할당
+- Best-fit: 여러 free memory들 중 할당 후 남는 나머지 free space가 가장 적은 free memory에 할당
+- Worst-fit: Best-fit과 반대
+
+### Fragmentation
+
+- External fragmentation
+
+  - Program에게 할당 후 남은 free memory space가 새로운 할당 요청에 충분하지만, 그 공간이 연속적이지 않아 사용할 수 없는 경우
+  - paging이 external fragmentation을 해결하기 위한 방법이다.
+
+- Internal fragmentation
+
+  - 할당된 memory 크기가 요청된 memory의 크기보다 조금 더 커서 할당에는 성공했지만, 그 나머지 차이 만큼의 영역을 사용할 수 없는 경우
+
+![picture 101](../../images/TMP_OS_25.png)
+
+### Protection, relocation
+
+- Protection: Contiguous memory allocation 사용 시, OS의 memory 영역과 user program의 memory 영역이  
+  서로를 침범하지 못하도록 보호해야 함
+
+- Relocation: User program은 재배치 가능한 주소로 표현된다.  
+  재배치 가능한 주소를 이용해 program이 어느 위치에 load되더라도 쉽게 code의 주소를 결정할 수 있어야 한다.
+
+- Hardware는 protection, relocation을 위해 limit register와 relocation register를 제공한다.
+
+- Limit register: 참조가 허용되는 주소의 최대값
+- Relocation register: Program이 차지하는 주소 영역 중 첫 번째 주소
+
+---
