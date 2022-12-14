@@ -1191,3 +1191,234 @@ V(mutex);
   - 여러 reader들이 계속해서 진입할 경우, readCount가 0까지 떨어지지 않을 수 있다.
 
 ---
+
+## 10. Memory management(1)
+
+## 주소 공간(address space)
+
+- Process에서 참조할 수 있는 주소들의 범위(집합)
+- Process와 1:1 관계를 가진다.
+- User thread는 주소 공간을 공유한다.
+
+- 주소 공간의 크기
+
+  - CPU address bus에 의존적
+  - Address bus가 32bit라면 $0 \sim 2^{32} - 1$의 주소 공간을 가진다.
+
+### Physical, virtual address
+
+- 물리 주소(physical address): main memory 접근 시 사용되는 주소
+- 가상 주소(virtual address)
+
+  - Process 관점에서 사용하는 주소
+  - CPU 관점의 주소는 물리, 가상 주소도 될 수 있다.
+  - Logical하기 때문에 주소 공간을 의미 있는 단위로 나눠 사용하지 않는다.
+
+- 초기 컴퓨터는 물리 주소를 compile time에 생성했다.  
+  즉 compiler는 process가 physical memory에서 실행되는 주소를 compile time에 알고 있어 절대 코드를 생성했다.
+
+- 하지만 다양한 program들이 실행됨에 따라 compile time에 물리 주소를 정하기가 어려워졌다.  
+  특히 multiprogramming의 경우, compile time에 결정된 주소는 다른 program과 동시에 memory에 loading하기 어렵다.
+
+- 이러한 이유로 가상 주소를 생성하기 시작했다.
+
+### 주소 결정 시점
+
+- Compile time
+
+  - Compiler가 symbol table을 만들고 주소는 symbol table relative한 주소로 만들어진다.
+  - Compile된 object file의 주소는 0부터 시작한다.
+
+- Link time
+
+  - Object file과 library들을 묶어 symtol table에 의존적이지 않은 주소를 만들어낸다.
+  - Executable file의 주소는 0부터 시작한다.
+
+- Load time
+
+  - Program의 실행을 위해 loader는 executable을 memory에 load한다.
+  - 주소 공간 전체가 memory에 올라간다면, load 시 물리 주소에 대한 binding이 일어난다.
+  - 만약 program의 시작 주소를 바꿔야 한다면, 다시 load해야 한다.
+
+- Execution time
+
+  - Process가 실행 될 때 물리주소가 바뀌면 물리 주소에 대한 binding은 process가 실행될 때 일어난다.
+
+### CPU에서 사용하는 주소에 따른 변환 방법
+
+- CPU에서 physical relative address를 사용하는 경우
+
+  - Program 내의 instruction들의 주소를 시작 주소(base address)로부터의 상대적인 offset으로 표현
+
+  ![picture 85](../../images/TMP_OS_9.png)
+
+- CPU에서 virtual address를 사용하는 경우
+
+  ![picture 86](../../images/TMP_OS_10.png)
+
+### MMU(Memory Management Unit)
+
+- Virtual address와 physical address 간의 변환을 수행하는 장치
+
+  ![picture 87](../../images/TMP_OS_11.png)
+
+### Virtual memory
+
+- memory에 실제 존재하지는 않지만, 사용자에게 memory로서의 역할을 하는 memory
+- 기본 아이디어: Process가 수행되기 위해 program의 모든 부분이 실제 메모리(physical memory)에 있을 필요가 없다.  
+  단지 현재 실행되고 있는 code 부분만이 physical memory에 있으면 process는 실행 가능하다.
+
+  ![picture 88](../../images/TMP_OS_12.png)
+
+### Virtual memory의 구현
+
+- Process는 virtual memory만 바라본다.
+
+  ![picture 89](../../images/TMP_OS_13.png)
+
+- physical memory의 크기가 virtual memory의 크기보다 작다.
+
+### Page table(address mapping table)
+
+- Virtual address와 physical address 간의 mapping을 저장하는 table
+
+### Paging
+
+- 주소 공간을 동일한 크기인 page로 나눠 관리한다.
+
+  - 보통 page size는 4KB로 설정한다.
+  - Frame: Physical memory를 고정된 크기로 나눴을 때 하나의 block
+  - Page: Virtual memory를 고정된 크기로 나눴을 때 하나의 block
+  - Frame 1개와 page 1개의 크기는 같다.
+
+- Page가 하나의 frame을 할당받으면, physical memory에 위치하게 된다.
+
+  - Frame을 할당받지 못한 page들은 backing storage에 저장된다.  
+    Backing storage도 page, frame과 동일한 크기로 나뉘어져 있다.
+
+- Page number, offset
+
+  - Page number: 각 process가 가진 page 각각에 부여된 번호
+  - Page address: 각 page의 내부 주소(ex. 1번 process 12번 page의 34번째 data)
+
+### Page table
+
+- 각 process의 page 정보를 저장한다.
+- Process와 page table은 1:1 관계를 가진다.
+- 해당 page에 할당된 물리 메모리의 frame의 시작 주소를 가리킨다.
+
+- 구현
+
+  - Page table은 physical memory에 존재한다.
+  - PTBR(Page Table Base Register): Physical memory 내의 page table을 가리킨다.
+  - PTLR(Pate Table): PTBR이 가리키는 page table의 크기를 나타낸다.
+
+- Page table을 이용한 주소 변환 과정
+
+  ![picture 90](../../images/TMP_OS_14.png)
+
+### PTE(Page Table Entry)
+
+- Page table의 record
+- PTE의 각 field 내용
+
+  - Page base address: 해당 page에 할당된 frame의 시작 주소
+  - Flag bits
+
+    - Accessed bit: page에 대한 접근이 있었는지 여부
+    - Dirty bit: Page 내용의 변경 여부
+    - Present bit: 현재 page에 할당된 frame이 있는지 여부
+    - Read/Write bit: 읽기/쓰기에 대한 권한 표시
+
+### TLB(Transaction Look-aside Buffer)
+
+- Paging 방법에서는 data로 접근할 때 항상 2번의 memory 접근이 필요하다.
+
+  - Page table 1번, physical memory 내의 data에 1번
+  - 이는 memory 접근 속도를 크게 떨어뜨린다.
+
+- 위 비효율성을 해결하기 위해 MMU는 TLB를 둔다.
+
+  - Page table을 이용해 변환된 주소를 TLB에 저장해둔다.(일종의 cache)
+  - TLB는 register이기에 빠른 수행이 가능하다.
+  - TLB hit ratio가 높을수록 memory 접근 속도를 향상시킬 수 있다.
+
+  ![picture 91](../../images/TMP_OS_15.png)
+
+### Multilevel Page Table
+
+- 시스템 발전에 따라 virtual memory space도 매우 큰 용량을 요구하게 되었다.  
+  이로 인해 page table의 크기도 커지고, 이 공간에 의해 paging이 잘 이뤄질 수 없게 되고 있다.
+
+- 구현 예시: two level page table
+
+  - Outer page table을 하나 더 두어, page table들을 가리키도록 한다.
+
+    ![picture 92](../../images/TMP_OS_16.png)
+
+- 2 level page table의 page walk
+
+  ![picture 93](../../images/TMP_OS_17.png)
+  ![picture 94](../../images/TMP_OS_18.png)
+
+### Page table level과 성능
+
+- Level이 많은 경우
+
+  - 장점: Page table이 차지하는 메모리 공간이 적어진다.
+  - 단점: table walk에 걸리는 시간이 증가한다.
+
+### Inverted page table
+
+- Multilevel page table과 마찬가지로 page table의 용량 증가 문제를 해결하기 위한 또다른 방법이다.
+- 방법:
+
+  - 아무리 virtual memory space가 커도, physical memory 크기에는 한계가 있다.  
+    그리고 **모든 physical memory는 virtual memory의 page에 mapping될 확률이 높다.**
+
+- 기존 방식은 page number를 이용해 frame number를 검색했다.
+- 반면 inverted page table은 CPU에서 참조하는 주소와 PID의 조합으로 page id를 만들어 page table 내에서 page id를 검색한다.
+
+  ![picture 95](../../images/TMP_OS_19.png)
+
+- 구현 방법
+
+  - System 전체에 **하나의 page table** 만을 둔다.
+    - Page table index: frame 번호
+    - 내용: PID, page number, page address
+
+- Page table은 적은 용량을 차지하게 되지만, table을 검색하는 데에 시간이 오래 걸린다.
+
+  ![picture 96](../../images/TMP_OS_20.png)
+
+### Demand paging
+
+- Process의 실행을 위한 모든 page를 memory에 올리지 않고, **필요한 page의 요청 발생 시 memory에 올리는** paging 기법
+- Page table에 valid bit를 추가해 page가 valid한지, invalid한지 표시한다.
+- Valid, invalid page
+
+  - Valid: physical memory에 load되어 있는 page
+  - Invalid: physical memory에 load되어 있지 않은 page, 즉 backing storage에 있음
+
+- 장점: 실행을 위한 physical memory 구성의 시간이 줄어든다.
+- 단점: Invalid page인 경우 page fault가 발생한다.
+
+  ![picture 97](../../images/TMP_OS_21.png)
+
+### Page fault
+
+- Process가 page를 참조했는데, 해당 page가 할당받은 frame이 없는 경우를 가리킨다.  
+  Page fault는 page fault handler가 처리한다.
+
+- Page fault 발생 빈도는 frame 개수와 반비례한다.
+
+- Page fault handler가 수행하는 내용
+
+  - 새로운 frame을 할당받는다.
+  - Backing storate에서 page의 내용을 다시 frame에 불러들인다.
+  - Page table을 재구성한다.
+  - Process의 작업을 재시작한다.
+
+- Thrashing: process의 실행 시간 중 page fault 처리 시간이 execution time보다 긴 상황
+
+---
