@@ -1575,3 +1575,186 @@ V(mutex);
 - Relocation register: Program이 차지하는 주소 영역 중 첫 번째 주소
 
 ---
+
+## 12. File system
+
+### File as abstraction
+
+- 정의: Array of bytes
+
+  - A collection of related information
+
+### File system
+
+- File과 physical disk block 간의 mapping 제공
+
+  - 사용자는 file이 저장된 위치를 알 필요가 없다.
+
+### File attributes - metadata
+
+- Name
+- Type(executable, text, library, etc.)
+- Location
+
+- File 정보는 directory structure에 저장된다.
+
+### File operations
+
+- Create
+- Write
+- Read
+- Seek: current-file-position pointer를 특정 위치로 이동
+
+- current-file-position pointer: File을 읽거나 쓸 때마다 자동으로 갱신되는 pointer로, file에 대해 process가 어디까지 작업했는지를 기록한다.
+
+### Open/close semantics
+
+- 여러 process가 file을 공유하는 경우를 위해 2개의 open file table을 유지한다.
+
+  - Per process table: 각 process에서 유지하는 state를 가진다.  
+    ex. File pointer
+  - System-wide table: Process independent information  
+    ex. Access date, file location, open count
+
+- Open은 open count를 1 증가시키고, close는 open count를 1 감소시킨다.
+- File의 delete는 system-wide table에서 open count가 0임을 확인하고 이뤄진다.
+
+### File access method
+
+- 순차 접근
+
+  - File에 있는 정보에 대한 접근은 record의 순서대로 이뤄진다.
+
+- 임의 접근: File의 어떠한 위치라도 바로 접근해 read나 write를 수행한다.
+
+### File system의 계층화
+
+- File system은 일반적으로 여러 개의 계층으로 나눠 구성된다.
+
+- 계층화하는 이유
+
+  - 한 system이 1개 이상의 file system을 사용할 수 있게 한다.
+  - File system에 유연성을 제공한다.
+
+  ![picture 102](../../images/TMP_OS_26.png)
+
+### Mount
+
+- Directory와 device를 분리한다.
+- Mount:
+
+  - 비어 있는 directory에 임의의 device를 _붙인다_.
+  - File system을 사용하려면 mount해야 한다.
+  - `/home`에 disk A의 `/a/b/c`를 mount하면 `/home/a/b/c`가 된다.
+
+### Directory structure concept
+
+- 모든 file들에 대한 정보를 가지는 node들의 집합
+- Directory structure와 file은 모두 disk 상에 있다.
+
+- Single-level directory: 모든 사용자에 대해 단일한 directory 제공
+  ![picture 103](../../images/TMP_OS_27.png)
+
+- Two-level directory: 사용자마다 directory 분리
+  ![picture 104](../../images/TMP_OS_28.png)
+
+- Tree-structured directories: 효율적인 탐색, grouping 가능
+  ![picture 105](../../images/TMP_OS_29.png)
+
+- Acyclic-graph directories
+
+  - 둘 이상의 서로 다른 이름을 이용(aliasing)해 file이나 sub directory 공유
+  - Dangling pointer가 생길 수 있다.
+
+  ![picture 106](../../images/TMP_OS_30.png)
+
+- General graph directory
+
+  - Cycle이 없도록 보장한다.
+    - Link를 file로만 가능하게 한다.
+    - 새로운 link 생성 시마다 cycle detection algorithm을 사용해 cycle 여부를 확인한다.
+
+  ![picture 107](../../images/TMP_OS_31.png)
+
+### File의 구현
+
+- Disk block: File system의 입출력 단위
+- File 구현 시에는 file의 내용을 담고 있는 data block의 위치 정보를 어떻게 저장할지 고려해야 한다.
+- OS마다 다른 방식으로 file의 data block을 관리하고 있으며 보통 아래 4가지가 있다.
+
+  - Contiguous allocation
+  - Linked list allocation
+  - Linked list allocation using an index
+  - i-nodes
+
+#### Contiguous allocation
+
+- File을 물리적으로 연속된 disk block에 저장한다.
+- 장점: 구현이 간단함, 전체 file을 한번에 읽을 경우 성능이 매우 뛰어남
+- 단점:
+
+  - File이 반드시 한 번에 끝까지 기록되어야 한다.
+  - OS에서 file의 끝에 예비용 block을 남겨놓을 경우, disk 공간 낭비가 발생한다.
+
+#### Linked list allocation
+
+- Disk block을 Linked list로 구현해 file data를 저장한다.
+- 장점:
+  - file의 data block이 disk 어디든지 위치할 수 있다.
+  - 공간 낭비가 없다.
+- 단점:
+  - random access가 불가능하다.(시작 node부터 타고타고 찾아가야함)
+  - 다음 data block에 대한 pointer가 필요하기에 data block에서 data를 저장하는 공간이 반드시 2의 배수가 아닐 수 있다.
+
+#### Linked list allocation using an index
+
+- File의 data에 관련된 block들을 하나의 block에 모아둔다.
+
+  - File의 data block 중 하나를 index block이라 하고, 모든 data block의 위치를 index block에서 알아낼 수 있다.
+
+- Linked list allocation의 장점을 그대로 가지면서, random access가 가능하다.
+- 단점: 최대 file 크기가 고정된다.  
+  index block의 크기가 고정되어 있기 때문에, index block에서 수용할 수 있는 disk block에 대한 pointer 개수가 한정되어 있기 때문이다.
+
+#### i-nodes
+
+- File에 대한 data block index들을 table 형태로 관리한다.
+- 구성요소
+
+  - File에 대한 속성을 나타내는 field
+  - 작은 크기의 file들을 위한 direct index
+  - file의 크기가 커짐에 따라 요구되는 data block의 index들을 저장하기 위한 index table들
+    - single indirect index
+    - double indirect index
+    - triple indirect index
+
+  ![picture 108](../../images/TMP_OS_32.png)
+
+### Directory의 구현
+
+- Directory entry: directory를 표현하기 위한 자료구조
+
+#### Directories in MS-DOS
+
+![picture 109](../../images/TMP_OS_33.png)
+
+- Directory entry의 first block number를 통해 실제 file의 data block이 시작되는 block을 알 수 있다.
+- Linked list allocation을 사용한다.
+
+#### Directories in UNIX
+
+![picture 110](../../images/TMP_OS_34.png)
+
+- i-node를 사용한다.
+
+![picture 111](../../images/TMP_OS_35.png)
+
+### Protection
+
+- 저장된 정보에 대한 부적절한 접근을 막는 것
+
+- Access lists and groups
+
+  - 접근 모드: read, write, execute => 3bits
+
+---
