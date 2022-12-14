@@ -359,3 +359,217 @@
   - 독립적인 process들은 다른 process의 실행에 의해 영향받을 수 없다.
 
 ---
+
+## 5. Computer Architecture
+
+### 단일 bus 구조
+
+- Bus: CPU, RAM, I/O device 간의 데이터가 연결되는 통로  
+  Data bus, address bus 등이 있다.
+
+- 단일 bus:
+
+  - 하나의 system bus에 여러 가지 모듈들이 연결되어 있다.
+  - CPU, memory, I/O device의 속도가 비슷했던 초창기에 생겼다.
+  - 하지만 시간이 지나면서 CPU, Memory, I/O device간에 속도 격차가 발생하면서 **병목 현상**이 발생한다.
+
+### 병목 현상
+
+- 같은 bus에 연결된 device들 간의 속도 차이로 인해 발생하는 현상
+- CPU(빠름) - memory - I/O device(느림)
+- ex) CPU는 초당 5개 일을 할 수 있는데 메모리가 초당 3개 일만을 전달할 수 있다면 전체 시스템 속도는 메모리의 속도로 제한된다.
+- 속도: CPU > memory > Disk, network > I/O device
+
+### 계층적 bus 구조
+
+- 여러 개의 세분화된 bus를 사용한다.
+- 이중 bus
+
+  - CPU와 I/O의 속도 차이로 인한 병목 현상을 해결하기 위함
+  - 빠른 CPU, memory는 system bus에 연결한다.
+  - I/O device는 I/O bus에 연결한다.
+
+### Event 처리 기법: Interrupt
+
+- **비동기적 이벤트(예상할 수 없는 이벤트)** 를 처리하기 위한 기법
+- 처리 순서:
+
+  - (1) Interrupt disable(interrupt는 1번에 1개만 처리가 가능하다.)
+  - (2) 현재 실행 상태(state) wjwkd
+  - (3) ISR(Interrupt Service Routing)로 jump
+  - (4) 저장한 실행 상태 복원
+  - (5) Interrupt로 중단된 지점부터 다시 시작
+
+- Interrupt에는 순서가 있으며, hardware 장치마다 다르게 설정되어 있다.
+- ISR은 짧아야 한다.(너무 길면 다른 interrupt들이 처리되지 못한다.)
+- Time sharing은 timer interrupt의 도움으로 가능하게 된 기술이다.
+
+### Event 처리 기법: Trap
+
+- **동기적 이벤트(프로그램이 발생시킨 이벤트)** 를 처리하기 위한 기법
+- Trap handler에 의해 처리된다.
+- TSR(Trap Service Routine)이 있기에 interrupt와 유사하지만, interrupt와 달리 trap은  
+  **실행 상태(state)를 저장, 복원하지 않는다.** (그냥 error 출력 후 process 종료시키기 때문)
+
+### I/O device basic concepts
+
+- Device registers
+
+  - Control register, status register, input register, output register로 구성
+  - CPU가 접근하는 memory의 영역을 나타낸다.
+
+- I/O controller
+
+  - 장치와 직접적인 상호작용을 진행한다.
+  - CPU는 직접적으로 장치의 상태를 알 수 없고, I/O controller를 통해 알 수 있다.
+
+### I/O 처리 기법: Polling
+
+- Loop를 돌며 특정 event의 도착 여부를 확인하면서 기다린다.
+- Interrupt handler를 등록하는 것과 반대로 polling은 매 순간 event의 발생 여부를 주기적으로 확인한다.
+- Controller나 장치가 매우 빠른 경우에 적합하다.
+- Event 도착 시간이 길 경우, polling은 CPU time을 낭비하게 된다.
+
+### I/O 처리 기법: DMA(Direct Memory Access)
+
+- Polling은 모든 I/O 연산을 CPU를 통해 진행하지만, DMA는 I/O를 위한 전용 process를 둔다.
+- 전송할 데이터가 클 경우 CPU가 I/O를 처리하는 polling보다 DMA가 더 효율적이다.
+- DMA controller라는 processor를 사용한다.
+
+  - (1) CPU가 DMA controller에게 I/O 요청
+  - (2) DMA controller가 CPU를 대신해 I/O device와 main memory 사이의 데이터 전송 수행
+  - 이때 DMA controller는 작업 수행 완료를 interrupt를 통해 CPU에게 알린다.
+
+- DMA는 polling과 달리 추가적인 hardware를 필요로 한다.
+- DMA를 최대한 활용하기 위해서는 I/O가 일어날 때마다 다른 process가 자신의 할 일을 할 수 있도록  
+  적당한 parallelism을 제공하는 scheduling 기법을 활용해야 한다.
+
+---
+
+## 6. CPU Scheduling
+
+- Scheduling
+
+  - 어떻게 process들에게 CPU 사용을 할당할 것인지를 결정
+  - CPU 사용률과 처리량의 최대화를 목표로 한다.
+  - Scheduler는 multiprogramming에 기반해 memory 내에 준비된 ready state의 process들 중 하나에게 CPU를 할당한다.
+
+- Process 수행 사이클의 구성
+
+  - CPU, I/O burst cycle
+
+    - CPU burst: CPU로 연산을 수행하는 시간
+    - I/O burst: I/O 처리를 위해 기다리는 시간
+    - 일반적인 프로세스는 두 burst를 번갈아가며 수행한다.
+
+  - Process 분류에 따른 CPU burst의 특징
+
+    - CPU-bound process: 짧은 주기의 긴 CPU burst
+    - I/O-bound process: 긴 주기의 짧은 CPU burst
+    - 어떤 종류의 process가 많은지에 따라 스케쥴링 기법의 효율성이 달라진다.
+
+### Scheduling의 종류
+
+- CPU scheduling은 아래 시점에 따라 이뤄진다.
+
+  - (1) `Running` -> `Waiting`
+  - (2) `Running` -> `Ready`
+  - (3) 수행 종료
+  - (4) `Ready` -> `Running`
+
+- 비선점형 스케쥴링(non-preemtive scheduling)
+
+  - (1), (4)에서만 수행되는 scheduling 기법
+
+- 선점형 스케쥴링(preemtive scheduling)
+
+  - 그 외의 다른 scheduling 기법
+
+- Scheduling criteria
+
+  - CPU 사용률: 전체 시스템 시간 중 CPU가 작업을 처리하는 시간의 비율
+  - 처리량(throughput): CPU가 단위 시간 당 처리하는 프로세스의 개수
+  - 응답 시간(response time): 요청 후 첫 응답이 올 때까지의 시간
+  - 대기 시간(waiting time): Process가 ready queue에서 대기하는 시간의 총합
+  - Turnaround time: process가 시작해서 끝날 때까지 걸리는 시간
+
+### Scheduling algorithm - FCFS scheduling
+
+- 먼저 CPU 할당을 요청한 process에게 CPU를 먼저 할당한다.(First Come First Served)
+- 비선점형 스케쥴링 방식이다.
+
+  ![picture 81](../../images/TMP_OS_5.png)
+
+- 작업의 수행 순서에 따라 대기 시간이 변할 수 있다.
+
+### Scheduling algorithm - Shortest Job First scheduling
+
+- 다음 CPU burst time이 가장 짧은 process에게 CPU를 먼저 할당한다.
+- 최소한의 평균 대기 시간 제공
+- 비선점형 방식: 한 번 CPU를 할당받으면 자신의 CPU burst time이 끝나기 전에는 놓지 않는다.
+- 선점형 방식: CPU를 할당 받아 수행 중이더라도, CPU burst time이 현재 자신이 남은 시간 보다 짧은 시간을 가진  
+  프로세스가 새로 생성되면 CPU를 양보한다.
+
+  ![picture 82](../../images/TMP_OS_6.png)
+  ![picture 83](../../images/TMP_OS_7.png)
+
+### Scheduling algorithm - Priority scheduling
+
+- 미리 주어진 priority에 따라 CPU 할당
+- 비선점형 방식: 한 번 CPU를 할당받으면 자신의 CPU burst time이 끝나기 전에는 놓지 않는다.
+- 선점형 방식: 새로 생성된 process의 priority가 현재 실행중인 process의 priority보다 높다면 CPU 양보.
+- 문제점 - 기아 상태(starvation): 낮은 priority를 가진 process가 전혀 수행되지 않을 수 있다.
+  - 해결법 - aging 기법: 할당을 기다리는 시간에 따라 priority를 증가시켜준다.
+
+### Scheduling algorithm - Round Robin scheduling
+
+- CPU를 시간 단위(time quantum)로 할당한다.
+- 선점형 scheduling 방식이다.
+- Time quantum만큼 수행한 process는 ready queue의 끝으로 돌아가 다시 할당을 기다린다.
+
+  ![picture 84](../../images/TMP_OS_8.png)
+
+- Time quantum이 길면 FCFS 방식과 유사한 성능을 띈다.  
+  반면 time quantum이 context switching에 필요한 시간보다 적다면 효율이 매우 떨어진다.
+
+### Scheduling algorithm - Multilevel Queue scheduling
+
+- Ready queue를 여러 개의 queue로 분리해 각각에 다른 scheduling algorithm을 사용하는 기법이다.
+- Foreground queue: Interactive한 동작이 필요한 process를 위한 queue, Round Robin 기법 사용
+- Background queue: CPU 연산 작업을 주로 수행하는 process를 위한 queue, FCFS 기법 사용
+
+### Scheduling algorithm - Multilevel Feedback Queue Scheduling
+
+- Multilevel queue에서 process들이 서로 다른 queue로 이동할 수 있도록 하는 scheduling 기법
+
+  - Aging의 한 방법으로도 사용된다.
+
+- 예시:
+
+  - 3개의 queue로 구성되어 있다고 해보자.
+
+    - $Q_0$ : Time quantum이 8ms
+    - $Q_1$: Time quantum이 16ms
+    - $Q_2$: FCFS 기법 사용
+
+    - 새로운 process가 들어온다면?
+      - (1) $Q_0$에서 8ms 동안 수행
+      - (2) (1)에서 종료되지 않았다면 $Q_1$로 이동, 16ms 동안 수행
+      - (3) (2)에서도 종료되지 않았다면 $Q_2$로 이동, FCFS 기법으로 수행
+
+### 4가지 multiple processor scheduling 기법들
+
+- 비대칭 multiprocessing
+
+  - 하나의 CPU가 시스템 자료구조(scheduling, I/O) 관리
+  - 모든 CPU가 접근할 경우보다 데이터 공유가 간단하게 이뤄진다.
+
+- 대칭 multiprocessing: 많은 CPU가 kernel 자료구조를 동시에 관리한다.
+
+- Processor affinity: 과거에 수행하던 CPU에 process를 배정한다.
+- Load balancing:
+
+  - CPU마다 각각의 ready queue를 두면? -> 일부 CPU에 process가 집중될 수 있다.
+  - CPU 모두에 단 하나의 ready queue만 두면? -> 사용 가능한 CPU에 차례대로 process 배정 가능
+
+---
