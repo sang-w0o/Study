@@ -573,3 +573,621 @@
   - CPU 모두에 단 하나의 ready queue만 두면? -> 사용 가능한 CPU에 차례대로 process 배정 가능
 
 ---
+
+## 7. IPC
+
+- IPC: process들 간 데이터 및 정보를 주고받기 위한 mechanism
+
+  - Kernel에서 IPC를 위한 도구를 지원한다.(system call의 형태)
+
+- Process의 협력 모델을 구현하기 위해 IPC는 반드시 필요하다.  
+  그리고 실행 중인 process는 협력하는 다른 process의 영향을 받는다.
+
+### Shared Memory
+
+- Process의 특정 memory 영역을 공유한다.
+- 응용 프로그램 레벨에서의 통신 기능을 제공한다.
+- 공유 메모리가 설정되면, 그 이후의 통신은 kernel의 관여 없이 진행 가능하다.
+- Read, Write
+- Process들의 주소 공간의 일부를 공유 메모리로 설정해 프로그램에서 바로 접근할 수 있다.
+- 둘 이상의 process가 동시에 메모리에 접근해 데이터를 변경하지 않도록 **동기화**가 필요하다.
+
+### Message passing
+
+- Process 간의 memory 공유 없이 동작 가능하다. 대신, 매번 kernel의 도움을 받아야 한다.
+- ex) Pipe, Message queue, Socket
+- Send and receive
+- Kernel을 경유해 message를 전송해야 한다.
+- Kernel에서 데이터를 buffering한다.
+- Context switching과 연관된다.
+
+  - ex) Process A는 process B의 메시지를 수신하기 위해 기존 작업을 잠시 중단한다.
+
+### IPC 동기화 방식
+
+- Shared memory 방식 - 추가적인 방법 필요
+
+  - Memory 영역에 대한 동시적인 접근을 제어하기 위한 방법 필요
+  - Locking, semaphore 등 활용
+
+- Message passing 방식 - kernel이 동기화 제공
+
+- Send, receive는 kernel이 동기화해주며 프로그램에서 동기화에 대한 고려를 할 필요가 없다.
+
+### Pipe
+
+- 하나의 process가 다른 process로 데이터를 직접 전달하는 방법
+
+  - 데이터는 **한쪽 방향으로만 이동** 한다. 따라서 양방향 통신을 하려면 2개의 pipe가 필요하다.
+  - **1:1 의사소통만 가능** 하다.
+  - **보내진 순서대로 받는다.**
+  - **용량 제한이 있기에** , pipe가 꽉 차면 더 이상 쓸 수 없다.(수신자가 데이터를 read할 때까지 못 사용)
+
+### Signal
+
+- 특정 process에게 kernel을 통해 **event** 를 전달하는 방법
+
+- 송신 process: 여러 신호 중 하나를 특정 process에게 보낸다. 이 동작은 수신 process의 상태와 무관하게 수행한다.
+- 수신 process: 신호 종류에 따라 신호 처리 방법을 지정할 수 있다.
+
+  - 무시
+  - 단순히 신호를 붙잡아 두기
+  - 특정 처리 루틴(signal handler)를 두어 처리
+
+- **비동기적 동작**
+
+  - Process A가 signal을 process B에게 보내도, signal의 처리는 process B가 scheduling되어야 가능하다.
+
+### Message queue
+
+- 고정된 크기의 message를 linked list로 구현된 queue에 전달해 통신하는 방법
+- 여러 process가 동시에 접근할 수 있으므로 **동기화가 필요** 하다.
+
+### Socket
+
+- Port를 이용해 통신하는 데에 사용된다.
+
+  - Port: OS가 제공하는 abstraction 중 하나
+  - Port 번호를 이용해 통신하려는 상대 process의 socket을 찾아간다.
+
+- 다른 IPC와 달리, process의 위치에 독립적이다.
+
+  - Local or remote
+  - Local의 경우, port 번호만으로 식별 가능
+  - Remote의 경우, IP address + port 번호 조합으로 식별
+
+---
+
+## 8. Thread
+
+- 정의
+
+  - Execution unit
+  - Process 내의 실행 흐름
+  - Process보다 작은 단위
+  - Process가 제공한 protection domain은 없다.
+
+- Process가 할 작업을 여러 개로 나눈 후, 각각을 thread화 하면 병렬적으로 작업을 완수할 수 있다.
+
+- Cooperative process와의 차이점
+
+  - Cooperative process는 IPC가 필요해 비용이 많이 들지만, thread는 같은 process 내의 논리적인 실행 흐름이므로 IPC가 필요 없다.
+  - Process 사이의 context switching 비용
+  - Process 내에서 상호작용하는 thread를 만들면 process보다 적은 비용으로 cooperative process가 하는 일을 동일하게 수행할 수 있다.
+
+- Thread 수가 증가할수록 CPU utilization도 증가하지만, 임계값을 넘어가면 thread switching 비용 때문에 처리량이 다시 감소한다.
+- CPU가 많은 시스템일수록 thread를 이용하는 것이 유리하다.
+
+- Process vs thread
+
+  - Process
+
+    - 하나의 thread와 같은 실행 흐름을 가진다.
+    - Process 간의 메모리는 독립적이므로, 서로의 영역에 접근하기 어렵다.
+    - Process 간의 switching 비용이 크다.
+
+  - Thread
+
+    - 하나의 process 내에 여러 개의 thread가 존재한다.
+    - Process의 code, data section은 thread간에 공유된다.
+    - Thread들은 같은 memory 영역을 사용하므로, thread 간의 switching 비용이 적다.
+
+### Thread의 구성 요소
+
+- Thread는 하나의 실행 흐름이므로 실행과 관련된 자료 구조가 필요하다.
+
+  - Thread ID: Thread 식별자
+  - Program Counter: 현재 실행 중인 instruction의 주소
+  - Register set: CPU의 register 값들
+  - Stack
+
+- 동일한 process 내의 thread들이 서로 공유하는 것들
+
+  - Code: program의 code section
+  - Data: process의 data section
+  - File: process에서 open한 file
+
+### Multi-threaded program의 장점
+
+- Responsiveness
+
+  - 프로그램의 특정 부분을 담당하는 thread가 block되거나 시간이 걸리는 작업을 하더라도, 다른 thread들은 실행되고 있기에  
+    user 입장에서는 해당 프로그램이 interactive하다고 볼 수 있다.
+
+- Resource sharing
+
+  - Thread들 사이에는 process의 memory와 다른 자원들을 공유한다.
+
+- Economy: Process 생성 비용보다 thread 생성 비용이 적다.
+- Scalability: 여러 개의 thread가 각각 다른 processor에서 동시 실행될 수 있다.
+
+### Multicore programming
+
+- Multicore processor: 하나의 chip에 여러 개의 computing code 탑재
+
+### User thread, Kernel thread
+
+- User threads
+
+  - Kernel 영역 위에서 지원되며, 일반적으로 user level의 library를 통해 구현
+  - Library에서 thread 생성, scheduling 관련 관리를 해준다.
+  - 장점: 동일한 memory 영역에서 thread가 생성, 관리되므로 속도가 빠르다.
+  - 단점: 여러 개의 user thread 중 하나의 thread가 system call로 block되면, 나머지 모든 thread들도 block된다.  
+    이는 kernel이 여러 user thread들을 하나의 process로 간주하기 때문이다.
+
+- Kernel threads
+
+  - OS에서 지원하는 thread
+  - Kernel 영역에서 thread 생성, scheduling 관련 관리를 해준다.
+  - 장점
+
+    - Kernel thread중 하나가 block되어도 다른 thread들은 계속 실행된다.
+    - Multiprocessor 환경에서 kernel이 여러 개의 thread를 다른 processor에 할당할 수 있다.
+
+  - 단점: user thread보다 생성 및 관리 속도가 느리다.
+
+### User, kernel thread의 mapping
+
+- Many-To-One
+
+  - 여러 개의 user thread들이 하나의 kernel thread에 mapping된다.
+  - 주로 kernel thread를 지원하지 못하는 시스템에서 사용된다.
+  - 한계점: 한 번에 하나의 thread만 kernel에 접근할 수 있다.
+    - 하나의 user thread가 system call을 하면, 나머지 모든 user thread들은 block된다.
+    - 진정한 concurrency 지원 불가
+    - 동시에 여러 개의 thread가 system call을 사용할 수 없다.
+
+- One-To-One
+
+  - 각각의 user thread를 kernel thread에 mapping한다.
+  - User thread가 생성되면 그에 따른 kernel thread가 생성된다.
+  - Many-To-One에서 발생한 system call 호출 시 다른 thread들이 blocking되는 문제를 해결한다.
+  - 여러 개의 thread들을 multiprocessor에서 동시에 수행할 수 있다.
+  - 한계점
+    - Kernel thread도 한정된 자원이기에 무한정으로 생성할 수 없다.
+    - Thread를 생성, 사용하려 할 때 그 개수에 대한 고려를 해야한다.
+
+- Many-To-Many
+
+  - 여러 개의 user thread를 여러 개의 kernel thread로 mapping한다.
+  - Many-To-One과 One-To-One 모델의 문제점을 해결한다.
+  - Kernel thread는 생성된 user thread의 수와 **같거나, 더 적은 수 만큼만 생성** 되어 적절히 scheduling된다.
+    - One-To-One처럼 사용할 thread의 수에 대한 고민을 할 필요가 없다.
+    - Many-To-One의 system call 등에 의해 한 thread가 block되면 다른 thread들도 block는 문제를 해결한다.
+
+### Thread 고려사항: 생성 과정(creation)
+
+- `fork()`: 하나의 program 내의 thread가 `fork()`를 호출하면, 모든 thread를 가진 process를 생성할 것인지, 아니면  
+  `fork()`를 호출한 thread만을 복사한 process를 만들 것인지 고려해야 한다. Linux는 2가지 방법 모두를 제공한다.
+
+- `exec()`: `fork()`해 모든 thread를 복사했을 때 `exec()`을 호출하면 모든 thread들은 새로운 program으로 교체된다.  
+  여기서 `fork()` 후 `exec()`할 시 `fork()`를 요청한 thread만이 복사되는 것이 더 바람직하다.  
+  그러나 `fork()` 후 `exec()`을 하지 않는 경우에는 모든 thread의 복사가 필요하기도 하다.
+
+### Thread 고려사항: 취소(cancellation)
+
+- Thread cancellation: Thread의 작업이 끝나기 전, 외부에서 작업을 중지시키는 것
+- 하나의 thread에 내려진 중지 명령이 다른 모든 thread의 작업을 중단시켜야 하는 경우도 있다.
+- 자원이 thread에 할당된 경우 cancellation의 문제:
+
+  - System의 자원을 사용하고 있는 thread가 중지되었을 때, 할당된 자원을 함부로 해제할 수 없다.  
+    다른 thread가 그 자원으 사용하고 있을 수도 있기 때문이다.
+
+### Thread 고려사항: Thread pools
+
+- Thread가 자주 생성되고 제거되는 상황에서 새로운 thread를 만드는 시간이 실제 thread의 동작 시간보다 길 수도 있다.  
+  Thread는 시스템 자원이기 때문에, system의 동작을 보장하는 최대한의 thread 개수에 대한 제한이 필요하다.
+
+- 위 문제를 thread pool이 해결하는데, process는 새롭게 실행될 때 특정 개수의 thread를 만든 후 thread pool에 할당한다.  
+  이후 새로운 thread가 필요하면 thread pool에서 가져오고, 작업이 끝나면 해당 thread를 제거하지 않고 다시 thread pool에 반납한다.
+
+- Thread pool을 사용하면 thread 생성 시간을 줄일 수 있고, 너무 많은 thread의 생성에 따른 시스템 부하를 줄일 수 있다.
+
+### Thread 고려사항: Thread 간의 IPC
+
+- 동일한 process 내의 thread들 사이의 통신은 shared memory를 사용하는 것이 효율적이다.
+
+  - 이유: Thread들은 같은 process의 data section을 공유하므로, 자연스럽게 shared memory가 가능해진다.
+
+- 다른 process에 존재하는 다른 thread와의 통신은 process의 경우(IPC)와 비슷한 성능을 보인다.
+
+---
+
+## 9. 동기화(1)
+
+### Race condition
+
+- 공유 데이터에 대한 동시 접근은 데이터의 일관성(consistency)을 해칠 수 있다.
+- Race condition: 공유 데이터에 대해 여러 process가 동시에 접근해 변경을 시도하는 상황
+- 데이터 일관성을 유지하기 위해서는 cooperative process들이 **순차적으로 변경을 수행** 하게 만드는 기법이 필요하다.  
+  이를 process synchronization이라 한다.
+
+### Critical section
+
+- Critical section: 여러 process들이 데이터에 접근 및 사용하는 code 영역
+- 한 번에 단 하나의 process만이 critical section에 진입하도록 해야 한다.
+
+- Critical section을 가진 process는 아래처럼 모델링된다.
+
+  - Entry(critical) section: 한 번에 하나의 process만 접근하도록 한다.
+  - Exit(remainder) section: 다음 process가 entry sction에 접근할 수 있도록 한다.
+
+- Critical section 문제를 해결하는 알고리즘은 아래 3개 조건을 만족해야 한다.
+
+  - Mutual exclusion(상호 배제): Critical section에는 한 번에 단 하나의 process만 진입할 수 있다.
+  - Progress(진행): 특정 process가 critical section에 있다면, remainder section에서 어떤 process가 다음에  
+    critical section에 진입할 수 있는지 결정해야 한다.
+  - Bounded waiting: Process가 critical section에 진입할 때까지 걸리는 시간에 limit이 있어야 한다.
+
+### Peterson solution
+
+- 공유 변수:
+
+  - `int turn;`
+  - `boolean flag[2]; flag[0] = flag[1] = false;`
+
+```java
+// Process p0
+flag[0] = true;
+turn = 1;
+while(flag[1] && (turn == 1)) // { loop }
+CRITICAL_SECTION_TASK;
+flag[0] = false;
+REMAINDER_SECTION_TASK;
+
+// Process p1
+flag[1] = true;
+turn = 0;
+while(flag[0] && (turn == 0)) // { loop }
+CRITICAL_SECTION_TASK;
+flag[1] = false;
+REMAINDER_SECTION_TASK;
+```
+
+- 위 알고리즘은 mutual exclusion, progress, bounded waiting을 모두 만족한다.  
+  p0, p1이 동시에 수행되더라도 `turn` 변수에 의해 실행이 결정된다.
+
+- 예시 상황을 보자.
+
+  - p0 시작 -> while loop 건너뜀(`flag[1]`이 false) -> p1으로 context switch -> p1은 while loop 수행(조건 만족)  
+    -> p0로 context switch -> p0가 작업 마친후 `flag[0]`을 false로 바꿈 -> p0가 remainder section으로 이동  
+    -> p1이 critical section에서 작업 진행
+
+- 한계점
+
+  - 3개 이상의 process가 존재하는 상황의 구현 불가
+  - 증명이 NP 문제로 매우 어려움
+
+- 하드웨어로 처리하면 알고리즘이 매우 간단해짐!
+
+```java
+acquireLock(criticalSection);
+CRITICAL_SECTION_TASK;
+releaseLock(criticalSection);
+REMAINDER_SECTION_TASK;
+```
+
+- 간단한 방법으로는 critical section에 들어가면서 interrupt를 disable하면 되지만, user program이  
+  interrupt를 제어하는 것은 바람직하지 않다. 그리고 scalable하지도 않다.  
+  따라서 동기화를 위한 instruction이 도입되었다.
+
+### Synchronization instruction
+
+- CPU에서 지원해 atomic하게 수행되는 instruction(명령어)을 이용한다.  
+  Atomic하다는 것은 명령어가 수행되는 동안 방해받지 않는다는 것이다.
+
+- TestAndSet 명령어
+
+```cpp
+boolean TestAndSet(boolean *target) {
+	boolean rv = *target;
+	*target = true;
+	return rv;
+}
+```
+
+- 즉 `TestAndSet()`은 인자를 true로 바꾸고, 인자값을 반환한다.
+
+#### Mutual exclusion with TestAndSet
+
+- 공유 변수: `boolean lock = false;`
+
+- 프로세스 수행 과정
+
+```cpp
+do {
+	while(TestAndSet(&lock));
+	CRITICAL_SECTION_TASK;
+	lock = false;
+	REMAINDER_SECTION_TASK;
+}
+```
+
+- Swap 명령어
+
+```cpp
+void Swap(boolean *a, boolean *b) {
+	boolean tmp = *a;
+	*a = *b;
+	*b = tmp;
+}
+```
+
+### Mutual exclusion with Swap
+
+- 공유 변수:
+
+  - `boolean lock;`
+  - `boolean waiting[n];`
+
+- 프로세스 수행 과정
+
+```cpp
+do {
+	waiting[i] = true;
+	while(waiting[i] == true) {
+		swap(&lock, &waiting[i]);
+	}
+	CRITICAL_SECTION_TASK;
+	lock = false;
+	REMAINDER_SECTION_TASK;
+}
+```
+
+- 이러한 instruction들의 한계점: Mutual exclusion은 해결되나, bounded waiting 같은 조건은 user program에서 구현해야 한다.
+
+### Semaphores
+
+- 세마포어: 2개의 원자적 연산을 가지는 정수 변수
+
+  - 원자적인 연산들:
+
+    - `Wait()` or `P()`: 정수 변수값을 감소시킨다.
+    - `Signal()` or `V()`: 정수 변수값을 증가시킨다.
+
+  - 이 변수는 2개의 atomic operation들에 의해서만 접근될 수 있다.
+
+- `P()`는 critical section에 들어가기 전에, `V()`는 나와서 수행한다.
+- `P()`, `V()`는 서로 독립적으로, 그리고 원자적으로 수행된다.  
+  즉 하나의 process가 `P()`로 세마포어 값을 수정하는 동안, 다른 process에서 `P()`나 `V()`로 같은 세마포어 값을 수정할 수 없다.
+
+### Semaphore의 구현 - Busy Waiting
+
+- Busy waiting을 이용한 구현은 아래와 같다.
+
+```cpp
+// P(S)
+while(S <= 0) { loop(); }
+S = S - 1;
+
+// V(S)
+S = S + 1;
+```
+
+- 이렇게 busy waiting은 critical section에 들어갈 때까지 무한 loop를 돌며 기다린다.
+- 단점:
+
+  - CPU cycle의 낭비
+  - 대기중인 process들 중 어떤게 critical section에 진입하게 될 것인지 결정하지 않음
+
+### Semaphore의 구현 - Sleep Queue
+
+- Sleep Queue를 사용한 구현
+
+  - Busy waiting의 CPU cycle 낭비 문제 해결
+  - Semaphore 자료구조에 Sleep Queue를 추가해 대기 중인 process들을 관리할 수 있다.
+  - Semaphore 값이 양수가 되어 critical section 진입이 가능해지면 Sleep Queue에서 대기 중인 process들 중 하나를 깨워 실행시킨다.
+
+- Sleep queue 방식의 semaphore
+
+```c
+typedef struct {
+	int value;
+	struct process *list;
+} semaphore;
+
+// P(semaphore *S)
+S->value--;
+if(S->value < 0) {
+	// process를 sleep queue에 추가
+	add(S->list, current_process);
+	// sleep과 동일
+	block();
+}
+
+// V(semaphore *S)
+S->value++;
+if(S->value <= 0) {
+	// sleep queue에서 process를 꺼내옴
+	p = remove(S->list);
+	// 실행
+	wakeup(p);
+}
+```
+
+### 2가지 semaphore 종류
+
+- Counting semaphore: 값의 범위가 정해진 semaphore. 초기값은 가능한 자원의 수
+- Binary semaphore: 0과 1만 가질 수 있음. Counting semaphore보다 구현이 간단하다.
+
+  - Binary semaphore를 이용해 counting semaphore를 구현할 수 있다.
+
+### Binary semaphore의 구현
+
+- `TestAndSet` 명령어를 통해 구현
+- `semaphore S;`: 현재 critical section에 진입한 process가 있는지 여부를 나타냄
+
+```c
+// P(S)
+while(testAndSet(&S));
+// S 값이 true로 바뀌어 return된다.
+
+// V(S)
+S = false;
+// 진입한 process가 없다고 나타내 `wait()`에서 대기중인 process를 진입 가능하게 한다.
+```
+
+### Counting semaphore의 구현
+
+- 안할래 모르겠다
+
+### Semaphore의 구현
+
+- `P()`, `V()`는 기본적으로 system call이다.
+
+- Kernel이 single thread인 경우: Kernel 내에서 semaphore 동작 구현
+- Kernel이 multi thread인 경우: Kernel 내에서 별도로 동기화를 해야함
+
+### Semaphore의 단점
+
+- Deadlock 발생 가능성 존재
+- `P()`, `V()` 연산이 분리되어 있기에 이 둘을 잘못 사용할 경우에 대한 대책이 없다.
+
+> Deadlock: 2개 이상의 process들이 끝없이 event를 기다리는 상황
+
+### Monitor
+
+- High-level 언어에서의 동기화 방법
+- 한 순간에 하나의 process만 monitor에서 활동하도록 보장한다.
+- Application은 sempahore와 같이 `P()`, `V()` 연산에 대한 고려 없이 procedure를 호출하는 것 만으로 동기화를 해결할 수 있다.
+
+- 과정:
+
+  - Entry queue에서 대기 중인 process들은 monitor를 사용하기 위해 기다린다.
+  - Shared data에 접근하기 위해서는 monitor에 진입해 제공되는 operation을 통해야만 한다.
+
+---
+
+## 10. 동기화(2)
+
+- 동기화의 고전적인 문제 3개
+
+  - Bounded-buffer problem
+  - Readers and writers problem
+  - Dining philosophers problem
+
+### Bounded-buffer problem
+
+- N개 item을 삽입할 수 있는 buffer에 여러 개의 생산자와 소비자가 접근한다.
+
+- 생산자: 하나의 item을 생산해 buffer에 저장
+- 소비자: buffer에서 하나의 item 가져옴(단, buffer가 empty면 대기)
+- 여러 생산자, 소비자 중 자신이 buffer(critical section)에 접근해 생산, 소비할 수 있는가?
+
+#### Bounded-buffer problem 구현
+
+- Buffer: `boolean buffer[n];`, 초기화는 모든 값을 empty로
+- 생산자: `buffer[]`에서 empty인 index를 찾아 full로 바꾼다. `buffer[m] = full;`
+- 소비자: `buffer[]`에서 full인 index를 찾아 empty로 바꾼다. `buffer[m] = empty;`
+- 세마포어
+
+  - Empty: buffer내에 저장할 공간이 있음을 표시한다.
+    - 생산자의 진입 관리
+    - 초기값: 0
+  - Full: buffer내에 소비할 item이 있음을 표시한다.
+    - 소비자의 진입 관리
+    - 초기값: n
+  - Mutex: buffer에 대한 접근 관리
+    - 생산자, 소비자가 `buffer[]`의 값을 변경하기 위한 세마포어
+    - 초기값: 1
+
+- 코드로 보기
+
+```c
+// 생산자 process
+do {
+	// (1) nextp에 item 생산
+	// (2) buffer에 적어도 하나의 공간이 생기기를 기다린다.
+	P(empty);
+	// (3) critical section 진입을 위해 기다린다.
+	P(mutex);
+	// (4) nextp를 buffer에 추가한다.
+	// (5) critical section을 빠져나온다.
+	V(mutex);
+	// (6) buffer에 item이 있음을 알린다.
+	V(full);
+} while(1);
+
+// 소비자 process
+do {
+	// (1) buffer에 적어도 하나의 item이 생기기를 기다린다.
+	P(full);
+	// (2) critical section 진입을 위해 기다린다.
+	P(mutex);
+	// (3) buffer에서 item을 가져온다.
+	// (4) critical section을 빠져나온다.
+	V(mutex);
+	// (5) buffer에 공간이 생겼음을 알린다.
+	V(empty);
+	// (6) nextc에 item을 소비
+} while(1);
+```
+
+### Readers and writers problem
+
+- 여러 reader, writer들이 하나의 공유 데이터를 읽거나 쓰기 위해 접근하는 문제
+- Reader: 공유 데이터를 읽는다.
+  - 여러 reader들은 동시에 데이터를 읽어도 된다.
+- Writer: 공유 데이터에 쓴다.
+  - Writer의 데이터 수정을 위해서는 reader 혹은 다른 writer가 작업을 하고 있지 않아야 한다.
+
+#### Readers and writers problem 구현
+
+- 문제 해결을 위한 자료구조와 세마포어
+
+  - `int readCount = 0;`: buffer에 현재 접근 중인 reader의 개수
+  - `semaphore wrt = 1`: writer들 사이의 동기화 관리
+  - `semaphore mutex = 1`: readCount와 wrt에의 접근이 **원자적으로 수행됨을 보장** 하기 위한 세마포어
+
+- 코드로 보기
+
+```c
+// writer process
+P(wrt);
+WRITE_DATA;
+V(wrt);
+
+// reader process
+P(mutex);
+readCount++;
+if(readCount == 1) { // 자신이 첫 번째 reader여도 다른 writer가 작업 중일 수 있다.
+	// 어떠한 writer도 수행되고 있지 않는지 판별
+	P(wrt);
+}
+// readCount, reader semaphore에 다른 process들이 접근할 수 있도록 함
+V(mutex);
+READ_DATA;
+P(mutex);
+readCount--;
+// 자신을 제외한 reader가 아무도 없는 경우, writer 접근을 가능하도록 함
+if(readCount == 0) {
+	V(wrt);
+}
+V(mutex);
+```
+
+- 위 구현 방법의 문제점: **writer의 starvation**
+
+  - 여러 reader들이 계속해서 진입할 경우, readCount가 0까지 떨어지지 않을 수 있다.
+
+---
