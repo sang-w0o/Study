@@ -866,3 +866,166 @@ spec:
   수행하게 된다.
 
 ---
+
+## Pod를 사용하는 다른 object들
+
+### Jobs
+
+- Job은 특정 작업을 수행하고 종료해야 하는 작업을 위한 K8S object이다.  
+  Deployment와는 달리 원하는 최종 상태는 "특정 개수의 실행중인 pod"가 아니라 "pod가 실행되어 정상적으로 종료되는 것"이다.
+
+```yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: job-hello-world
+spec:
+  template:
+    restartPolicy: Never
+    containers:
+      - image: busybox
+        args: ["sh", "-c", "echo Hello World && exit 0"]
+	name: job-hello-world
+```
+
+- Job은 위에서 말한 것처럼 최종적으로 원하는 상태가 Running이 아니라 Completed이기에 restartPolicy를 명시적으로  
+  Never 또는 OnFailure로 지정해줘야만 한다.
+
+- Job의 세부 옵션들은 아래와 같다.
+
+  - `spec.completions`: Job을 성공했다고 판단하기 위해 정상적으로 실행되어야 하는 pod의 개수
+  - `spec.parallelism`: 동시에 실행될 pod의 개수
+
+- CronJob은 Job을 주기적으로 실행하는 K8S object이다.
+
+```yaml
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: cronjob-ex
+spec:
+  schedule: "*/1 * * * *"
+  jobTemplate:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: cronjob-ex
+	  image: busybox
+	  args: ["sh", "-c", "date"]
+```
+
+### DaemonSet
+
+- DaemonSet은 K8S의 모든 node에 동일한 pod를 하나씩 생성하도록 해주는 object이다.  
+  예를 들어 logging, networking, monitoring 등을 위해 사용할 수 있다.
+
+- 실제로 kube-system namespace에는 K8S networking을 위한 kube-proxy 컴포넌트가 DaemonSet으로 실행되고 있다.
+
+```yaml
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: ds-example
+spec:
+  selector:
+    matchLabels:
+      name: my-ds-example
+  template:
+    metadata:
+      labels:
+        name: my-ds-example
+    spec:
+      tolerations: # master node에도 pod를 생성할 것임을 명시
+        - key: node-role.kubernetes.io/master
+	  effect: NoSchedule
+      containers:
+        - name: ds-example
+	  image: busybox
+	  args: ["tail", "-f", "/dev/null"]
+	  resources:
+	    limits:
+	      cpu: 100m
+	      memory: 200Mi
+```
+
+### StatefulSet
+
+- StatefulSet은 상태를 가지는 stateful한 pod를 관리하기 위한 K8S object이다.
+
+```yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: ss-example
+spec:
+  serviceName: ss-service
+  selector:
+    matchLabels:
+      name: ss-example
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        name: ss-example
+    spec:
+      containers:
+        - name: ss-example
+	  image: someStatefulImage
+	  ports:
+	    - containerPort: 80
+	      name: web
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ss-service
+spec:
+  ports:
+    - port: 80
+      name: web
+  clusterIP: None
+  selector:
+    name: ss-example
+```
+
+- 위 yaml 파일을 실행하면 이름이 ss-example-0, ss-example-1, ss-example-2인 pod가 3개 생성된다.  
+  이전과 달리 statefulset으로 생성된 pod는 뒤에 0부터 시작하는 index가 append된다.  
+  그리고 statefulset yaml 파일에는 `spec.serviceName`으로 service 이름을 지정하고 있다.  
+  Service는 기본적으로 label selector가 일치하는 random한 pod를 선택해 트래픽을 전달하기에 랜덤한 pod들에게 요청이 분산된다.  
+  하지만 statefulset에서는 각 pod가 고유하게 식별되어야 하고, pod에 접근할 때도 random pod가 아닌 개별 pod에 접근해야 한다.
+
+- 위를 적용하기 위해서는 일반적인 service가 아닌 headless service를 사용해야 한다.  
+  Headless service는 service의 이름으로 pod의 접근 위치를 알아내기 위해 사용되며, service의 이름과 pod의 이름을 통해 pod에  
+  직접 접근할 수 있다. 위 yaml 파일에서 `clusterIP: None`으로 인해 ss-service는 headless service가 되었다.  
+  Pod에는 `ss-example-0.ss-service.default.svc.cluster.local`과 같이 직접 접근할 수 있다.  
+  즉, 고유한 pod에 접근할 수 있다.
+
+- 실제로 statefulset은 pod 내부에 데이터가 저장되는 stateful application을 위해 많이 사용되는데, 기본적으로 pod의  
+  데이터는 휘발성이기에 pod 내부에 PV를 mount해서 데이터를 보존하게 된다.
+
+- 이렇게 PV를 pod에 mount해 데이터를 보관하는 것이 좋은데, 만약 statefulSet의 pod가 여러 개라면 pod마다 PVC를 생성해줘야하는  
+  번거로움이 발생한다. 이를 해결하기 위해 PVC의 dynamic provisioning을 사용할 수 있고, 아래 yaml 파일과 같이  
+  `spec.volumeClaimTemplates`를 사용하면 된다.
+
+```yaml
+# PVC 정의 yaml 파일
+# ..
+volumeMounts:
+  - name: webserver-files
+    mountPath: /var/www/html
+volumeClaimTemplates:
+  - metadata:
+    name: webserver-files
+  spec:
+    accessModes: ["ReadWriteOnce"]
+    storageClassName: generic
+    resources:
+      requests:
+        storage: 1Gi
+```
+
+- 위처럼 `spec.volumeClaimTemplates`를 사용하면 statefulset의 각 pod에 대해 PVC가 생성된다.  
+  그리고 추가적으로 `spec.volumeClaimTemplates`으로 생성된 PVC는 직접 삭제해줘야 한다.
+
+---
