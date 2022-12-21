@@ -68,8 +68,8 @@ spec:
       image: busybox
       args: ["tail", "-f", "/dev/null"]
       volumeMounts:
-	- name: ebs-mount
-	  mountPath: /mnt
+	  - name: ebs-mount
+	    mountPath: /mnt
   volumes:
     - name: ebs-volume
       persistentVolumeClaim:
@@ -281,7 +281,7 @@ spec:
 ```
 
 - requests, limits를 함께 제한할 필요는 없으며 CPU, memory 를 하나의 ResourceQuota에서 제한할 필요도 없다.  
-  그리고 단일 pod의 자원 할당향을 제한하는 것이 아닌, namespace에서 사용할 수 있는 자원 할당량의 합에 대한 제한이라는 것에 유의하자.
+  그리고 단일 pod의 자원 할당량을 제한하는 것이 아닌, namespace에서 사용할 수 있는 자원 할당량의 합에 대한 제한이라는 것에 유의하자.
 
 - ResourceQuota는 아래의 K8S object의 개수를 제할할 수 있다.
 
@@ -329,13 +329,13 @@ spec:
         cpu: 200m
       defaultRequest: # 자동으로 설정될 기본 requests 값
         memory: 128Mi
-	cpu: 100m
+	      cpu: 100m
       max: # 자원 할당량의 최대값
         memory: 1Gi
-	cpu: 1000m
+	      cpu: 1000m
       min: # 자원 할당량의 최소값
         memory: 16Mi
-	cpu: 50m
+	      cpu: 50m
       type: Container
 ```
 
@@ -442,13 +442,13 @@ spec:
   affinity:
     nodeAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
-	nodeSelectorTerms:
-	  - matchExpressions:
-	      - key: mylabel/disk
-		operator: In
-		values:
-		  - ssd
-		  - hdd
+	    nodeSelectorTerms:
+	      - matchExpressions:
+	        - key: mylabel/disk
+		        operator: In
+		        values:
+		          - ssd
+		          - hdd
   containers:
     - name: nginx
       image: nginx:latest
@@ -471,12 +471,12 @@ spec:
     nodeAffinity:
       preferredDuringSchedulingIgnoredDuringExecution:
         - weight: 80 # 조건을 만족하는 node에 1~100의 가중치 부여
-	  preference:
-	    matchExpressions:
-	      - key: mylabel/disk
-	        operator: In
-		values:
-		  - ssd
+	        preference:
+	          matchExpressions:
+	            - key: mylabel/disk
+	              operator: In
+		            values:
+		              - ssd
   containers:
     - name: nginx
       image: nginx:latest
@@ -497,13 +497,13 @@ spec:
   affinity:
     podAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
-	- labelSelector:
-	    matchExpressions:
-	      - key: mylabel/database
-	        operator: In
-		values:
-		  - mysql
-	  topologyKey: failure-domain.beta.kubernetes.io/zone
+	      - labelSelector:
+	        matchExpressions:
+	          - key: mylabel/database
+	            operator: In
+		          values:
+		            - mysql
+	        topologyKey: failure-domain.beta.kubernetes.io/zone
   containers:
     - name: nginx
       image: nginx:latest
@@ -842,11 +842,11 @@ spec:
       required: ["spec"] # custom resource에 반드시 "spec"이 존재해야 함을 명시
       properties: # custom resource에 저장할 데이터 형식 정의
         spec:
-	  required: ["myvalue"]
-	  properties:
-	    myvalue:
-	      type: "string"
-	      minimum: 1
+	        required: ["myvalue"]
+	        properties:
+	          myvalue:
+	            type: "string"
+	            minimum: 1
 ```
 
 - 위의 CRD로 통해 아래의 custom resource를 생성할 수 있게 된다.
@@ -885,7 +885,7 @@ spec:
     containers:
       - image: busybox
         args: ["sh", "-c", "echo Hello World && exit 0"]
-	name: job-hello-world
+	      name: job-hello-world
 ```
 
 - Job은 위에서 말한 것처럼 최종적으로 원하는 상태가 Running이 아니라 Completed이기에 restartPolicy를 명시적으로  
@@ -910,8 +910,8 @@ spec:
       restartPolicy: Never
       containers:
         - name: cronjob-ex
-	  image: busybox
-	  args: ["sh", "-c", "date"]
+	        image: busybox
+	        args: ["sh", "-c", "date"]
 ```
 
 ### DaemonSet
@@ -937,15 +937,15 @@ spec:
     spec:
       tolerations: # master node에도 pod를 생성할 것임을 명시
         - key: node-role.kubernetes.io/master
-	  effect: NoSchedule
+	        effect: NoSchedule
       containers:
         - name: ds-example
-	  image: busybox
-	  args: ["tail", "-f", "/dev/null"]
-	  resources:
-	    limits:
-	      cpu: 100m
-	      memory: 200Mi
+	        image: busybox
+	        args: ["tail", "-f", "/dev/null"]
+	    resources:
+	      limits:
+	        cpu: 100m
+	        memory: 200Mi
 ```
 
 ### StatefulSet
@@ -970,10 +970,10 @@ spec:
     spec:
       containers:
         - name: ss-example
-	  image: someStatefulImage
-	  ports:
-	    - containerPort: 80
-	      name: web
+	        image: someStatefulImage
+	        ports:
+	      - containerPort: 80
+	        name: web
 
 ---
 apiVersion: v1
