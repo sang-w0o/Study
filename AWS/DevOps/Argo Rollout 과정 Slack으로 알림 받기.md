@@ -61,3 +61,335 @@
   Argo Rollout의 상태를 알려주도록 할 것이기에 해당 channel에 아래와 같이 추가해주었다.
 
   ![picture 65](/images/AWS_DEVOPS_ARGO_ROLLOUTS_SLACK_8.png)
+
+### (4) Secret 수정, ConfigMap 생성하기
+
+- Argo-Rollouts는 알림(notification)을 위해 `Secret`, `ConfigMap`을 사용하는데,  
+   우선 `Secret`부터 수정해보자. `kubectl edit -n argo-rollouts secret argo-rollouts-notification-secret` 명령어를  
+   입력하고, 아래처럼 yaml 파일에 `stringData.slack-token`을 추가해주자.
+
+  ```yaml
+  apiVersion: v1
+  kind: Secret
+  metadata:
+    name: argo-rollouts-notification-secret
+  stringData:
+    slack-token: $BOT_USER_OAUTH_TOKEN
+  ```
+
+- 다음으로는 argo-rollouts-notification-configmap이라는 `ConfigMap`을 수정해 알림을 Slack으로 전송할 것임을 지정하자.  
+  아래의 yaml 파일을 작성 후 apply 해주면 된다.
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argo-rollouts-notification-configmap
+  namespace: argo-rollouts
+data:
+  service.slack: |
+    token: $slack-token
+  template.analysis-run-error: |
+    message: Rollout {{.rollout.metadata.name}}'s analysis run is in error state.
+    email:
+      subject: Rollout {{.rollout.metadata.name}}'s analysis run is in error state.
+    slack:
+      attachments: |
+          [{
+            "title": "{{ .rollout.metadata.name}}",
+            "color": "#ECB22E",
+            "fields": [
+            {
+              "title": "Strategy",
+              "value": "{{if .rollout.spec.strategy.blueGreen}}BlueGreen{{end}}{{if .rollout.spec.strategy.canary}}Canary{{end}}",
+              "short": true
+            }
+            {{range $index, $c := .rollout.spec.template.spec.containers}}
+              {{if not $index}},{{end}}
+              {{if $index}},{{end}}
+              {
+                "title": "{{$c.name}}",
+                "value": "{{$c.image}}",
+                "short": true
+              }
+            {{end}}
+            ]
+          }]
+  template.analysis-run-failed: |
+    message: Rollout {{.rollout.metadata.name}}'s analysis run failed.
+    email:
+      subject: Rollout {{.rollout.metadata.name}}'s analysis run failed.
+    slack:
+      attachments: |
+          [{
+            "title": "{{ .rollout.metadata.name}}",
+            "color": "#E01E5A",
+            "fields": [
+            {
+              "title": "Strategy",
+              "value": "{{if .rollout.spec.strategy.blueGreen}}BlueGreen{{end}}{{if .rollout.spec.strategy.canary}}Canary{{end}}",
+              "short": true
+            }
+            {{range $index, $c := .rollout.spec.template.spec.containers}}
+              {{if not $index}},{{end}}
+              {{if $index}},{{end}}
+              {
+                "title": "{{$c.name}}",
+                "value": "{{$c.image}}",
+                "short": true
+              }
+            {{end}}
+            ]
+          }]
+  template.analysis-run-running: |
+    message: Rollout {{.rollout.metadata.name}}'s analysis run is running.
+    email:
+      subject: Rollout {{.rollout.metadata.name}}'s analysis run is running.
+    slack:
+      attachments: |
+          [{
+            "title": "{{ .rollout.metadata.name}}",
+            "color": "#18be52",
+            "fields": [
+            {
+              "title": "Strategy",
+              "value": "{{if .rollout.spec.strategy.blueGreen}}BlueGreen{{end}}{{if .rollout.spec.strategy.canary}}Canary{{end}}",
+              "short": true
+            }
+            {{range $index, $c := .rollout.spec.template.spec.containers}}
+              {{if not $index}},{{end}}
+              {{if $index}},{{end}}
+              {
+                "title": "{{$c.name}}",
+                "value": "{{$c.image}}",
+                "short": true
+              }
+            {{end}}
+            ]
+          }]
+  template.rollout-aborted: |
+    message: Rollout {{.rollout.metadata.name}} has been aborted.
+    email:
+      subject: Rollout {{.rollout.metadata.name}} has been aborted.
+    slack:
+      attachments: |
+          [{
+            "title": "{{ .rollout.metadata.name}}",
+            "color": "#E01E5A",
+            "fields": [
+            {
+              "title": "Strategy",
+              "value": "{{if .rollout.spec.strategy.blueGreen}}BlueGreen{{end}}{{if .rollout.spec.strategy.canary}}Canary{{end}}",
+              "short": true
+            }
+            {{range $index, $c := .rollout.spec.template.spec.containers}}
+              {{if not $index}},{{end}}
+              {{if $index}},{{end}}
+              {
+                "title": "{{$c.name}}",
+                "value": "{{$c.image}}",
+                "short": true
+              }
+            {{end}}
+            ]
+          }]
+  template.rollout-completed: |
+    message: Rollout {{.rollout.metadata.name}} has been completed.
+    email:
+      subject: Rollout {{.rollout.metadata.name}} has been completed.
+    slack:
+      attachments: |
+          [{
+            "title": "{{ .rollout.metadata.name}}",
+            "color": "#18be52",
+            "fields": [
+            {
+              "title": "Strategy",
+              "value": "{{if .rollout.spec.strategy.blueGreen}}BlueGreen{{end}}{{if .rollout.spec.strategy.canary}}Canary{{end}}",
+              "short": true
+            }
+            {{range $index, $c := .rollout.spec.template.spec.containers}}
+              {{if not $index}},{{end}}
+              {{if $index}},{{end}}
+              {
+                "title": "{{$c.name}}",
+                "value": "{{$c.image}}",
+                "short": true
+              }
+            {{end}}
+            ]
+          }]
+  template.rollout-paused: |
+    message: Rollout {{.rollout.metadata.name}} has been paused.
+    email:
+      subject: Rollout {{.rollout.metadata.name}} has been paused.
+    slack:
+      attachments: |
+          [{
+            "title": "{{ .rollout.metadata.name}}",
+            "color": "#18be52",
+            "fields": [
+            {
+              "title": "Strategy",
+              "value": "{{if .rollout.spec.strategy.blueGreen}}BlueGreen{{end}}{{if .rollout.spec.strategy.canary}}Canary{{end}}",
+              "short": true
+            }
+            {{range $index, $c := .rollout.spec.template.spec.containers}}
+              {{if not $index}},{{end}}
+              {{if $index}},{{end}}
+              {
+                "title": "{{$c.name}}",
+                "value": "{{$c.image}}",
+                "short": true
+              }
+            {{end}}
+            ]
+          }]
+  template.rollout-step-completed: |
+    message: Rollout {{.rollout.metadata.name}} step number {{ add .rollout.status.currentStepIndex 1}}/{{len .rollout.spec.strategy.canary.steps}} has been completed.
+    email:
+      subject: Rollout {{.rollout.metadata.name}} step number {{ add .rollout.status.currentStepIndex 1}}/{{len .rollout.spec.strategy.canary.steps}} has been completed.
+    slack:
+      attachments: |
+          [{
+            "title": "{{ .rollout.metadata.name}}",
+            "color": "#18be52",
+            "fields": [
+            {
+              "title": "Strategy",
+              "value": "{{if .rollout.spec.strategy.blueGreen}}BlueGreen{{end}}{{if .rollout.spec.strategy.canary}}Canary{{end}}",
+              "short": true
+            },
+            {
+              "title": "Step completed",
+              "value": "{{add .rollout.status.currentStepIndex 1}}/{{len .rollout.spec.strategy.canary.steps}}",
+              "short": true
+            }
+            {{range $index, $c := .rollout.spec.template.spec.containers}}
+              {{if not $index}},{{end}}
+              {{if $index}},{{end}}
+              {
+                "title": "{{$c.name}}",
+                "value": "{{$c.image}}",
+                "short": true
+              }
+            {{end}}
+            ]
+          }]
+  template.rollout-updated: |
+    message: Rollout {{.rollout.metadata.name}} has been updated.
+    email:
+      subject: Rollout {{.rollout.metadata.name}} has been updated.
+    slack:
+      attachments: |
+          [{
+            "title": "{{ .rollout.metadata.name}}",
+            "color": "#18be52",
+            "fields": [
+            {
+              "title": "Strategy",
+              "value": "{{if .rollout.spec.strategy.blueGreen}}BlueGreen{{end}}{{if .rollout.spec.strategy.canary}}Canary{{end}}",
+              "short": true
+            }
+            {{range $index, $c := .rollout.spec.template.spec.containers}}
+              {{if not $index}},{{end}}
+              {{if $index}},{{end}}
+              {
+                "title": "{{$c.name}}",
+                "value": "{{$c.image}}",
+                "short": true
+              }
+            {{end}}
+            ]
+          }]
+  template.scaling-replicaset: |
+    message: Scaling Rollout {{.rollout.metadata.name}}'s replicaset to {{.rollout.spec.replicas}}.
+    email:
+      subject: Scaling Rollout {{.rollout.metadata.name}}'s replcaset to {{.rollout.spec.replicas}}.
+    slack:
+      attachments: |
+          [{
+            "title": "{{ .rollout.metadata.name}}",
+            "color": "#18be52",
+            "fields": [
+            {
+              "title": "Strategy",
+              "value": "{{if .rollout.spec.strategy.blueGreen}}BlueGreen{{end}}{{if .rollout.spec.strategy.canary}}Canary{{end}}",
+              "short": true
+            },
+            {
+              "title": "Desired replica",
+              "value": "{{.rollout.spec.replicas}}",
+              "short": true
+            },
+            {
+              "title": "Updated replicas",
+              "value": "{{.rollout.status.updatedReplicas}}",
+              "short": true
+            }
+            {{range $index, $c := .rollout.spec.template.spec.containers}}
+              {{if not $index}},{{end}}
+              {{if $index}},{{end}}
+              {
+                "title": "{{$c.name}}",
+                "value": "{{$c.image}}",
+                "short": true
+              }
+            {{end}}
+            ]
+          }]
+  trigger.on-analysis-run-error: |
+    - send: [analysis-run-error]
+  trigger.on-analysis-run-failed: |
+    - send: [analysis-run-failed]
+  trigger.on-analysis-run-running: |
+    - send: [analysis-run-running]
+  trigger.on-rollout-aborted: |
+    - send: [rollout-aborted]
+  trigger.on-rollout-completed: |
+    - send: [rollout-completed]
+  trigger.on-rollout-paused: |
+    - send: [rollout-paused]
+  trigger.on-rollout-step-completed: |
+    - send: [rollout-step-completed]
+  trigger.on-rollout-updated: |
+    - send: [rollout-updated]
+  trigger.on-scaling-replica-set: |
+    - send: [scaling-replicaset]
+  defaultTriggers: |
+    - on-scaling-replica-set
+    - on-rollout-updated
+    - on-rollout-step-completed
+    - on-rollout-completed
+    - on-rollout-paused
+    - on-rollout-aborted
+```
+
+- 마지막으로 기존에 존재하는 Argo Rollout yaml 파일에 아래의 annotation을 추가해주자.
+
+  ```yaml
+  apiVersion: argoproj.io/v1alpha1
+  kind: Rollout
+  metadata:
+  name: planit-deployment
+  namespace: planit
+  labels:
+    app: planit
+  annotations:
+    notifications.argoproj.io/subscribe.on-rollout-step-completed.slack: "dev_운영서버_배포기록"
+    notifications.argoproj.io/subscribe.on-rollout-updated.slack: "dev_운영서버_배포기록"
+    notifications.argoproj.io/subscribe.on-rollout-completed.slack: "dev_운영서버_배포기록"
+    notifications.argoproj.io/subscribe.on-scaling-replica-set.slack: "dev_운영서버_배포기록"
+    notifications.argoproj.io/subscribe.on-rollout-paused.slack: "dev_운영서버_배포기록"
+    notifications.argoproj.io/subscribe-on-rollout-aborted.slack: "dev_운영서버_배포기록"
+  ```
+
+---
+
+## 테스트하기
+
+- 테스트를 해보기 위해 컨테이너 이미지의 태그를 변경한 후 apply 해보자. 그럼 아래처럼 이전에 추가한 Slack App이 메시지를 보낸다.
+
+  ![picture 66](/images/AWS_DEVOPS_ARGO_ROLLOUTS_SLACK_9.png)
+
+---
