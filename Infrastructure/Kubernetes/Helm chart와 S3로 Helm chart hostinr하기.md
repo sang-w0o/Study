@@ -67,3 +67,19 @@ port: 8080
   하지만 원한다면 command line parameter로 원하는 값들을 전달할 수도 있다.
 
 ---
+
+## Accessing Helm charts
+
+- Helm chart package들은 chart repository에 보관된다. 그리고 Helm client를 다양한 chart repository들로부터  
+  애플리케이션을 검색하고, 배포하도록 할 수 있다. 그리고 Helm client는 Helm chart repository에 chart를 push할 수도 있다.
+
+- Artifact Hub: 개발자들이 자신이 배포한 Helm chart를 다른 사람들이 사용할 수 있도록 해주는 public Helm chart  
+  repository의 중앙 저장소이다. Artifact Hub 자체는 chart package들을 저장하지 않으며, 대신 해당 chart를  
+  저장하고 있는 Helm chart repository의 접근 방법을 제공한다.
+
+- 때에 따라서 public이 아닌 private Helm repository를 구축해 사용할 수도 있다.  
+  예를 들어, Helm chart package들을 Amazon ECR의 private repository에 저장하도록 할 수 있다.
+
+- Helm chart를 hosting하기 위한 선택지들 중 하나로 Amazon S3를 사용할 수도 있다.
+
+---
