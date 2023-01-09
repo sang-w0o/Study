@@ -83,3 +83,74 @@ port: 8080
 - Helm chart를 hosting하기 위한 선택지들 중 하나로 Amazon S3를 사용할 수도 있다.
 
 ---
+
+## 실습: Helm, Amazon S3로 애플리케이션 배포하기
+
+- 실습으로 nginx 컨테이너를 배포하는 Kubernetes deployment, service object를 가진 Helm chart를 만들고, 배포해보자.
+
+> 사전 요구사항: kubectl, AWS CLI v2, minikube가 설치되어 있다고 가정한다.
+> Amazon S3를 사용할 것이므로 S3에 접근할 수 있는 IAM user가 필요하다.
+> 그리고 local 환경에서 쉽게 테스트할 수 있도록 [minikube](https://github.com/kubernetes/minikube)를 사용한다.
+
+### 1. Helm 설치 및 Helm repository로 사용할 S3 bucket 생성
+
+#### 1.1 Helm 설치
+
+- Mac OS 기준으로 `brew install helm` 을 입력해 Helm을 설치한다.
+
+  ```sh
+  brew install helm
+  ```
+
+- 설치가 완료되었다면, 아래 명령어로 version을 확인해보자.
+
+  ```sh
+  helm version --short
+  ```
+
+#### 1.2 Helm-s3 plugin 설치
+
+- Helm-s3 plugin은 Helm v2, v3와 동작하며 Helm chart와 Amazon S3의 상호작용을 담당해준다.  
+  아래 명령어로 설치해주자.
+
+  ```sh
+  helm plugin install https://github.com/hypnoglow/helm-s3.git
+  ```
+
+- 마찬가지로 설치가 되었음을 검증하기 위해 version을 확인해보자.
+
+  ```sh
+  helm s3 version
+  ```
+
+#### 1.3 S3 bucket 생성
+
+- 우선 아래 사진처럼 Amazon S3 console에 접속해 bucket 생성 화면으로 넘어가보자.
+
+  ![picture 117](/images/HELM_S3_1.png)
+
+- 다음으로 하단에 `Block all public access`를 체크 해제해준다.  
+  이때 하단에 표시되는 경고 화면에는 체크 표시를 해준다.
+
+- 나머지 설정값들은 기본값으로 그대로 두고, bucket을 생성한다.
+
+- 마지막으로 해당 bucket의 페이지로 이동해, bucket 이름을 복사해주자.
+
+#### 1.4 Helm-s3로 Helm repository 초기화
+
+- 아래 명령어로 Helm repository를 초기화해준다.  
+  `<bucket-name>`을 본인이 생서한 S3 bucket 이름으로 변경해주자.
+
+  ```sh
+  export S3_BUCKET_NAME=<bucket-name>
+  helm s3 init s3://$S3_BUCKET_NAME
+  # Initialized empty repository at s3://$S3_BUCKET_NAME
+  ```
+
+- 다음으로 아래 명령어로 S3를 Helm client가 repository로써 가리키도록 해주자.  
+  `<repo-name>`은 자신이 원하는 값으로 바꿔주자. 나는 my-nginx로 진행했다.
+
+  ```sh
+  helm repo add <repo-name> s3://$S3_BUCKET_NAME
+  # "my-nginx" has been added to your repositories
+  ```
