@@ -154,3 +154,145 @@ port: 8080
   helm repo add <repo-name> s3://$S3_BUCKET_NAME
   # "my-nginx" has been added to your repositories
   ```
+
+### 2. Helm chart 생성 및 packaging 후 S3에 업로드
+
+- 지금까지 Helm repository를 S3에 생성했고, 해당 S3 bucket을 Helm repository로 추가했다.  
+  아래 명령어로 진행 상황을 확인해보자.
+
+  ```sh
+  helm repo list
+  # my-nginx    s3://roys-nginx-helm
+  ```
+
+#### 2.1 Helm chart 생성
+
+- 이제 본격적으로 Helm chart를 만들어보자.  
+  우선 `my-chart`라는 디렉토리를 생성하자.
+
+  ```sh
+  mkdir ./my-chart
+  ```
+
+- 다음으로 `my-chart` 디렉토리로 이동해, `Chart.yaml` 파일을 생성해 아래처럼 입력해보자.
+
+  ```yaml
+  apiVersion: v1
+  appVersion: "1.0"
+  description: Testing Helm Chart with Nginx
+  name: my-nginx-chart
+  version: 1.0.0
+  ```
+
+- 위에서 설명한대로, `Chart.yaml` 파일은 Helm chart에 대한 정보를 담는 yaml 파일로, 해당 Helm chart가 사용하는  
+  API version, type, 그리고 version 정보들을 포함한다.
+
+- 다음으로 Helm chart가 Kubernetes 리소스들을 생성할 때 설정값들을 참조해오는 `values.yaml` 파일을 만들어보자.
+
+  ```yaml
+  deploymentInfo:
+    replicaCount: 2
+    namespace: my-chart
+    name: my-nginx-deployment
+    port: 80
+  image:
+    name: nginx
+    tag: latest
+    pullPolicy: Always
+  serviceInfo:
+    name: my-nginx-service
+    type: NodePort
+    targetPort: 80
+  ```
+
+- 앞으로 `templates/` 폴더 하위의 Kubernetes manifest 파일들에서 `values.yaml` 파일의 설정값들을 참조해오게 된다.
+
+- 마지막으로 실제로 nginx를 띄울 Deployment, 그리고 Service object를 작성해보자.  
+  이전에, 먼저 `templates/` 폴더를 만들어주자.
+
+  ```sh
+  mkdir templates
+  ```
+
+- 그리고 해당 `templates/` 디렉토리 하위에 아래 2개 yaml 파일들을 생성하자.
+
+  ```yaml
+  # templates/deployment.yaml
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: {{ .Values.deploymentInfo.name }}
+    namespace: {{ .Values.deploymentInfo.namespace }}
+    labels:
+      app: {{ .Values.deploymentInfo.name }}
+  spec:
+    replicas: {{ .Values.deploymentInfo.replicaCount }}
+    selector:
+      matchLabels:
+        app: {{ .Values.deploymentInfo.name }}
+    template:
+      metadata:
+        labels:
+          app: {{ .Values.deploymentInfo.name }}
+      spec:
+        containers:
+          - name: {{ .Values.deploymentInfo.name }}
+            image: {{ .Values.image.name }}:{{ .Values.image.tag }}
+            imagePullPolicy: {{ .Values.image.pullPolicy }}
+            ports:
+              - containerPort: {{ .Values.deploymentInfo.port }}
+                protocol: TCP
+
+  ---
+
+  # templates/service.yaml
+  apiVersion: v1
+  kind: Service
+  metadata:
+    name: {{ .Values.serviceInfo.name }}
+    namespace: {{ .Values.deploymentInfo.namespace }}
+  spec:
+    selector:
+      app: {{ .Values.deploymentInfo.name }}
+    ports:
+      - protocol: TCP
+        port: {{ .Values.serviceInfo.targetPort }}
+        targetPort: {{ .Values.deploymentInfo.port }}
+    type: {{ .Values.serviceInfo.type }}
+  ```
+
+- 위 결과로 만들어진 `my-chart` 디렉토리의 구조는 아래와 같다.
+
+  ```
+  my-chart/
+  ├── Chart.yaml
+  ├── templates
+  │   ├── deployment.yaml
+  │   └── service.yaml
+  └── values.yaml
+  ```
+
+- 이제 Helm chart를 위한 내용이 모두 완성되었으니, packaging을 수행해보자.  
+  `my-chart/` 레포지토리에서 아래 명령어를 수행해 packaging을 해보자.
+
+  ```sh
+  helm package .
+  # Successfully packaged chart and saved it to: DIRECTORY/my-chart/my-nginx-chart-1.0.0.tgz
+  ```
+
+- 위 명령어의 결과로 `my-nginx-chart-1.0.0.tgz` 압축 파일이 생성되었음을 볼 수 있다.
+
+- 이제 마지막으로 해당 압축 파일(packaging된 파일)을 S3, 즉 Helm chart repository에 push 해보자.
+
+  ```sh
+  helm s3 push my-nginx-chart-1.0.0.tgz my-nginx
+  # Successfully uploaded the chart to the repository.
+  ```
+
+- 정상적으로 push가 되었는지 확인하기 위해 아래 명령어를 수행해보자.
+
+  ```sh
+  aws s3 ls $S3_BUCKET_NAME
+  # 2022-12-18 23:15:46        406 index.yaml
+  # 2022-12-18 23:15:46       9623 my-nginx-chart-1.0.0.tgz
+  ```
