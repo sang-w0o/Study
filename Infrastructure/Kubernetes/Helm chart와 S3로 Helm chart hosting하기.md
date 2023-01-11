@@ -296,3 +296,53 @@ port: 8080
   # 2022-12-18 23:15:46        406 index.yaml
   # 2022-12-18 23:15:46       9623 my-nginx-chart-1.0.0.tgz
   ```
+
+### 3. Amazon S3 repository로부터 Helm chart 검색 및 삭제하기
+
+- 이제 Helm chart는 완성되었으니, minikube를 이용해 동작을 검증해보자.
+
+- 우선 먼저 아래 명령어로 minikube를 실행한다.
+
+  ```sh
+  minikube start
+  ```
+
+- 위 명령어를 실행하면, kubectl의 context가 자동으로 minikube로 변경된다.
+
+- 다음으로 우리는 `values.yaml` 파일에 해당 Kubernetes 리소스들이 생성될 namespace를 my-chart라고 지정했다.  
+  따라서 먼저 이 namespace를 생성해주자.
+
+  ```sh
+  kubectl create namespace my-chart
+  ```
+
+- 다음으로 아래 명령어를 수행해 우리가 만든 Helm chart를 설치해보자.
+
+  ```sh
+  helm install my-nginx my-nginx/my-nginx-chart
+  # NAME: my-nginx
+  # LAST DEPLOYED: Sun Dec 18 23:42:33 2022
+  # NAMESPACE: default
+  # STATUS: deployed
+  # REVISION: 1
+  # TEST SUITE: None
+  ```
+
+- 다음으로 아래 명령어를 수행해 Kubernetes service가 잘 동작하고 있는지 확인해보자.
+
+  ```sh
+  kubectl get svc -n my-chart
+  # NAME               TYPE       CLUSTER-IP       EXTERNAL-IP   PORT(S)        AGE
+  # my-nginx-service   NodePort   10.104.167.110   <none>        80:31783/TCP   2m30s
+  ```
+
+- Local 환경에서 동작을 확인하기 위해 아래 명령어로 pod에 접속할 수 있는 주소를 알아내보자.
+
+  ```sh
+  minikube service my-nginx-service -n my-chart --url
+  # http://127.0.0.1:56407
+  ```
+
+- 위 명령어의 주소에 cURL 요청을 보내도 되고, 아래처럼 웹 브라우저로 접속해도 좋다.
+
+  ![picture 118](/images/HELM_S3_2.png)
