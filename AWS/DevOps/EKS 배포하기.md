@@ -294,7 +294,7 @@ aws eks update-kubeconfig --region ap-northeast-2 --name planit-dev-eks
   - Kubernetes `Ingress` 생성 시 AWS ALB 프로비저닝
   - Kubernetes `LoadBalancer` 생성 시 AWS NLB 프로비저닝
 
-- ALB Load Balancere Controller를 생성하기 전에, OIDC provider를 먼저 연동해야 한다.
+- AWS Load Balancer Controller를 생성하기 전에, OIDC provider를 먼저 연동해야 한다.
 
 - 클러스터에 OIDC ID provider(IdP)를 설정하는 것은 클러스터 내에 실행되는 Fargate pod들이 IAM을 사용해 Service Account 기능을  
   사용하도록 하기 위함이다. 아래 명령어를 통해 클러스터에 OIDC provider를 설정해주자.
