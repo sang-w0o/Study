@@ -235,7 +235,7 @@ spec:
 > 뿐만 아니라 MemoryPressure가 True인 node에는 더이상 pod를 할당시키지 않는다. 여기서 사용되는 우선순위가 QoS Class 및  
 > 메모리 사용량에 따라 정렬된다.
 >
-> OOM Killer는 linux에 기본적으로 내장된 기능으로, 우선순위 점수에 oom_score]\_adj 와 oom_score를 사용한다.  
+> OOM Killer는 linux에 기본적으로 내장된 기능으로, 우선순위 점수에 oom_score_adj 와 oom_score를 사용한다.  
 > OOM Killer는 oom_score의 값에 따라 종료할 프로세스를 선정한다. 모든 프로세스는 자동으로 OOM 점수가 매겨지며, 이 점수가  
 > 높으면 높을 수록 강제로 종료될 가능성이 커진다. 예를 들어 K8S를 설치할 때 실행되는 docker daemon은 OOM 점수가 기본적으로 -999이다.
 
