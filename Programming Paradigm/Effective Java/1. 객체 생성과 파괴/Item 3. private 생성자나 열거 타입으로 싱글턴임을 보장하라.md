@@ -11,7 +11,7 @@
   private으로 감춰두고, 유일한 인스턴스에 접근할 수단으로 static 멤버를  
   하나 마련해둔다.
 
-<h2>public static 멤버가 final인 방식</h2>
+## public static 멤버가 final인 방식
 
 ```java
 public class Elvis {
@@ -33,9 +33,9 @@ public class Elvis {
   private 생성자를 호출할 수는 있다. 이러한 공격을 방어하려면 생성자를 수정하여 두 번째  
   객체가 생성되려 할 때 예외를 던지도록 하면 된다.
 
-<hr/>
+---
 
-<h2>정적 팩토리 메소드를 public static 멤버로 제공하는 방식</h2>
+## 정적 팩토리 메소드를 public static 멤버로 제공하는 방식
 
 ```java
 public class Elvis {
@@ -69,9 +69,7 @@ public class Elvis {
   가령 `Elvis::getInstance`를 `Supplier<Elvis>`로 사용하는 식이다.  
   이러한 장점들이 굳이 필요하지 않다면 public 필드 방식이 좋다.
 
-<hr/>
-
-<h3>직렬화의 문제</h3>
+### 직렬화의 문제
 
 - 위 2개의 방법으로 싱글턴을 구현했을 때 이를 직렬화하려면 단순히 `Serializable` 인터페이스를  
   구현시키는 것만으로는 부족하다. 모든 인스턴스 필드를 transient(일시적)이라고 선언하고,  
@@ -98,7 +96,9 @@ public class Elvis {
 }
 ```
 
-<h2>원소가 하나인 열거 타입을 선언하는 방식</h2>
+---
+
+## 원소가 하나인 열거 타입을 선언하는 방식
 
 ```java
 public enum Person {
@@ -113,7 +113,9 @@ public enum Person {
 
 - 위 방식을 사용하려면 사용하는 부분에서 `Person.INSTANCE`로 인스턴스를 가져오면 된다.
 
-* 이 방식은 public 필드 방식과 비슷하지만 더 간결하고 추가 노력없이 직렬화를 할 수 있으며  
+- 이 방식은 public 필드 방식과 비슷하지만 더 간결하고 추가 노력없이 직렬화를 할 수 있으며  
   심지어 아주 복잡한 직렬화 상황이나 Reflection 공격에도 제2의 인스턴스가 생기는 일을  
   완벽히 막아준다. 대부분의 상황에서는 원소가 하나뿐인 열거 타입이 싱글턴을 만드는 가장 좋은  
   방법이다. 단, 만들려는 싱글턴이 enum 이외의 클래스를 상속해야 한다면 이 방법은 사용할 수 없다.
+
+---

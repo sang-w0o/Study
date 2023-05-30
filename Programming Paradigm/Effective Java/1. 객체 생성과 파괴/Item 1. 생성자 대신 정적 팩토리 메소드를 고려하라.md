@@ -16,7 +16,7 @@ public static Boolean valueOf(boolean b) {
 - 클래스는 위와 같이 public 생성자 대신 정적 팩토리 메소드를 제공할 수 있다.  
   이 방식에는 장점과 단점이 모두 존재하는데, 먼저 정적 팩토리 메소드가 생성자보다 좋은 장점 5개를 알아보자.
 
-<h2>정적 팩토리 메소드의 장점</h2>
+## 정적 팩토리 메소드의 장점
 
 - (1) 이름을 가질 수 있다.
 
@@ -115,12 +115,11 @@ public static Boolean valueOf(boolean b) {
     프레임워크를 직접 만들 필요가 거의 없어졌다. 한편, JDBC는 Java6 이전에 등장한 개념이라 `ServiceLoader`를  
     사용하지 않는다.
 
-<hr/>
+---
 
-<h2>정적 팩토리 메소드의 단점</h2>
+## 정적 팩토리 메소드의 단점
 
-- (1) 상속을 하려면 public이나 protected 생성자가 필요하기에  
-  &nbsp;&nbsp;&nbsp;&nbsp;정적 팩토리 메소드만 제공하면 하위 클래스를 만들 수 없다.
+- (1) 상속을 하려면 public이나 protected 생성자가 필요하기에 정적 팩토리 메소드만 제공하면 하위 클래스를 만들 수 없다.
 
   - 이는 곧 위에서 이야기한 Collection Framework의 유틸리티 구현 클래스들은 상속할 수 없다는 의미이다.  
     어찌보면, 이 제약은 _상속보다는 composition을 사용_ 하도록 유도하고, 불변 타입으로 만들려면  
@@ -155,12 +154,12 @@ public static Boolean valueOf(boolean b) {
     - `type`: `getType`와 `newType`의 간결한 버전  
       `List<Compliant> litany = Collections.list(legacyLitany);`
 
-<hr/>
+---
 
-<h2>핵심 정리</h2>
+## 핵심 정리
 
 - 정적 팩토리 메소드와 public 생성자는 각자의 쓰임새가 있으니 상대적인 장단점을 이해하고 사용하는  
   것이 좋다. 그렇다고 하더라도 정적 팩토리를 사용하는게 유리한 경우가 더 많으므로 무작정 public 생성자를  
   제공하던 습관이 있다면 고치자!
 
-<hr/>
+---
