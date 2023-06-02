@@ -75,7 +75,7 @@
 - 이제 cleaner와 finalizer는 대체 언제 쓰일지 알아보자.  
   하나는 _자원의 소유자가 `close()` 메소드를 호출하지 않는 것에 대비한 안전망 역할_ 이다.  
   cleaner나 finalizer가 즉시(혹은 끝까지) 호출되리라는 보장은 없지만, 클라이언트가 하지 않은  
-  자원 회수를 늦게대로 해주는 것이 아예 안 하는 것보다는 낫기 때문이다.  
+  자원 회수를 늦게라도 해주는 것이 아예 안 하는 것보다는 낫기 때문이다.  
   이런 안전망 역할의 finalizer를 작성할 때는 그럴만한 값어치가 있는지 심사숙고하자.  
   Java 라이브러리의 일부 클래스는 안전망 역할의 finalizer를 제공한다. `FileInputStream`,  
   `FileOutputStream`, `ThreadPoolExecutor`가 대표적이다.
@@ -99,18 +99,18 @@ public class Room implements AutoCloseable {
 
     // 청소가 필요한 자원, 절대 Room을 참조해서는 안된다!
     private static class State implements Runnable {
-	int junkPileNumber;
+	    int junkPileNumber;
 
-	State(int junkPileNumber) {
-	    this.junkPileNumber = junkPileNumber;
-	}
+	    State(int junkPileNumber) {
+	      this.junkPileNumber = junkPileNumber;
+	    }
 
-	// close 메소드나 cleaner가 호출한다.
-	@Override
-	public void run() {
-	    System.out.println("Cleaning room");
-	    junkPileNumber = 0;
-	}
+	    // close 메소드나 cleaner가 호출한다.
+	    @Override
+	    public void run() {
+	      System.out.println("Cleaning room");
+	      junkPileNumber = 0;
+	    }
     }
 
     // 방의 상태. cleanable과 공유한다.
@@ -120,13 +120,13 @@ public class Room implements AutoCloseable {
     private final Cleaner.Cleanable cleanable;
 
     public Room(int junkPileNumber) {
-	state = new State(junkPileNumber);
-	cleanable = cleaner.register(this, state);
+	    state = new State(junkPileNumber);
+	    cleanable = cleaner.register(this, state);
     }
 
     @Override
     public void close() {
-	cleanable.clean();
+	    cleanable.clean();
     }
 }
 ```
@@ -152,11 +152,11 @@ public class Room implements AutoCloseable {
 
 ```java
 public class Adult {
-    public static void main(String[] args) {
-	try(Room myRoom = new Room(7)) {
-	    System.out.println("HI~");
-	}
-    }
+  public static void main(String[] args) {
+	  try(Room myRoom = new Room(7)) {
+      System.out.println("HI~");
+  	}
+  }
 }
 ```
 
@@ -165,10 +165,10 @@ public class Adult {
 
 ```java
 public class Teenager {
-    public static void main(String[] args) {
-	new Room(99);
-	System.out.println("HA");
-    }
+  public static void main(String[] args) {
+	  new Room(99);
+	  System.out.println("HA");
+  }
 }
 ```
 
@@ -180,11 +180,11 @@ public class Teenager {
 
 - 명세에서는 명시하지 않았지만 일반적인 프로그램 종료에서도 마찬가지이다.
 
-<hr/>
+---
 
-<h2>핵심 정리</h2>
+## 핵심 정리
 
 - Cleaner(Java8까지는 Finalizer)는 안전망 역할이나 중요하지 않은 네이티브 자원 회수용으로만  
   사용하자. 물론 이런 경우라도 불확실성과 성능 저하에 주의해야 한다.
 
-<hr/>
+---

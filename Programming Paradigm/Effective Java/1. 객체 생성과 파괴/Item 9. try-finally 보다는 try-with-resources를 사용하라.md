@@ -13,9 +13,9 @@
 static String firstLineOfFile(String path) throws IOException {
     BufferedReader bufferedReader = new BufferedReader(new FileReader(path));
     try {
-	return bufferedReader.readLine();
+	    return bufferedReader.readLine();
     } finally {
-	bufferedReader.close();
+	    bufferedReader.close();
     }
 }
 ```
@@ -26,17 +26,17 @@ static String firstLineOfFile(String path) throws IOException {
 static void copy(String src, String dst) throws IOException {
     InputStream inputStream = new FileInputStream(src);
     try {
-	OutputStream outputStream = new FileOutputStream(dst);
-	try {
-	    byte[] buffer = new byte[BUFFER_SIZE];
-	    int n;
-	    while((n = inputStream.read(buffer)) >= 0)
-	    	outputStream.write(buffer, 0, n);
-	} finally {
-	    outputStream.close();
-	}
+	    OutputStream outputStream = new FileOutputStream(dst);
+	    try {
+	        byte[] buffer = new byte[BUFFER_SIZE];
+	        int n;
+	        while((n = inputStream.read(buffer)) >= 0)
+	         outputStream.write(buffer, 0, n);
+	    } finally {
+	        outputStream.close();
+	    }
     } finally {
-	inputStream.close();
+	    inputStream.close();
     }
 }
 ```
@@ -62,24 +62,24 @@ static void copy(String src, String dst) throws IOException {
 ```java
 static String firstLineOfFile(String path) throws IOException {
     try(BufferedReader bufferedReader = new BufferedReader(new FileReader(path))) {
-	return bufferedReader.readLine();
+	    return bufferedReader.readLine();
     }
 }
 
 static void copy(String src, String dst) throws IOException {
     InputStream inputStream = new FileInputStream(src);
     try (
-	InputStream inputStream = new FileInputStream(src);
-	OutputStream outputStream = new FileOutputStream(dst)) {
-	byte[] buffer = new byte[BUFFER_SIZE];
-	int n;
-	while((n = inputStream.read(buffer)) >= 0)
-	    outputStream.write(buffer, 0, n);
+	    InputStream inputStream = new FileInputStream(src);
+	    OutputStream outputStream = new FileOutputStream(dst)) {
+	        byte[] buffer = new byte[BUFFER_SIZE];
+	        int n;
+	        while((n = inputStream.read(buffer)) >= 0)
+	            outputStream.write(buffer, 0, n);
     }
 }
 ```
 
-- try-with-resources 를 사용한 버전이 짧고 읽기 수워할 뿐 아니라 문제를 진단하기에도  
+- try-with-resources 를 사용한 버전이 짧고 읽기 수월할 뿐 아니라 문제를 진단하기에도  
   훨씬 좋다. `firstLineOfFile()` 메소드를 생각해보자. `readLine()`과 `close()` 호출  
   양쪽에서 예외가 발생하면, `close()`에서 발생한 예외는 숨겨지고 `readLine()`에서 발생한  
   예외가 기록된다. 이처럼 실전에서는 프로그래머에게 보여줄 예외 하나만 보존되고 여러 개의 다른 예외가  
@@ -93,22 +93,22 @@ static void copy(String src, String dst) throws IOException {
   예외를 던지는 대신 기본값을 반환하도록 했다.
 
 ```java
-static String firstLineOfFile(String path, String defaultValue) throws IOException {
+static String firstLineOfFile(String path, String defaultValue) {
     try(BufferedReader bufferedReader = new BufferedReader(new FileReader(path))) {
-	return bufferedReader.readLine();
+	    return bufferedReader.readLine();
     } catch(IOException e) {
-	return defaultValue;
+	    return defaultValue;
     }
 }
 ```
 
-<hr/>
+---
 
-<h2>핵심 정리</h2>
+## 핵심 정리
 
 - 꼭 회수해야 하는 자원을 다룰 때는 try-finally 대신 try-with-resources를 사용하자.  
   예외는 없다. 코드는 더 짧고 분명해지며 만들어지는 예외 정보도 훨씬 유용하다.  
   try-finally로 작성하면 실용적이지 못할 만큼 코드가 지저분해지는 경우라도,  
   try-with-resources로는 정확하고 쉽게 자원을 회수할 수 있다.
 
-<hr/>
+---
