@@ -11,4 +11,4 @@
   그중 `finalize()` 메소드는 <a href="https://github.com/sang-w0o/Study/blob/master/Programming%20Paradigm/Effective%20Java/1.%20%EA%B0%9D%EC%B2%B4%20%EC%83%9D%EC%84%B1%EA%B3%BC%20%ED%8C%8C%EA%B4%B4/Item%208.%20finalizer%EC%99%80%20cleaner%20%EC%82%AC%EC%9A%A9%EC%9D%84%20%ED%94%BC%ED%95%98%EB%9D%BC.md">아이템 8</a>에서 다뤘으니 더 이상 언급하지 않는다.  
   `Comparable.compareTo`의 경우에는 `Object`의 메소드는 아니지만 성격이 비슷하여 함께 다룬다.
 
-<hr/>
+---

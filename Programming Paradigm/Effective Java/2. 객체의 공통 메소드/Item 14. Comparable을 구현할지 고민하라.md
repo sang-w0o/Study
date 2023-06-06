@@ -17,11 +17,11 @@ Arrays.sort(a);
 
 ```java
 public class WordList {
-    public static void main(String[] args) {
-        Set<String> s = new TreeSet<>();
-	Collections.addAll(s, args);
-	System.out.println(s);
-    }
+  public static void main(String[] args) {
+    Set<String> s = new TreeSet<>();
+    Collections.addAll(s, args);
+    System.out.println(s);
+  }
 }
 ```
 
@@ -56,7 +56,7 @@ public interface Comparable<T> {
 > - `Comparable`을 구현한 클래스는 모든 z에 대해 `x.compareTo(y) == 0`이면  
 >   `sgn(x.compareTo(z)) == sgn(y.compareTo(z))`이다.
 >
-> * 이번 권고가 필수는 아니지만 꼭 지키는게 좋다.  
+> * 이건 권고라 필수는 아니지만 꼭 지키는게 좋다.  
 >   `(x.compareTo(y) == 0) == (x.equals(y))`여야 한다. `Comparable`을  
 >   구현하고 이 권고를 지키지 않는 모든 클래스는 그 사실을 명시해야 한다.  
 >   아래와 같이 명시하면 적당할 것이다.  
@@ -120,11 +120,11 @@ public interface Comparable<T> {
 
 ```java
 public final class CaseInsensitiveString implements Comparable<CaseInsensitiveString> {
-    //..
+  //..
 
-    public int compareTo(CaseInsensitiveString cis) {
-	return String.CASE_INSENSITIVE_ORDER.compare(s, cis.s);
-    }
+  public int compareTo(CaseInsensitiveString cis) {
+    return String.CASE_INSENSITIVE_ORDER.compare(s, cis.s);
+  }
 }
 ```
 
@@ -145,13 +145,14 @@ public final class CaseInsensitiveString implements Comparable<CaseInsensitiveSt
 
 ```java
 public int compareTo(PhoneNumber pn) {
-    int result = Short.compare(areaCode, pn.areaCode);  // 가장 중요한 필드
-    if (result == 0) {
-	result = Short.compare(prefix, pn.prefix);  // 두 번째로 중요한 필드
-	if result == 0)
-	    result = Short.compare(lineNum, pn.lineNum);  // 세 번째로 중요한 필드
+  int result = Short.compare(areaCode, pn.areaCode);  // 가장 중요한 필드
+  if (result == 0) {
+    result = Short.compare(prefix, pn.prefix);  // 두 번째로 중요한 필드
+    if result == 0) {
+      result = Short.compare(lineNum, pn.lineNum);  // 세 번째로 중요한 필드
     }
-    return result;
+  return result;
+  }
 }
 ```
 
@@ -164,12 +165,12 @@ public int compareTo(PhoneNumber pn) {
 
 ```java
 private static final Comparator<PhoneNumber> COMPARATOR =
-    comparingInt((PhoneNumber pn) -> pn.areaCode)
-        .thenComparingInt((pn -> pn.prefix)
-	.thenComparingInt((pn -> pn.lineNum));
+  comparingInt((PhoneNumber pn) -> pn.areaCode)
+    .thenComparingInt((pn -> pn.prefix)
+    .thenComparingInt((pn -> pn.lineNum));
 
 public int compareTo(PhoneNumber pn) {
-    return COMPARATOR.compare(this, pn);
+  return COMPARATOR.compare(this, pn);
 }
 ```
 
@@ -207,9 +208,9 @@ public int compareTo(PhoneNumber pn) {
 
 ```java
 static Comparator<Object> hashCodeOrder = new Comparator<>() {
-    public int compare(Object o1, Object o2) {
-	return o1.hashCode() - o2.hashCode();
-    }
+  public int compare(Object o1, Object o2) {
+    return o1.hashCode() - o2.hashCode();
+  }
 }
 ```
 
@@ -220,19 +221,19 @@ static Comparator<Object> hashCodeOrder = new Comparator<>() {
 ```java
 // 정적 compare() 메소드를 활용한 비교자
 static Comparator<Object> hashCodeOrder = new Comparator<>() {
-    public int compare(Object o1, Object o2) {
-	return Integer.compare(o1.hashCode(), o2.hashCode());
-    }
+  public int compare(Object o1, Object o2) {
+    return Integer.compare(o1.hashCode(), o2.hashCode());
+  }
 };
 
 // 비교자 생성 메소드를 활용한 비교자
 static Comparator<Object> hashCodeOrder =
-    Comparator.comparingInt(o -> o.hashCode());
+  Comparator.comparingInt(o -> o.hashCode());
 ```
 
-<hr/>
+---
 
-<h2>핵심 정리</h2>
+## 핵심 정리
 
 - 순서를 고려해야 하는 값 클래스를 작성한다면 꼭 `Comparable` 인터페이스를 구현하여,  
   그 인스턴스들을 쉽게 정렬하고, 검색하고, 비교 기능을 제공하는 컬렉션과 어우러지도록 하자.  
@@ -240,4 +241,4 @@ static Comparator<Object> hashCodeOrder =
   그 대신 박싱된 기본 타입 클래스가 제공하는 정적 `compare()` 메소드나 `Comparator`  
   인터페이스가 제공하는 비교자 생성 메소드를 사용하자.
 
-<hr/>
+---

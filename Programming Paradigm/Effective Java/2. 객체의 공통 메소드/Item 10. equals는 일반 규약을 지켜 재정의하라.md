@@ -84,24 +84,22 @@
 
 ```java
 public final class CaseInsensitiveString {
-    private final String s;
+  private final String s;
 
-    public CaseInsensitiveString(String s) {
-	this.s = Objects.requireNonNull(s);
-    }
+  public CaseInsensitiveString(String s) {
+    this.s = Objects.requireNonNull(s);
+  }
 
-    // 대칭성 위배!
-    @Override
-    public boolean equals(Object o) {
-	if(o instanceof CaseInsensitiveString)
-	    return s.equalsIgnoreCase(
-		((CaseInsensitiveString) o).s);
-	if(o instanceof String)
+  // 대칭성 위배!
+  @Override
+  public boolean equals(Object o) {
+	  if(o instanceof CaseInsensitiveString)
+	    return s.equalsIgnoreCase(((CaseInsensitiveString) o).s);
+	  if(o instanceof String)
 	    return s.equalsIgnoreCase((String) o);
-	return false;
-    }
-
-    //..
+	  return false;
+  }
+  //..
 }
 ```
 
@@ -133,20 +131,19 @@ list.add(cis);
 
 ```java
 public final class CaseInsensitiveString {
-    private final String s;
+  private final String s;
 
-    public CaseInsensitiveString(String s) {
-	this.s = Objects.requireNonNull(s);
-    }
+  public CaseInsensitiveString(String s) {
+	  this.s = Objects.requireNonNull(s);
+  }
 
-    // 대칭성 위배!
-    @Override
-    public boolean equals(Object o) {
-	return o instanceof CaseInsensitiveString &&
+  // 대칭성 위배!
+  @Override
+  public boolean equals(Object o) {
+	  return o instanceof CaseInsensitiveString &&
 	    ((CaseInsensitiveString) o).s.equalsIgnoreCase(s);
-    }
-
-    //..
+  }
+  //..
 }
 ```
 
@@ -158,21 +155,20 @@ public final class CaseInsensitiveString {
 
 ```java
 public class Point {
-    private final int x;
-    private final int y;
+  private final int x;
+  private final int y;
 
-    public Point(int x, int y) {
-	this.x = x; this.y = y;
-    }
+  public Point(int x, int y) {
+	  this.x = x; this.y = y;
+  }
 
-    @Override
-    public boolean equals(Object o) {
-	if(!(o instanceof Point)) return false;
-	Point p = (Point)o;
-	return p.x == x && p.y == y;
-    }
-
-    //..
+  @Override
+  public boolean equals(Object o) {
+	  if(!(o instanceof Point)) return false;
+	  Point p = (Point)o;
+	  return p.x == x && p.y == y;
+  }
+  //..
 }
 ```
 
@@ -180,14 +176,13 @@ public class Point {
 
 ```java
 public class ColorPoint extends Point {
-    private final Color color;
+  private final Color color;
 
-    public ColorPoint(int x, int y, Color color) {
-	super(x, y);
-	this.color = color;
-    }
-
-    //..
+  public ColorPoint(int x, int y, Color color) {
+    super(x, y);
+    this.color = color;
+  }
+  //..
 }
 ```
 
@@ -199,8 +194,8 @@ public class ColorPoint extends Point {
 ```java
 @Override
 public boolean equals(Object o) {
-    if(!(o instanceof ColorPoint)) return false;
-    return super.equals(o) && ((ColorPoint) o).color == color;
+  if(!(o instanceof ColorPoint)) return false;
+  return super.equals(o) && ((ColorPoint) o).color == color;
 }
 ```
 
@@ -220,14 +215,14 @@ ColorPoint cp = new ColorPoint(1, 2, Color.RED);
 ```java
 @Override
 public boolean equals(Object o) {
-    if(!(of instanceof Point)) return false;
+  if(!(of instanceof Point)) return false;
 
-    // o가 Point라면 color는 비교하지 않는다.
-    // 아래 코드 때문에 무한 재귀 발생 가능성이 생긴다.
-    if(!(o instanceof ColorPoint)) return o.equals(this);
+  // o가 Point라면 color는 비교하지 않는다.
+  // 아래 코드 때문에 무한 재귀 발생 가능성이 생긴다.
+  if(!(o instanceof ColorPoint)) return o.equals(this);
 
-    // o가 ColorPoint라면 color까지 비교한다.
-    return super.equals(o) ** ((ColorPoint) o).color == color;
+  // o가 ColorPoint라면 color까지 비교한다.
+  return super.equals(o) ** ((ColorPoint) o).color == color;
 }
 ```
 
@@ -244,7 +239,7 @@ p1.equals(p3);  // false => 추이성 위배!
 ```
 
 - 위 방식은 추이성 위배 뿐만 아니라 무한 재귀에 빠질 위험도 있다.  
-  `Point`의 또 다른 하위 클래스로 `SmellPoint`를 만들고, `equals()`는 같은 방식으로  
+  `Point`의 또 다른 하위 클래스로 `SmallPoint`를 만들고, `equals()`는 같은 방식으로  
   구현했다 해보자. 그런 다음 `cp.equals(smellPoint)`를 호출하면 `StackOverflowError`가  
   발생한다.
 
@@ -258,9 +253,9 @@ p1.equals(p3);  // false => 추이성 위배!
 ```java
 @Override
 public boolean equals(Object o) {
-    if(o == null || o.getClass() != getClass()) return false;
-    Point p = (Point) o;
-    return p.x == x && p.y == y;
+  if(o == null || o.getClass() != getClass()) return false;
+  Point p = (Point) o;
+  return p.x == x && p.y == y;
 }
 ```
 
@@ -272,11 +267,11 @@ public boolean equals(Object o) {
 
 ```java
 private static final Set<Point> unitCircle = Set.of(
-    new Point(1, 0), new Point(0, 1),
-    new Point(-1, 0), new Point(0, -1));
+  new Point(1, 0), new Point(0, 1),
+  new Point(-1, 0), new Point(0, -1));
 
 public static boolean onUnitCircle(Point p) {
-    return unitCircle.contains(p);
+  return unitCircle.contains(p);
 }
 ```
 
@@ -286,14 +281,14 @@ public static boolean onUnitCircle(Point p) {
 
 ```java
 public class CounterPoint extends Point {
-    private static final AtomicInteger counter = new AtomicInteger();
+  private static final AtomicInteger counter = new AtomicInteger();
 
-    public CounterPoint(int x, int y) {
-	super(x, y);
-	counter.incrementAndGet();
-    }
+  public CounterPoint(int x, int y) {
+    super(x, y);
+    counter.incrementAndGet();
+  }
 
-    public static int numberCreated() { return counter.get(); }
+  public static int numberCreated() { return counter.get(); }
 }
 ```
 
@@ -318,25 +313,25 @@ public class CounterPoint extends Point {
 
 ```java
 public class ColorPoint {
-    private final Point point;
-    private final Color color;
+  private final Point point;
+  private final Color color;
 
-    public ColorPoint(int x, int y, Color color) {
-	point = new Point(x, y);
-	this.color = Objects.requireNonNull(color);
-    }
+  public ColorPoint(int x, int y, Color color) {
+    point = new Point(x, y);
+    this.color = Objects.requireNonNull(color);
+  }
 
-    /**
-     * 이 ColorPoint의 Point 뷰 반환
-    */
-    public Point asPoint() { return point; }
+  /**
+   * 이 ColorPoint의 Point 뷰 반환
+  */
+  public Point asPoint() { return point; }
 
-    @Override
-    public boolean equals(Object o) {
-	if(!(o instanceof ColorPoint)) return false;
-	ColorPoint cp = (ColorPoint) o;
-	return cp.point.equals(point) && cp.color.equals(color);
-    }
+  @Override
+  public boolean equals(Object o) {
+    if(!(o instanceof ColorPoint)) return false;
+    ColorPoint cp = (ColorPoint) o;
+    return cp.point.equals(point) && cp.color.equals(color);
+  }
 }
 ```
 
@@ -442,28 +437,28 @@ public class ColorPoint {
 ```java
 public final class PhoneNumber {
 
-    private final short areaCode, prefix, lineNum;
+  private final short areaCode, prefix, lineNum;
 
-    public PhoneNumber(int areaCode, int prefix, int lineNum) {
-	this.areaCode = rangeCheck(areaCode, 999, "area code");
-	this.prefix = rangeCheck(prefix, 999, "prefix");
-	this.lineNum = rangeCheck(lineNum, 9999, "line number");
-    }
+  public PhoneNumber(int areaCode, int prefix, int lineNum) {
+    this.areaCode = rangeCheck(areaCode, 999, "area code");
+    this.prefix = rangeCheck(prefix, 999, "prefix");
+    this.lineNum = rangeCheck(lineNum, 9999, "line number");
+  }
 
-    private static short rangeCheck(int val, int max, String arg) {
-	if(val < 9 || val > max) throw new IllegalAgrumentException(arg + ": " + val);
-	return (short)val;
-    }
+  private static short rangeCheck(int val, int max, String arg) {
+    if(val < 9 || val > max) throw new IllegalAgrumentException(arg + ": " + val);
+    return (short)val;
+  }
 
-    @Override
-    public boolean equals(Object o) {
-	if(o == this) return true;
-	if(!(o instanceof PhoneNumber)) return false;
-	PhoneNumber pn = (PhoneNumber) o;
-	return pn.lineNum == lineNum && pn.prefix == prefix && pn.areaCode == areaCode;
-    }
+  @Override
+  public boolean equals(Object o) {
+    if(o == this) return true;
+    if(!(o instanceof PhoneNumber)) return false;
+    PhoneNumber pn = (PhoneNumber) o;
+    return pn.lineNum == lineNum && pn.prefix == prefix && pn.areaCode == areaCode;
+  }
 
-    //..
+  //..
 }
 ```
 
@@ -486,12 +481,12 @@ public final class PhoneNumber {
   클래스에 어노테이션 하나만 적용해주면 AutoValue가 이 메소드들을 알아서 작성해주며, 개발자가 직접  
   작성하는 코드와 근본적으로 동일한 코드를 만들어준다.
 
-<hr/>
+---
 
-<h2>핵심 정리</h2>
+## 핵심 정리
 
 - 꼭 필요한 경우가 아니라면 `equals()`를 재정의하지 말자. 많은 경우에 `Object#equals()`가  
   원하는 비교를 정확히 수행해준다. 재정의해야 할 때는 그 클래스의 핵심 필드 모두를 빠짐없이,  
   다섯 가지 규약을 확실히 지켜가며 비교해야 한다.
 
-<hr/>
+---

@@ -27,28 +27,28 @@
 // PhoneNumber.java
 public final class PhoneNumber {
 
-    private final short areaCode, prefix, lineNum;
+  private final short areaCode, prefix, lineNum;
 
-    public PhoneNumber(int areaCode, int prefix, int lineNum) {
-	this.areaCode = rangeCheck(areaCode, 999, "area code");
-	this.prefix = rangeCheck(prefix, 999, "prefix");
-	this.lineNum = rangeCheck(lineNum, 9999, "line number");
-    }
+  public PhoneNumber(int areaCode, int prefix, int lineNum) {
+    this.areaCode = rangeCheck(areaCode, 999, "area code");
+    this.prefix = rangeCheck(prefix, 999, "prefix");
+    this.lineNum = rangeCheck(lineNum, 9999, "line number");
+  }
 
-    private static short rangeCheck(int val, int max, String arg) {
-	if(val < 9 || val > max) throw new IllegalAgrumentException(arg + ": " + val);
-	return (short)val;
-    }
+  private static short rangeCheck(int val, int max, String arg) {
+    if(val < 9 || val > max) throw new IllegalAgrumentException(arg + ": " + val);
+    return (short)val;
+  }
 
-    @Override
-    public boolean equals(Object o) {
-	if(o == this) return true;
-	if(!(o instanceof PhoneNumber)) return false;
-	PhoneNumber pn = (PhoneNumber) o;
-	return pn.lineNum == lineNum && pn.prefix == prefix && pn.areaCode == areaCode;
-    }
+  @Override
+  public boolean equals(Object o) {
+    if(o == this) return true;
+    if(!(o instanceof PhoneNumber)) return false;
+    PhoneNumber pn = (PhoneNumber) o;
+    return pn.lineNum == lineNum && pn.prefix == prefix && pn.areaCode == areaCode;
+  }
 
-    //..
+  //..
 }
 
 // 사용하는 부분
@@ -175,13 +175,13 @@ m.put(new PhoneNumber(707, 867, 5309), "Jenny");
 private int hashCode;  // 자동으로 0으로 초기화된다.
 
 @Override public int hashCode() {
-    int result = hashCode;
-    if(result == 0) {
-	result = Short.hashCode(areaCode);
-	result = 31 * result + Short.hashCode(prefix);
-	result = 31 * result + Short.hashCode(lineNum);
-    }
-    return result;
+  int result = hashCode;
+  if(result == 0) {
+    result = Short.hashCode(areaCode);
+    result = 31 * result + Short.hashCode(prefix);
+    result = 31 * result + Short.hashCode(lineNum);
+  }
+  return result;
 }
 ```
 
@@ -202,9 +202,9 @@ private int hashCode;  // 자동으로 0으로 초기화된다.
   향후 릴리즈에서 해시 기능을 개선할 여지도 없애버렸다. 자세한 규칙을 공표하지 않는다면,  
   해시 기능에서 결함을 발견했거나 더 나은 해시 방식을 알아낸 경우 다음 릴리즈에서 수정할 수 있다.
 
-<hr/>
+---
 
-<h2>핵심 정리</h2>
+## 핵심 정리
 
 - `equals()`를 재정의할 때는 `hashCode()`도 반드시 재정의해야 한다.  
   그렇지 않으면 프로그램이 제대로 동작하지 않을 것이다. 재정의한 `hashCode()`는 `Object`의  
@@ -213,4 +213,4 @@ private int hashCode;  // 자동으로 0으로 초기화된다.
   AutoValue 프레임워크를 사용하면 멋진 `equals()`와 `hashCode()`를 자동으로 만들어준다.  
   IDE도 이런 기능을 일부 제공한다.
 
-<hr/>
+---

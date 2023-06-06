@@ -42,7 +42,7 @@
 > 하지만 이상의 요구를 반드시 만족해야 하는 것은 아니다.  
 > 한편 다음 식도 일반적으로 참이지만, 역시 필수는 아니다.
 >
-> `x.clone.equals(x)`
+> `x.clone().equals(x)`
 >
 > 관례상, 이 메소드가 반환하는 객체는 `super.clone()`을 호출해 얻어야 한다.  
 > 이 클래스와 `Object`를 제외한 모든 상위 클래스가 이 관례를 따른다면 다음 식은 참이다.
@@ -71,19 +71,19 @@
 
 ```java
 @Override public PhoneNumber clone() {
-    try {
-	return (PhoneNumber)super.clone();
-    } catch(CloneNotSupportedException e) {
-	throw new AssertionError();  // 일어날 수 없는 일
-    }
+  try {
+    return (PhoneNumber)super.clone();
+  } catch(CloneNotSupportedException e) {
+    throw new AssertionError();  // 일어날 수 없는 일
+  }
 }
 ```
 
-- 이 메소드가 동작하게 하려면 `PhoneNumber` 클래스에 `Clonable`을 구현해야 한다.  
+- 이 메소드가 동작하게 하려면 `PhoneNumber` 클래스가 `Clonable`을 구현해야 한다.  
   `Object.clone()`은 `Object`를 반환하지만, `PhoneNumber.clone()`은  
   `PhoneNumber`를 반환하게 했다. Java가 공변 반환 타이핑을 지원하니 이렇게 하는 것이  
   가능하고, 권장하는 방식이기도 하다. 달리 말해서, 재정의한 메소드의 반환 타입은 상위 클래스의  
-  메소드가 반환하는 타입의 하위 타입일 수 있다. 이 방식으로 클라이언트가 형변화하지 않아도  
+  메소드가 반환하는 타입의 하위 타입일 수 있다. 이 방식으로 클라이언트가 형변환하지 않아도  
   되게끔 해주자. 이를 위해 앞 코드에서는 `super.clone()`으로 얻은 객체를 반환하기 전에  
   `PhoneNumber`로 형변환 하였다. (절대 실패하지 않는다.)
 
@@ -98,33 +98,33 @@
 
 ```java
 public class Stack {
-    private Object[] elements;
-    private int size = 0;
-    private static final int DEFAULT_INITIAL_CAPACITY = 16;
+  private Object[] elements;
+  private int size = 0;
+  private static final int DEFAULT_INITIAL_CAPACITY = 16;
 
-    public Stack() {
-	elements = new Object[DEFAULT_INITIAL_CAPACITY];
-    }
+  public Stack() {
+    elements = new Object[DEFAULT_INITIAL_CAPACITY];
+  }
 
-    public void push(Object o) {
-	ensureCapacity();
-	elements[size++] = o;
-    }
+  public void push(Object o) {
+    ensureCapacity();
+    elements[size++] = o;
+  }
 
-    public Object pop() {
-	if(size == 0) {
-	    throw new EmptyStackException();
-	}
-	Object result = elements[--size];
-	elements[size] = null;
-	return result;
+  public Object pop() {
+    if(size == 0) {
+      throw new EmptyStackException();
     }
+    Object result = elements[--size];
+    elements[size] = null;
+    return result;
+  }
 
-    private void ensureCapacity() {
-	if(elements.length == size) {
-	    elements = Arrays.copyOf(elements, size * 2 + 1);
-	}
+  private void ensureCapacity() {
+    if(elements.length == size) {
+      elements = Arrays.copyOf(elements, size * 2 + 1);
     }
+  }
 }
 ```
 
@@ -143,13 +143,13 @@ public class Stack {
 
 ```java
 @Override public Stack clone {
-    try {
-	Stack result = (Stack) super.clone();
-	result.elements = elements.clone();
-	return result;
-   } catch (CloneNotSupportedException e) {
-	throw new AssertionError();
-   }
+  try {
+    Stack result = (Stack) super.clone();
+    result.elements = elements.clone();
+    return result;
+  } catch (CloneNotSupportedException e) {
+    throw new AssertionError();
+  }
 }
 ```
 
@@ -171,21 +171,20 @@ public class Stack {
 
 ```java
 public class HashTable implements Clonable {
-    private Entry[] buckets = /* ... */;
+  private Entry[] buckets = /* ... */;
 
-    private static class Entry {
-	final Object key;
-	Object value;
-	Entry next;
+  private static class Entry {
+    final Object key;
+    Object value;
+    Entry next;
 
-        Entry(Object key, Object value, Entry next) {
-	    this.key = key;
-	    this.value = value;
-	    this.next = next;
-        }
+    Entry(Object key, Object value, Entry next) {
+      this.key = key;
+      this.value = value;
+      this.next = next;
     }
-
-    //..
+  }
+  //..
 }
 ```
 
@@ -193,13 +192,13 @@ public class HashTable implements Clonable {
 
 ```java
 @Override public HashTable clone {
-    try {
-	HashTable result = (HashTable) super.clone();
-	result.buckets = buckets.clone();
-	return result;
-    } catch(CloneNotSupportedException e) {
-	throw new AssertionError();
-    }
+  try {
+    HashTable result = (HashTable) super.clone();
+    result.buckets = buckets.clone();
+    return result;
+  } catch(CloneNotSupportedException e) {
+    throw new AssertionError();
+  }
 }
 ```
 
@@ -210,39 +209,38 @@ public class HashTable implements Clonable {
 
 ```java
 public class HashTable implements Clonable {
-    private Entry[] buckets = /* ... */;
+  private Entry[] buckets = /* ... */;
 
-    private static class Entry {
-	final Object key;
-	Object value;
-	Entry next;
+  private static class Entry {
+    final Object key;
+    Object value;
+    Entry next;
 
-	Entry(Object key, Object value, Entry next) {
-	    this.key = key;
-	    this.value = value;
-	    this.next = next;
-	}
-
-	// 이 entry가 가리키는 연결 리스트를 재귀적으로 복사
-	Entry deepCopy() {
-	    return new Entry(key, value, next == null ? null : next.deepCopy());
-	}
+    Entry(Object key, Object value, Entry next) {
+      this.key = key;
+      this.value = value;
+      this.next = next;
     }
 
-    @Override public HashTable clone() {
-	try {
-	    HashTable result = (HashTable) super.clone();
-	    result.buckets = new Entry[buckets.length];
-	    for (int i = 0; i < buckets.length; i++)
-	        if(buckets[i] != null)
-		    result.buckets[i] = buckets[i].deepCopy();
-	    return result;
-	} catch(CloneNotSupportedException e) {
-	    throw new AssertionError();
-	}
+    // 이 entry가 가리키는 연결 리스트를 재귀적으로 복사
+    Entry deepCopy() {
+      return new Entry(key, value, next == null ? null : next.deepCopy());
     }
+  }
 
-    //..
+  @Override public HashTable clone() {
+    try {
+      HashTable result = (HashTable) super.clone();
+      result.buckets = new Entry[buckets.length];
+      for (int i = 0; i < buckets.length; i++)
+        if(buckets[i] != null)
+          result.buckets[i] = buckets[i].deepCopy();
+      return result;
+    } catch(CloneNotSupportedException e) {
+      throw new AssertionError();
+    }
+  }
+  //..
 }
 ```
 
@@ -258,11 +256,12 @@ public class HashTable implements Clonable {
 
 ```java
 Entry deepCopy() {
-    Entry result = new Entry(key, value, null);
-    for(Entry p = result; p.next != null; p = p.next) {
-	p.next = new Entry(p.next.key, p.next.value, p.next.next);
-    }
-    return result;
+  Entry result = new Entry(key, value, null);
+  for(Entry p = result; p.next != null; p = p.next) {
+    p.next = new Entry(p.next.key, p.next.value, p.next.next);
+  }
+  return result;
+}
 ```
 
 - 이제 복잡한 가변 객체를 복제하는 마지막 방법을 살펴보자.  
@@ -294,7 +293,7 @@ Entry deepCopy() {
 ```java
 @Override
 protected final Object clone() throws CloneNotSupportedException {
-    throw new CloneNotSupportedException();
+  throw new CloneNotSupportedException();
 }
 ```
 
@@ -341,9 +340,9 @@ public static Yum newInstance(Yum yum) { /* ... */ }
   선택할 수 있다. 예를 들어 `HashSet` 객체 s를 `TreeSet` 타입으로 복제할 수 있다.  
   `clone()`으로는 불가한 이 기능을 변환 생성자로는 간단히 `new TreeSet<>(s)`로 처리할 수 있다.
 
-<hr/>
+---
 
-<h2>핵심 정리</h2>
+## 핵심 정리
 
 - `Clonable`이 몰고 온 모든 문제를 되짚어봤을 때, 새로운 인터페이스를 만들 때는 절대  
   `Clonable`을 확장해서는 안되며, 새로운 클래스도 이를 구현해서는 안된다. final 클래스라면  
@@ -351,4 +350,4 @@ public static Yum newInstance(Yum yum) { /* ... */ }
   없을 때만 드물게 허용해야 한다. 기본 원칙은 _복제 기능은 생성자와 팩토리를 이용하는게 최고_ 라는  
   것이다. 단, 배열만은 `clone()`메소드 방식이 가장 깔끔한, 이 규칙의 예외라 할 수 있다.
 
-<hr/>
+---
