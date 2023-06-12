@@ -76,11 +76,11 @@ public boolean remove(Object o) { /* ... */ }
  * @param toIndex index after last element to be removed
  */
 protected void removeRange(int fromIndex, int toIndex) {
-    ListIterator<E> it = listIterator(fromIndex);
-    for (int i=0, n=toIndex-fromIndex; i<n; i++) {
-        it.next();
-        it.remove();
-    }
+  ListIterator<E> it = listIterator(fromIndex);
+  for (int i=0, n=toIndex-fromIndex; i<n; i++) {
+    it.next();
+    it.remove();
+  }
 }
 ```
 
@@ -124,12 +124,12 @@ protected void removeRange(int fromIndex, int toIndex) {
 ```java
 public class Super {
 
-    // 잘못되었다 - 생성자가 재정의 가능 메소드를 호출한다.
-    public Super() {
-	overrideMe();
-    }
+  // 잘못되었다 - 생성자가 재정의 가능 메소드를 호출한다.
+  public Super() {
+    overrideMe();
+  }
 
-    public void overrideMe() {}
+  public void overrideMe() {}
 }
 ```
 
@@ -138,17 +138,17 @@ public class Super {
 ```java
 public final class Sub extends Super {
 
-    // 초기화되지 않은 final 필드, 생성자에서 초기화된다.
-    private final Instant instant;
+  // 초기화되지 않은 final 필드, 생성자에서 초기화된다.
+  private final Instant instant;
 
-    Sub() {
-	instant = Instant.now();
-    }
+  Sub() {
+    instant = Instant.now();
+  }
 
-    // 재정의 가능 메소드, 상위 클래스의 생성자에서 호출된다.
-    @Override public void overrideMe() {
-	System.out.println(instant);
-    }
+  // 재정의 가능 메소드, 상위 클래스의 생성자에서 호출된다.
+  @Override public void overrideMe() {
+    System.out.println(instant);
+  }
 }
 ```
 
@@ -222,7 +222,7 @@ sub.overrideMe();
   - (1) 각각의 재정의 가능 메소드의 본문 코드를 private _도우미 메소드_ 로 옮긴다.
   - (2) 위에서 만든 *도우미 메소드*를 호출하도록 바꾼다.
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -233,4 +233,4 @@ sub.overrideMe();
   그러니 클래스를 확장해야 할 명확한 이유가 떠오르지 않으면 상속을 금지하는 편이 낫다.  
   상속을 금지하려면 클래스를 final로 선언하거나, 생성자 모두를 외부에서 접근할 수 없게 만들면 된다.
 
-<hr/>
+---

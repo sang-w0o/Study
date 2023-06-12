@@ -2,7 +2,7 @@
 
 - 상속은 코드를 재사용하는 강력한 수단이지만, 항상 최선은 아니다. 잘못 사용하면 오류를 내기 쉬운  
   소프트웨어를 만들게 된다. 상위 클래스와 하위 클래스를 모두 같은 프로그래머가 통제하는 패키지  
-  안에서라면 상속도 안전한 벙밥이다. 하지만 **일반적인 구체 클래스를 패키지 경계를 넘어, 즉 다른**  
+  안에서라면 상속도 안전한 방법이다. 하지만 **일반적인 구체 클래스를 패키지 경계를 넘어, 즉 다른**  
   **패키지의 구체 클래스를 상속하는 일은 위험하다.** 상기하자면, 여기서의 _상속_ 은  
   클래스가 다른 클래스를 확장하는 _구현 상속_ 을 의미한다. 이번 아이템에서 논하는 문제는  
   클래스가 인터페이스를 구현하거나, 인터페이스가 다른 인터페이스를 확장하는 상속과는 무관하다.
@@ -21,28 +21,28 @@
 ```java
 public class InstrumentedHashSet<E> extends HashSet<E> {
 
-    // 추가된 원소의 수
-    private int addCount = 0;
+  // 추가된 원소의 수
+  private int addCount = 0;
 
-    public InstrumentedHashSet() { }
+  public InstrumentedHashSet() { }
 
-    public InstrumentedHashSet(int initialCapacity, float loadFactor) {
-	super(initialCapacity, loadFactor);
-    }
+  public InstrumentedHashSet(int initialCapacity, float loadFactor) {
+    super(initialCapacity, loadFactor);
+  }
 
-    @Override public boolean add(E e) {
-	addCount++;
-	return super.add(e);
-    }
+  @Override public boolean add(E e) {
+    addCount++;
+    return super.add(e);
+  }
 
-    @Override public boolean addAll(Collection<? extends E> c) {
-	addCount += c.size();
-	return super.addAll(c);
-    }
+  @Override public boolean addAll(Collection<? extends E> c) {
+    addCount += c.size();
+    return super.addAll(c);
+  }
 
-    public int getAddCount() {
-	return addCount;
-    }
+  public int getAddCount() {
+    return addCount;
+  }
 }
 ```
 
@@ -108,44 +108,44 @@ s.addAll(List.of("a", "b", "c"));
 ```java
 // 집합 클래스 자신
 public class InstrumentedSet<E> extends ForwardingSet<E> {
-    private int addCount = 0;
+  private int addCount = 0;
 
-    public InstrumentedHashSet(Set<E> s) { super(s); }
+  public InstrumentedHashSet(Set<E> s) { super(s); }
 
-    @Override public boolean add(E e) {
-	addCount++;
-	return super.add(e);
-    }
+  @Override public boolean add(E e) {
+    addCount++;
+    return super.add(e);
+  }
 
-    @Override public boolean addAll(Collection<? extends E> c) {
-	addCount += c.size();
-	return super.addAll(c);
-    }
+  @Override public boolean addAll(Collection<? extends E> c) {
+    addCount += c.size();
+    return super.addAll(c);
+  }
 
-    public int getAddCount() { return addCount; }
+  public int getAddCount() { return addCount; }
 }
 
 // 전달 메소드만으로 이뤄진 재사용 가능한 전달 클래스
 public class ForwardingSet<E> implements Set<E> {
-    private final Set<E> s;
-    public ForwardingSet(Set<E> s) { this.s = s; }
+  private final Set<E> s;
+  public ForwardingSet(Set<E> s) { this.s = s; }
 
-    public void clear() { s.clear(); }
-    public boolean contains(Object o) { return s.contains(o); }
-    public boolean isEmpty() { return s.isEmpty(); }
-    public int size() { return s.size(); }
-    public Iterator<E> iterator() { return s.iterator(); }
-    public boolean add(E e) { return s.add(e); }
-    public boolean remove(Object o) { return s.remove(o); }
-    public boolean containsAll(Collection<?> c) { return s.containsAll(c); }
-    public boolean removeAll(Collection<?> c) { return s.removeAll(c); }
-    public boolean retainAll(Collection<?> c) { return s.retainAll(c); }
-    public Object[] toArray() { return s.toArray(); }
-    public <T> T[] toArray(T[] a) { return s.toArray(a); }
+  public void clear() { s.clear(); }
+  public boolean contains(Object o) { return s.contains(o); }
+  public boolean isEmpty() { return s.isEmpty(); }
+  public int size() { return s.size(); }
+  public Iterator<E> iterator() { return s.iterator(); }
+  public boolean add(E e) { return s.add(e); }
+  public boolean remove(Object o) { return s.remove(o); }
+  public boolean containsAll(Collection<?> c) { return s.containsAll(c); }
+  public boolean removeAll(Collection<?> c) { return s.removeAll(c); }
+  public boolean retainAll(Collection<?> c) { return s.retainAll(c); }
+  public Object[] toArray() { return s.toArray(); }
+  public <T> T[] toArray(T[] a) { return s.toArray(a); }
 
-    @Override public boolean equals(Object o) { return s.equals(o); }
-    @Override public int hashCode() { return s.hashCode(); }
-    @Override public String toString() { return s.toString(); }
+  @Override public boolean equals(Object o) { return s.equals(o); }
+  @Override public int hashCode() { return s.hashCode(); }
+  @Override public String toString() { return s.toString(); }
 }
 ```
 
@@ -166,8 +166,8 @@ Set<E> s = new InstrumentedSet<>(new HashSet<>(INITIAL_CAPACITY));
 
 ```java
 static void walk(Set<Dog> dogs) {
-    InstrumentedSet<Dog> iDogs = new InstrumentedSet<>(dogs);
-    // dogs 대신 iDogs를 사용하여 계측 기능 사용
+  InstrumentedSet<Dog> iDogs = new InstrumentedSet<>(dogs);
+  // dogs 대신 iDogs를 사용하여 계측 기능 사용
 }
 ```
 
@@ -217,7 +217,7 @@ static void walk(Set<Dog> dogs) {
   컴포지션으로는 이런 결함을 숨기는 API를 설계할 수 있지만, 상속은 상위 클래스의 API를  
   _그 결함까지도_ 그대로 승계한다.
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -228,4 +228,4 @@ static void walk(Set<Dog> dogs) {
   클래스로 구현할 적당한 인터페이스가 있다면 더욱 그렇다. Wrapper 클래스는 하위 클래스보다  
   더 견고하고 강력하다.
 
-<hr/>
+---

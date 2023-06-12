@@ -10,9 +10,9 @@
 
 ```java
 public class Main {
-    public static void main(String[] args) {
-	System.out.println(Utensil.NAME + Dessert.NAME);
-    }
+  public static void main(String[] args) {
+    System.out.println(Utensil.NAME + Dessert.NAME);
+  }
 }
 ```
 
@@ -20,11 +20,11 @@ public class Main {
 
 ```java
 class Utensil {
-    static final String NAME = "pan";
+  static final String NAME = "pan";
 }
 
 class Dessert {
-    static final String NAME = "cake";
+  static final String NAME = "cake";
 }
 ```
 
@@ -34,11 +34,11 @@ class Dessert {
 
 ```java
 class Utensil {
-    static final String NAME = "pot";
+  static final String NAME = "pot";
 }
 
 class Dessert {
-    static final String NAME = "pie";
+  static final String NAME = "pie";
 }
 ```
 
@@ -61,21 +61,21 @@ class Dessert {
 
 ```java
 public class Test {
-    public static void main(String[] args) {
-	System.out.println(Utensil.NAME + Dessert.NAME);
-    }
+  public static void main(String[] args) {
+    System.out.println(Utensil.NAME + Dessert.NAME);
+  }
 
-    private static class Utensil {
-	static final String NAME = "pan";
-    }
+  private static class Utensil {
+    static final String NAME = "pan";
+  }
 
-    private static class Dessert {
-	static final String NAME = "cake";
-    }
+  private static class Dessert {
+    static final String NAME = "cake";
+  }
 }
 ```
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -84,4 +84,4 @@ public class Test {
   소스 파일을 어떤 순서로 컴파일하든 바이너리 파일이나 프로그램의 동작이 달라지는 일은  
   결코 일어나지 않을 것이다.
 
-<hr/>
+---

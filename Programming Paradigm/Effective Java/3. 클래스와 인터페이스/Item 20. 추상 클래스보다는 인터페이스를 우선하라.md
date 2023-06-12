@@ -36,11 +36,11 @@
 
 ```java
 public interface Singer {
-    AudioClip sing(Song s);
+  AudioClip sing(Song s);
 }
 
 public interface SongWriter {
-    Song compose(int chartPosition);
+  Song compose(int chartPosition);
 }
 ```
 
@@ -51,8 +51,8 @@ public interface SongWriter {
 
 ```java
 public interface SingerSongWriter extends Singer, SongWriter {
-    AudioClip strum();
-    void actSensitive();
+  AudioClip strum();
+  void actSensitive();
 }
 ```
 
@@ -74,40 +74,40 @@ public interface SingerSongWriter extends Singer, SongWriter {
 package java.util;
 
 public interface Collection<E> extends Iterable<E> {
-    /**
-     * Removes all of the elements of this collection that satisfy the given
-     * predicate.  Errors or runtime exceptions thrown during iteration or by
-     * the predicate are relayed to the caller.
-     *
-     * @implSpec
-     * The default implementation traverses all elements of the collection using
-     * its {@link #iterator}.  Each matching element is removed using
-     * {@link Iterator#remove()}.  If the collection's iterator does not
-     * support removal then an {@code UnsupportedOperationException} will be
-     * thrown on the first matching element.
-     *
-     * @param filter a predicate which returns {@code true} for elements to be
-     *        removed
-     * @return {@code true} if any elements were removed
-     * @throws NullPointerException if the specified filter is null
-     * @throws UnsupportedOperationException if elements cannot be removed
-     *         from this collection.  Implementations may throw this exception if a
-     *         matching element cannot be removed or if, in general, removal is not
-     *         supported.
-     * @since 1.8
-     */
-    default boolean removeIf(Predicate<? super E> filter) {
-        Objects.requireNonNull(filter);
-        boolean removed = false;
-        final Iterator<E> each = iterator();
-        while (each.hasNext()) {
-            if (filter.test(each.next())) {
+  /**
+   * Removes all of the elements of this collection that satisfy the given
+   * predicate.  Errors or runtime exceptions thrown during iteration or by
+   * the predicate are relayed to the caller.
+   *
+   * @implSpec
+   * The default implementation traverses all elements of the collection using
+   * its {@link #iterator}.  Each matching element is removed using
+   * {@link Iterator#remove()}.  If the collection's iterator does not
+   * support removal then an {@code UnsupportedOperationException} will be
+   * thrown on the first matching element.
+   *
+   * @param filter a predicate which returns {@code true} for elements to be
+   *        removed
+   * @return {@code true} if any elements were removed
+   * @throws NullPointerException if the specified filter is null
+   * @throws UnsupportedOperationException if elements cannot be removed
+   *         from this collection.  Implementations may throw this exception if a
+   *         matching element cannot be removed or if, in general, removal is not
+   *         supported.
+   * @since 1.8
+   */
+  default boolean removeIf(Predicate<? super E> filter) {
+    Objects.requireNonNull(filter);
+    boolean removed = false;
+    final Iterator<E> each = iterator();
+    while (each.hasNext()) {
+      if (filter.test(each.next())) {
                 each.remove();
                 removed = true;
-            }
-        }
-        return removed;
+      }
     }
+    return removed;
+  }
 }
 ```
 
@@ -135,23 +135,23 @@ public interface Collection<E> extends Iterable<E> {
 
 ```java
 static List<Integer> intArrayAsList(int[] a) {
-    Objects.requireNonNull(a);
+  Objects.requireNonNull(a);
 
-    return new AbstractList<Integer>() {
-	@Override public Integer get(int i) {
-	    return a[i];  // Auto-Boxing
-	}
-
-	@Override public Integer set(int i, Integer val) {
-	    int oldVal = a[i];
-	    a[i] = val;  // Auto-Unboxing
-	    return oldVal;  // Auto-Boxing
-	}
-
-	@Override public int size() {
-	    return a.length;
-	}
+  return new AbstractList<Integer>() {
+    @Override public Integer get(int i) {
+      return a[i];  // Auto-Boxing
     }
+
+    @Override public Integer set(int i, Integer val) {
+      int oldVal = a[i];
+      a[i] = val;  // Auto-Unboxing
+      return oldVal;  // Auto-Boxing
+    }
+
+    @Override public int size() {
+      return a.length;
+    }
+  }
 }
 ```
 
@@ -190,24 +190,28 @@ static List<Integer> intArrayAsList(int[] a) {
 ```java
 public abstract class AbstractMapEntry<K, V> implements Map.Entry<K, V> {
 
-    // 변경 가능한 Entry는 반드시 이 메소드를 재정의해야 한다.
-    @Override public V setValue(V value) {
-	throw new UnsupportedOperationException();
-    }
+  // 변경 가능한 Entry는 반드시 이 메소드를 재정의해야 한다.
+  @Override public V setValue(V value) {
+    throw new UnsupportedOperationException();
+  }
 
-    // Map.Entry.equals의 일반 규약을 구현한다.
-    @Override public boolean equals(Object o) {
-	if (o == this) return true;
-	if (!(o instanceof Map.Entry)) return false;
-	Map.Entry<?, ?> e = (Map.Entry<?, ?>) o;
-	return Objects.equals(e.getKey(), getKey()) &&
-	    Objects.equals(e.getValue(), getValue());
-    }
+  // Map.Entry.equals의 일반 규약을 구현한다.
+  @Override public boolean equals(Object o) {
+    if (o == this) return true;
+    if (!(o instanceof Map.Entry)) return false;
+    Map.Entry<?, ?> e = (Map.Entry<?, ?>) o;
+    return Objects.equals(e.getKey(), getKey()) &&
+      Objects.equals(e.getValue(), getValue());
+  }
 
-    // Map.Entry.hashCode의 일반 규약을 구현한다.
-    @Override public int hashCode() {
-	return Objects.hashCode(getKey()) ^ Objects.hashCode(getValue());
-    }
+  // Map.Entry.hashCode의 일반 규약을 구현한다.
+  @Override public int hashCode() {
+    return Objects.hashCode(getKey()) ^ Objects.hashCode(getValue());
+  }
+
+  @Override public String toString() {
+    return getKey() + "=" + getValue();
+  }
 }
 ```
 
@@ -221,7 +225,7 @@ public abstract class AbstractMapEntry<K, V> implements Map.Entry<K, V> {
   인터페이스를 구현한 것이지만, 추상 클래스가 아니라는 점이 다르다. 쉽게 말해 동작하는  
   가장 단순한 구현이다. 이러한 단순 구현은 그대로 써도 되고, 필요에 맞게 확장해도 된다.
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -232,4 +236,4 @@ public abstract class AbstractMapEntry<K, V> implements Map.Entry<K, V> {
   인터페이스에 걸려 있는 구현상의 제약 때문에 골격 구현을 추상 클래스로 제공하는 경우가  
   더 흔하기 때문이다.
 
-<hr/>
+---

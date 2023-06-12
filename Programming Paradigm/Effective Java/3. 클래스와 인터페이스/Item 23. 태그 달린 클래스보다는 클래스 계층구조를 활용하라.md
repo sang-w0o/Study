@@ -6,41 +6,41 @@
 ```java
 class Figure {
 
-    enum Shape { RECTANGLE, CIRCLE };
+  enum Shape { RECTANGLE, CIRCLE };
 
-    // 태그 필드 - 현재 모양을 나타낸다.
-    final Shape shape;
+  // 태그 필드 - 현재 모양을 나타낸다.
+  final Shape shape;
 
-    // 아래 두 개 필드들은 사각형(RECTANGLE)일때만 쓰인다.
-    double length;
-    double width;
+  // 아래 두 개 필드들은 사각형(RECTANGLE)일때만 쓰인다.
+  double length;
+  double width;
 
-    // 아래 필드는 모양이 원(CIRCLE)일때만 쓰인다.
-    double radius;
+  // 아래 필드는 모양이 원(CIRCLE)일때만 쓰인다.
+  double radius;
 
-    // CIRCLE 용 생성자
-    Figure(double raidus) {
-	this.shape = Shape.CIRCLE;
-	this.radius = raidus;
+  // CIRCLE 용 생성자
+  Figure(double raidus) {
+    this.shape = Shape.CIRCLE;
+    this.radius = raidus;
+  }
+
+  // RECTANGLE 용 생성자
+  Figure(double length, double width) {
+    this.shape = Shape.RECTANGLE;
+    this.length = length;
+    this.width = width;
+  }
+
+  double area() {
+    switch (shape) {
+      case RECTANGLE:
+        return width * length;
+      case CIRCLE:
+        return Math.PI * radius * radius;
+      default:
+        throw new AssertionError(shape);
     }
-
-    // RECTANGLE 용 생성자
-    Figure(double length, double width) {
-	this.shape = Shape.RECTANGLE;
-	this.length = length;
-	this.width = width;
-    }
-
-    double area() {
-	switch (shape) {
-	    case RECTANGLE:
-	        return width * length;
-	    case CIRCLE:
-	        return Math.PI * radius * radius;
-	    default:
-	        throw new AssertionError(shape);
-	}
-    }
+  }
 }
 ```
 
@@ -81,26 +81,26 @@ class Figure {
 
 ```java
 abstract class Figure {
-    abstract double area();
+  abstract double area();
 }
 
 class Circle extends Figure {
-    final double radius;
+  final double radius;
 
-    Circle(double radius) { this.radius = radius; }
+  Circle(double radius) { this.radius = radius; }
 
-    @Override double area() { return Math.PI * radius * radius; }
+  @Override double area() { return Math.PI * radius * radius; }
 }
 
 class Rectangle extends Figure {
-    final double length, width;
+  final double length, width;
 
-    Rectangle(double length, double width) {
-	this.length = length;
-	this.width = width;
-    }
+  Rectangle(double length, double width) {
+    this.length = length;
+    is.width = width;
+  }
 
-    @Override double area() { return length * width; }
+  @Override double area() { return length * width; }
 }
 ```
 
@@ -117,7 +117,7 @@ class Rectangle extends Figure {
   타입 검사 능력을 높여준다는 장점도 있다. 정사각형(`Square`)도 지원하도록 해야 한다 해보자.  
   태그 달린 클래스에 해줄 변경 보다 계층 구조를 활용한 클래스에 추가할 코드는 확연히 간단하다.
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -125,4 +125,4 @@ class Rectangle extends Figure {
   태그를 없애고 계층구조로 대체하는 방법을 생각해보자. 기존 클래스가 태그 필드를 사용하고 있다면  
   계층구조로 리팩토링하는 것을 고려해보자.
 
-<hr/>
+---

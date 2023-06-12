@@ -4,8 +4,8 @@
 
 ```java
 class Point {
-    public double x;
-    public double y;
+  public double x;
+  public double y;
 }
 ```
 
@@ -16,15 +16,15 @@ class Point {
 
 ```java
 class Point {
-    private double x;
-    private double y;
+  private double x;
+  private double y;
 
-    public Point(double x, double y) {
-	this.x = x;
-	this.y = y;
-    }
+  public Point(double x, double y) {
+    this.x = x;
+    this.y = y;
+  }
 
-    // Standard getters, setters
+  // Standard getters, setters
 }
 ```
 
@@ -53,31 +53,31 @@ class Point {
 
 ```java
 public final class Time {
-    private static final int HOURS_PER_DAY = 24;
-    private static final int MINUTES_PER_HOUR = 60;
+  private static final int HOURS_PER_DAY = 24;
+  private static final int MINUTES_PER_HOUR = 60;
 
-    public final int hour;
-    public final int minute;
+  public final int hour;
+  public final int minute;
 
-    public Time(int hour, int minute) {
-	if (hour < 0 || hour >= HOURS_PER_DAY)
-	    throw new IllegalArgumentException("Hour: " + hour);
-	if (minute < 0 || minute >= MINUTES_PER_HOUR)
-	    throw new IllegalArgumentException("Minute: " + minute);
-	this.hour = hour;
-	this.minute = minute;
-    }
+  public Time(int hour, int minute) {
+    if (hour < 0 || hour >= HOURS_PER_DAY)
+      throw new IllegalArgumentException("Hour: " + hour);
+    if (minute < 0 || minute >= MINUTES_PER_HOUR)
+      throw new IllegalArgumentException("Minute: " + minute);
+    this.hour = hour;
+    this.minute = minute;
+  }
 
-    //..
+  //..
 }
 ```
 
-<hr/>
+---
 
-<h2>핵심 정리</h2>
+## 핵심 정리
 
 - public 클래스는 절대 가변 필드를 직접 노출해서는 안된다. 불변 필드라면 노출해도 덜 위험하지만  
   완전히 안심할 수는 없다. 하지만 package-private 클래스나 private 중첩 클래스에서는 종종  
   불변이든 가변이든 필드를 노출하는 편이 나을 때도 있다.
 
-<hr/>
+---

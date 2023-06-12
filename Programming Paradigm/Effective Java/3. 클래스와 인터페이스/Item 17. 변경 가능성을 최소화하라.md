@@ -30,46 +30,44 @@
 ```java
 @AllArgsConstructor
 public final class Complex {
-    private final double re;
-    private final double im;
+  private final double re;
+  private final double im;
 
-    public double realPart() { return re; }
-    public double imaginaryPart() { return im; }
+  public double realPart() { return re; }
+  public double imaginaryPart() { return im; }
 
-    public Complex plus(Complex c) {
-	return new Complex(re + c.re, im + c.im);
-    }
+  public Complex plus(Complex c) {
+    return new Complex(re + c.re, im + c.im);
+  }
 
-    public Complex minus(Complex c) {
-	return new Complex(re - c.re, im - c.im);
-    }
+  public Complex minus(Complex c) {
+    return new Complex(re - c.re, im - c.im);
+  }
 
-    public Complex times(Complex c) {
-	return new Complex(re * c.re - im * c.im,
-	    re * c.im + im * c.re);
-    }
+  public Complex times(Complex c) {
+    return new Complex(re * c.re - im * c.im, re * c.im + im * c.re);
+  }
 
-    public Complex dividedBy(Complex c) {
-	double tmp = c.re * c.re + c.im * c.im;
-	return new Complex((re * c.re + im * c.im) / tmp,
-	    (im * c.re - re * c.im) / tmp);
-    }
+  public Complex dividedBy(Complex c) {
+    double tmp = c.re * c.re + c.im * c.im;
+    return new Complex((re * c.re + im * c.im) / tmp, (im * c.re - re * c.im) / tmp);
+  }
 
-    @Override public boolean equals(Object o) {
-	if (o == this) return true;
-	if(!(o instanceof Complex)) return false;
-	Complex c = (Complex) o;
+  @Override public boolean equals(Object o) {
+    if (o == this) return true;
+    if(!(o instanceof Complex)) return false;
+    Complex c = (Complex) o;
 
-	return Dobule.compare(c.re, re) == 0 && Double.compare(c.im, im) == 0;
-    }
+    return Dobule.compare(c.re, re) == 0 && Double.compare(c.im, im) == 0;
+  }
 
-    @Override public int hashCode() {
-	return 31 * Double.hashCode(re) + Double.hashCode(im);
-    }
+  @Override public int hashCode() {
+    return 31 * Double.hashCode(re) + Double.hashCode(im);
+  }
 
-    @Override public String toString() {
-	return "(" + re + " + " + im + "i)";
-    }
+  @Override public String toString() {
+    return "(" + re + " + " + im + "i)";
+  }
 }
 ```
 
@@ -176,19 +174,18 @@ moby.flip(0);
 
 ```java
 public class Complex {
-    private final double re;
-    private final double im;
+  private final double re;
+  private final double im;
 
-    private Complex(double re, double im) {
-	this.re = re;
-	this.im = im;
-    }
+  private Complex(double re, double im) {
+    this.re = re;
+    this.im = im;
+  }
 
-    public static Complex valueOf(double re, double im) {
-	return new Complex(re, im);
-    }
-
-    //..
+  public static Complex valueOf(double re, double im) {
+    return new Complex(re, im);
+  }
+  //..
 }
 ```
 
@@ -209,7 +206,7 @@ public class Complex {
 
 ```java
 public static BigInteger safeInstance(BigInteger val) {
-    return val.getClass() == BigInteger.class ? val : new BigInteger(val.toBigArray());
+  return val.getClass() == BigInteger.class ? val : new BigInteger(val.toBigArray());
 }
 ```
 
@@ -222,22 +219,22 @@ public static BigInteger safeInstance(BigInteger val) {
 
 ```java
 public class PhoneNumber {
-    //..
-    private int hashCode;
+  //..
+  private int hashCode;
 
-    @Override
-    public int hashCode() {
-	int result = hashCode;
-	if (result == 0) {
-	    result = Short.hashCode(areaCode);
-	    result = 31 * result + Short.hashCode(prefix);
-	    result = 31 * result + Short.hashCode(lineNum);
-	    hashCode = result;
-	}
-	return result;
+  @Override
+  public int hashCode() {
+    int result = hashCode;
+    if (result == 0) {
+      result = Short.hashCode(areaCode);
+      result = 31 * result + Short.hashCode(prefix);
+      result = 31 * result + Short.hashCode(lineNum);
+      hashCode = result;
     }
+    return result;
+  }
 
-    //..
+  //..
 }
 ```
 
@@ -261,4 +258,4 @@ public class PhoneNumber {
   비록 가변 클래스이지만, 가질 수 있는 상태의 수가 많지 않다. 인스턴스를 생성해 한 번 사용하고  
   그걸로 끝이다. 카운트가 0에 도달하면 더는 재사용할 수 없는 것이다.
 
-<hr/>
+---

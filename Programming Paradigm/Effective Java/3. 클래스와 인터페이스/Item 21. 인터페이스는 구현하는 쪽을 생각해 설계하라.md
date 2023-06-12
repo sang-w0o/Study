@@ -25,15 +25,15 @@
 
 ```java
 default boolean removeIf(Predicate<? super E> filter) {
-    Objects.requireNonNull(filter);
-    boolean result = false;
-    for (Iterator<E> it = iterator(); it.hasNext(); ) {
-	if(filter.test(it.next())) {
-	    it.remove();
-	    result = true;
-	}
+  Objects.requireNonNull(filter);
+  boolean result = false;
+  for (Iterator<E> it = iterator(); it.hasNext(); ) {
+    if(filter.test(it.next())) {
+      it.remove();
+      result = true;
     }
-    return result;
+  }
+  return result;
 }
 ```
 
@@ -68,7 +68,7 @@ default boolean removeIf(Predicate<? super E> filter) {
 - 기존 인터페이스에 default 메소드로 새 메소드를 추가하는 일은 꼭 필요한 경우가 아니면 피해야 한다.  
   추가하려는 default 메소드가 기존 구현체들과는 충돌하지 않을지 심사숙고해야 함도 당연하다.  
   반면, 새로운 인터페이스를 만드는 경우라면 표준적인 메소드 구현을 제공하는 데 아주 유용한  
-  수단디며, 그 인터페이스를 더 쉽게 구현해 활용할 수 있게끔 해준다.
+  수단이며, 그 인터페이스를 더 쉽게 구현해 활용할 수 있게끔 해준다.
 
 - 한편, default 메소드는 인터페이스로부터 메소드를 제거하거나 기존 메소드의 시그니처를 수정하는  
   용도가 아님을 명심해야 한다. 이런 형태로 인터페이스를 변경하면 반드시 기존 클라이언트를  
@@ -87,4 +87,4 @@ default boolean removeIf(Predicate<? super E> filter) {
   있을 때 결함을 찾아낼 수 있다. **인터페이스를 릴리즈한 후라도 결함을 수정하는게 가능한 경우도**  
   **있겠지만, 절대 그 가능성에 기대서는 안된다.**
 
-<hr/>
+---

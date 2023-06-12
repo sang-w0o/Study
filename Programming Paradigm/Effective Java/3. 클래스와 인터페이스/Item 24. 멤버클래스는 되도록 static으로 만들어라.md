@@ -42,15 +42,15 @@
 
 ```java
 public class MySet<E> extends AbstractSet<E> {
+  //..
+
+  @Override public Iterator<E> iterator() {
+    return new MyIterator<>();
+  }
+
+  private class MyIterator implements Iterator<E> {
     //..
-
-    @Override public Iterator<E> iterator() {
-	return new MyIterator<>();
-    }
-
-    private class MyIterator implements Iterator<E> {
-	//..
-    }
+  }
 }
 ```
 
@@ -96,7 +96,7 @@ public class MySet<E> extends AbstractSet<E> {
   반복해서 사용할 수 있다. 익명 클래스처럼 비정적 문맥에서 사용될 때만 바깥 인스턴스를  
   참조할 수 있으며, 정적 멤버는 가질 수 없으며, 가독성을 위해 짧게 작성해야 한다.
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -106,4 +106,4 @@ public class MySet<E> extends AbstractSet<E> {
   한 메소드 안에서만 쓰이면서 그 인스턴스를 생성하는 지점이 단 한 곳이고, 해당 타입으로 쓰기에  
   적합한 클래스나 인터페이스가 이미 있다면 익명 클래스로 만들고, 그렇지 않다면 지역 클래스로 만들자.
 
-<hr/>
+---
