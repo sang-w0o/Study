@@ -16,7 +16,7 @@
   각 타입의 `Class` 객체를 매개변수화한 key 역할로 사용하면 되는데, 이 방식이 동작하는 이유는 class의  
   클래스가 제네릭이기 때문이다. class 리터럴의 타입은 `Class`가 아닌 `Class<T>`이다.  
   예를 들어, `String.class`의 타입은 `Class<String>`이고, `Integer.class`의 타입은  
-  `Class<Integer>`인 식이다. 한펴너, 컴파일타임 타입 정보와 런타임 타입 정보를 알아내기 위해  
+  `Class<Integer>`인 식이다. 한편, 컴파일타임 타입 정보와 런타임 타입 정보를 알아내기 위해  
   메소드들이 주고받는 class 리터럴을 **타입 토큰(Type Token)** 이라 한다.
 
 - 아래 코드는 `Favorites` 클래스의 API로, 아주 단순하다.  
@@ -25,8 +25,8 @@
 
 ```java
 public class Favorites {
-    public <T> void putFavorite(Class<T> type, T instance);
-    public <T> T getFavorite(Class<T> type);
+  public <T> void putFavorite(Class<T> type, T instance);
+  public <T> T getFavorite(Class<T> type);
 }
 ```
 
@@ -35,20 +35,20 @@ public class Favorites {
 
 ```java
 public class Client {
-    public static void main(String[] args) {
-	Favorites favorites = new Favorites();
+  public static void main(String[] args) {
+    Favorites favorites = new Favorites();
 
-	favorites.putFavorite(String.class, "Java");
-	favorites.putFavorite(Integer.class, 0xcafebabe);
-	favorites.putFavorite(Class.class, Favorites.class);
+    favorites.putFavorite(String.class, "Java");
+    favorites.putFavorite(Integer.class, 0xcafebabe);
+    favorites.putFavorite(Class.class, Favorites.class);
 
-	String favoriteString = favorites.getFavorite(String.class);
-	int favoriteInteger = favorites.getFavorite(Integer.class);
-	Class<?> favoriteClass = favorites.getFavorite(Class.class);
+    String favoriteString = favorites.getFavorite(String.class);
+    int favoriteInteger = favorites.getFavorite(Integer.class);
+    Class<?> favoriteClass = favorites.getFavorite(Class.class);
 
-	System.out.printf("%s %x %s%n", favoriteString, favoriteInteger, favoriteClass.getName());
-	// Java cafebabe Favorites
-    }
+    System.out.printf("%s %x %s%n", favoriteString, favoriteInteger, favoriteClass.getName());
+    // Java cafebabe Favorites
+  }
 }
 ```
 
@@ -60,15 +60,15 @@ public class Client {
 
 ```java
 public class Favorites {
-    private Map<Class<?>, Object> favorites = new HashMap<>();
+  rivate Map<Class<?>, Object> favorites = new HashMap<>();
 
-    public <T> void putFavorite(Class<T> type, T instance) {
-	favorites.put(Objects.requireNonNull(type), instance);
-    }
+  public <T> void putFavorite(Class<T> type, T instance) {
+    favorites.put(Objects.requireNonNull(type), instance);
+  }
 
-    public <T> T getFavorite(Class<T> type) {
-	return type.cast(favorites.get(type));
-    }
+  public <T> T getFavorite(Class<T> type) {
+    return type.cast(favorites.get(type));
+  }
 }
 ```
 
@@ -108,8 +108,8 @@ public class Favorites {
 
 ```java
 public class Class<T> {
-    //..
-    T cast(Object obj);
+  //..
+  T cast(Object obj);
 }
 ```
 
@@ -127,9 +127,9 @@ public class Class<T> {
 
 ```java
 public class Favorites {
-    public <T> void putFavorite(Class<T> type, T instance) {
-	favorites.put(Objects.requireNonNull(type), type.cast(instance));
-    }
+  public <T> void putFavorite(Class<T> type, T instance) {
+    favorites.put(Objects.requireNonNull(type), type.cast(instance));
+  }
 }
 ```
 
@@ -162,9 +162,9 @@ public class Favorites {
 
 ```java
 public interface AnnotatedElement {
-    //..
+  //..
 
-    public <T extends Annotation> T getAnnotation(Class<T> annotationClass);
+  public <T extends Annotation> T getAnnotation(Class<T> annotationClass);
 }
 ```
 
@@ -186,15 +186,15 @@ public interface AnnotatedElement {
 
 ```java
 public class SomeClass {
-    static Annotation getAnnotation(AnnotatedElement element, String annotationTypeName) {
-	Class<?> annotationType = null;
-	try {
-	    annotationType = Class.forName(annotationTypeName);
-	} catch(Exception ex) {
-	    throw new IllegalAgrumentException(ex);
-	}
-	return element.getAnnotation(annotationType.asSubclass(Annotation.class));
+  static Annotation getAnnotation(AnnotatedElement element, String annotationTypeName) {
+    Class<?> annotationType = null;
+    try {
+      annotationType = Class.forName(annotationTypeName);
+    } catch(Exception ex) {
+      throw new IllegalAgrumentException(ex);
     }
+    return element.getAnnotation(annotationType.asSubclass(Annotation.class));
+  }
 }
 ```
 
@@ -204,19 +204,19 @@ public class SomeClass {
 package java.lang;
 
 public final class Class<T> implements /*...*/ {
-    //..
+  //..
 
-    @SuppressWarnings("unchecked")
-    public <U> Class<? extends U> asSubclass(Class<U> clazz) {
-        if (clazz.isAssignableFrom(this))
-            return (Class<? extends U>) this;
-        else
-            throw new ClassCastException(this.toString());
-    }
+  @SuppressWarnings("unchecked")
+  public <U> Class<? extends U> asSubclass(Class<U> clazz) {
+    if (clazz.isAssignableFrom(this))
+      return (Class<? extends U>) this;
+    else
+      throw new ClassCastException(this.toString());
+  }
 }
 ```
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -227,4 +227,4 @@ public final class Class<T> implements /*...*/ {
   예를 들어, 데이터베이스의 행(컨테이너)을 표현한 `DatabaseRow` 타입에는 제네릭 타입인  
   `Column<T>`를 key로 사용할 수 있을 것이다.
 
-<hr/>
+---

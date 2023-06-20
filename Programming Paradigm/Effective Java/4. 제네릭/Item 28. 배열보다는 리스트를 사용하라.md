@@ -87,16 +87,16 @@ String s = stringLists[0].get(0); // (5)
 
 ```java
 public class Chooser {
-    private final Object[] choiceArray;
+  private final Object[] choiceArray;
 
-    public Chooser(Collection choices) {
-	this.choiceArray = choices.toArray();
-    }
+  public Chooser(Collection choices) {
+    this.choiceArray = choices.toArray();
+  }
 
-    public Object choose() {
-	Random random = ThreadLocalRandom.current();
-	return choiceArray[random.nextInt(choiceArray.length)];
-    }
+  public Object choose() {
+    Random random = ThreadLocalRandom.current();
+    return choiceArray[random.nextInt(choiceArray.length)];
+  }
 }
 ```
 
@@ -106,12 +106,12 @@ public class Chooser {
 
 ```java
 public class Chooser<T> {
-    private final T[] choiceArray;
-    public Chooser(Collection<T> choices) {
-	this.choiceArray = choices.toArray();
-    }
+  private final T[] choiceArray;
+  public Chooser(Collection<T> choices) {
+    this.choiceArray = choices.toArray();
+  }
 
-    // choose()
+  // choose()
 }
 ```
 
@@ -153,21 +153,21 @@ T extends Object declared in class Chooser
 
 ```java
 public class Chooser<T> {
-    private final List<T> choiceList;
-    public Chooser(Collection<T> choices) {
-	this.choiceList = new ArrayList<>(choices);
-    }
-    public T choose() {
-	Random random = ThreadLocalRandom.current();
-	return choiceList.get(random.nextInt(choiceList.size()));
-    }
+  private final List<T> choiceList;
+  public Chooser(Collection<T> choices) {
+    this.choiceList = new ArrayList<>(choices);
+  }
+  public T choose() {
+    Random random = ThreadLocalRandom.current();
+    return choiceList.get(random.nextInt(choiceList.size()));
+  }
 }
 ```
 
 - 이 버전의 코드는 코드량이 조금 늘었고, 아마도 조금 더 느릴테지만, 런타임에 `ClassCastException`을  
   만날 일은 없으니 그만한 가치가 분명히 있다.
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -177,4 +177,4 @@ public class Chooser<T> {
   제네릭은 반대다. 그래서 둘을 섞어 쓰기란 쉽지 않다. 둘을 섞어 쓰다가 컴파일 오류나  
   경고를 만나면, 가장 먼저 배열을 리스트로 대체하는 방법을 적용해보자.
 
-<hr/>
+---

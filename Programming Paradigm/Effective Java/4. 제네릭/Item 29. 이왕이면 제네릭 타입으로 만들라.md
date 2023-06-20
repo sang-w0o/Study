@@ -8,33 +8,33 @@
 
 ```java
 public class Stack {
-    private Object[] elements;
-    private int size = 0;
-    private static final int DEFAULT_INITIAL_CAPACITY = 16;
+  private Object[] elements;
+  private int size = 0;
+  private static final int DEFAULT_INITIAL_CAPACITY = 16;
 
-    public Stack() {
-        elements = new Object[DEFAULT_INITIAL_CAPACITY];
+  public Stack() {
+    elements = new Object[DEFAULT_INITIAL_CAPACITY];
+  }
+
+  public void push(Object e) {
+    ensureCapacity();
+    elements[size++] = e;
+  }
+
+  public Object pop() {
+    if(size == 0) throw new EmptyStackException();
+    Object result = elements[--size];
+    elements[size] = null;
+    return result;
+  }
+
+  public boolean isEmpty() { return size == 0; }
+
+  private void ensureCapacity() {
+    if(elements.length == size) {
+      elements = Arrays.copyOf(elements, 2 * size + 1);
     }
-
-    public void push(Object e) {
-        ensureCapacity();
-        elements[size++] = e;
-    }
-
-    public Object pop() {
-        if(size == 0) throw new EmptyStackException();
-        Object result = elements[--size];
-        elements[size] = null;
-        return result;
-    }
-
-    public boolean isEmpty() { return size == 0; }
-
-    private void ensureCapacity() {
-        if(elements.length == size) {
-            elements = Arrays.copyOf(elements, 2 * size + 1);
-        }
-    }
+  }
 }
 ```
 
@@ -51,33 +51,33 @@ public class Stack {
 
 ```java
 public class Stack<E> {
-    private E[] elements;
-    private int size = 0;
-    private static final int DEFAULT_INITIAL_CAPACITY = 16;
+  private E[] elements;
+  private int size = 0;
+  private static final int DEFAULT_INITIAL_CAPACITY = 16;
 
-    public Stack() {
-        elements = new E[DEFAULT_INITIAL_CAPACITY];
+  public Stack() {
+    elements = new E[DEFAULT_INITIAL_CAPACITY];
+  }
+
+  public void push(E e) {
+    ensureCapacity();
+    elements[size++] = e;
+  }
+
+  public E pop() {
+    if(size == 0) throw new EmptyStackException();
+    E result = elements[--size];
+    elements[size] = null;
+    return result;
+  }
+
+  public boolean isEmpty() { return size == 0; }
+
+  private void ensureCapacity() {
+    if(elements.length == size) {
+      elements = Arrays.copyOf(elements, 2 * size + 1);
     }
-
-    public void push(E e) {
-        ensureCapacity();
-        elements[size++] = e;
-    }
-
-    public E pop() {
-        if(size == 0) throw new EmptyStackException();
-        E result = elements[--size];
-        elements[size] = null;
-        return result;
-    }
-
-    public boolean isEmpty() { return size == 0; }
-
-    private void ensureCapacity() {
-        if(elements.length == size) {
-            elements = Arrays.copyOf(elements, 2 * size + 1);
-        }
-    }
+  }
 }
 ```
 
@@ -105,7 +105,7 @@ public class Stack<E> {
  */
 @SuppressWarnings("unchecked")
 public Stack() {
-    elements = (E[]) (new Object[DEFAULT_INITIAL_CAPACITY]);
+  elements = (E[]) (new Object[DEFAULT_INITIAL_CAPACITY]);
 }
 ```
 
@@ -120,28 +120,28 @@ public Stack() {
 
 ```java
 public E pop() {
-    if (size == 0) throw new EmptyStackException();
-    E result = (E) elements[--size];
-    //..
+  if (size == 0) throw new EmptyStackException();
+  E result = (E) elements[--size];
+  //..
 }
 ```
 
 - `E`는 실체화 불가 타입이므로 컴파일러는 런타임에 이뤄지는 형변환이 안전한  
   형변환인지 증명할 방법이 없다. 이번에도 마찬가지로 우리가 직접 증명하고, 경고를  
-  숨길 수 있다. `pop()` 메소드 전체에서 경고를 숨기지 말고, Item 27의  
+  숨길 수 있다. `pop()` 메소드 전체에서 경고를 숨기지 말고, [Item 27. 비검사 경고를 제거하라](https://github.com/sang-w0o/Study/blob/master/Programming%20Paradigm/Effective%20Java/4.%20%EC%A0%9C%EB%84%A4%EB%A6%AD/Item%2027.%20%EB%B9%84%EA%B2%80%EC%82%AC%20%EA%B2%BD%EA%B3%A0%EB%A5%BC%20%EC%A0%9C%EA%B1%B0%ED%95%98%EB%9D%BC.md)의  
   조언을 따라 비검사 형변환을 수행하는 할당문에서만 숨겨보자.
 
 ```java
 // E[] 를 Object[] 로 변환
 public E pop() {
-    if (size == 0) throw new EmptyStackException();
-    /**
-     * push()에서 E 타입만 허용하므로 이 형변환은 안전하다.
-     */
-    @SuppressWarnings("unchecked")
-    E result = (E) elements[--size];
-    elements[size] = null;
-    return result;
+  if (size == 0) throw new EmptyStackException();
+  /**
+   * push()에서 E 타입만 허용하므로 이 형변환은 안전하다.
+   */
+  @SuppressWarnings("unchecked")
+  E result = (E) elements[--size];
+  elements[size] = null;
+  return result;
 }
 ```
 
@@ -162,15 +162,15 @@ public E pop() {
 
 ```java
 public static void main(String[] args) {
-    Stack<String> stack = new Stack<>();
-    for(String arg : args)
-        stack.push(arg);
-    while(!stack.isEmpty())
-        System.out.println(stack.pop().toUpperCase());
+  Stack<String> stack = new Stack<>();
+  for(String arg : args)
+    stack.push(arg);
+  while(!stack.isEmpty())
+    System.out.println(stack.pop().toUpperCase());
 }
 ```
 
-- 지금까지 본 `Stack` 예시는 _'배열보다는 리스트를 우선하라'_ 는 Item 28과 모순돼 보인다.  
+- 지금까지 본 `Stack` 예시는 _'배열보다는 리스트를 우선하라'_ 는 [Item 28](https://github.com/sang-w0o/Study/blob/master/Programming%20Paradigm/Effective%20Java/4.%20%EC%A0%9C%EB%84%A4%EB%A6%AD/Item%2028.%20%EB%B0%B0%EC%97%B4%EB%B3%B4%EB%8B%A4%EB%8A%94%20%EB%A6%AC%EC%8A%A4%ED%8A%B8%EB%A5%BC%20%EC%82%AC%EC%9A%A9%ED%95%98%EB%9D%BC.md)과 모순돼 보인다.  
   사실 제네릭 타입 안에서 리스트를 사용하는 게 항상 가능하지도, 꼭 더 좋은 것도 아니다.  
   Java가 리스트를 기본 타입으로 제공하지 않으므로 `ArrayList`와 같은 제네릭 타입도 결국은  
   기본 타입인 배열을 사용해 구현해야 한다. 또한 `HashMap` 같은 제네릭 타입은 성능을 높일  
@@ -187,7 +187,7 @@ public static void main(String[] args) {
 
 ```java
 class DelayQueye<E extends Delayed> implements BlockingQueue<E> {
-    //..
+  //..
 }
 ```
 
@@ -198,7 +198,7 @@ class DelayQueye<E extends Delayed> implements BlockingQueue<E> {
   한정적 타입 매개변수(bounded type parameter)라 한다. 또한 모든 타입은 자기 자신의  
   하위 타입이므로 `DelayQueue<Delayed>`로도 사용할 수 있음을 기억해두자.
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -208,4 +208,4 @@ class DelayQueye<E extends Delayed> implements BlockingQueue<E> {
   제네릭 타입으로 변경하자. 기존 클라이언트에게는 아무런 영향을 주지 않으며, 새로운 사용자를  
   훨씬 편하게 해주는 길이다.
 
-<hr/>
+---

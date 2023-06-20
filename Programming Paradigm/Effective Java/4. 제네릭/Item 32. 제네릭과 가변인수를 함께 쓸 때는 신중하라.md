@@ -7,7 +7,7 @@
   클라이언트에 노출하는 문제가 생겼다. 그 결과 varargs 매개변수에 제네릭이나 매개변수화  
   타입이 포함되면 알기 어려운 컴파일 경고가 발생한다.
 
-- Item 28에서 실체화 불가 타입은 런타임에는 컴파일타임보다 타입 관련 정보를 적게 담고 있음을  
+- [Item 28](https://github.com/sang-w0o/Study/blob/master/Programming%20Paradigm/Effective%20Java/4.%20%EC%A0%9C%EB%84%A4%EB%A6%AD/Item%2028.%20%EB%B0%B0%EC%97%B4%EB%B3%B4%EB%8B%A4%EB%8A%94%20%EB%A6%AC%EC%8A%A4%ED%8A%B8%EB%A5%BC%20%EC%82%AC%EC%9A%A9%ED%95%98%EB%9D%BC.md)에서 실체화 불가 타입은 런타임에는 컴파일타임보다 타입 관련 정보를 적게 담고 있음을  
   배웠다. 그리고 거의 모든 제네릭과 매개변수화 타입은 실체화되지 않는다. 메소드를 선언할 때  
   실체화 불가 타입으로 varargs 매개변수를 선언하면 컴파일러가 경고를 보낸다.  
   가변인수 메소드를 호출할 때도 varargs 매개변수가 실체화 불가 타입으로 추론되면, 그 호출에  
@@ -26,10 +26,10 @@ warning: [unchecked] Possible heap pollution from
 
 ```java
 static void dangerous(List<String>... stringLists) {
-    List<Integer> intList = List.of(42);
-    Object[] objects = stringLists;
-    objects[0] = intList;  // Heap Pollution
-    String s = stringLists[0].get(0);  // @throws ClassCastException
+  List<Integer> intList = List.of(42);
+  Object[] objects = stringLists;
+  objects[0] = intList;  // Heap Pollution
+  String s = stringLists[0].get(0);  // @throws ClassCastException
 }
 ```
 
@@ -66,9 +66,9 @@ static void dangerous(List<String>... stringLists) {
 
 ```java
 class SomeClass {
-    static<T> T[] toArray(T... args) {
-        return args;
-    }
+  static<T> T[] toArray(T... args) {
+    return args;
+  }
 }
 ```
 
@@ -81,14 +81,14 @@ class SomeClass {
 
 ```java
 class SomeClass {
-    static<T> T[] pickTwo(T a, T b, T c) {
-	switch(ThreadLocalRandom.current().nextInt(3)) {
-	    case 0: return toArray(a, b);
-	    case 1: return toArray(a, c);
-	    case 2: return toArray(b, c);
-	}
-	throw new AssertionError();  // Unreachale code
+  static<T> T[] pickTwo(T a, T b, T c) {
+    switch(ThreadLocalRandom.current().nextInt(3)) {
+      case 0: return toArray(a, b);
+      case 1: return toArray(a, c);
+      case 2: return toArray(b, c);
     }
+    throw new AssertionError();  // Unreachale code
+  }
 }
 ```
 
@@ -105,7 +105,7 @@ class SomeClass {
 
 ```java
 public class Client {
-    String[] attributes = pickTwo("Good", "Fast", "Cheap");
+  String[] attributes = pickTwo("Good", "Fast", "Cheap");
 }
 ```
 
@@ -129,14 +129,14 @@ public class Client {
 
 ```java
 class SomeClass {
-    @SafeVarargs
-    static <T> List<T> flatten(List<? extends T>... lists) {
-	List<T> result = new ArrayList<>();
-	for (List<? extends T> list : lists) {
-	    result.addAll(list);
-	}
-	return result;
+  @SafeVarargs
+  static <T> List<T> flatten(List<? extends T>... lists) {
+    List<T> result = new ArrayList<>();
+    for (List<? extends T> list : lists) {
+      result.addAll(list);
     }
+    return result;
+  }
 }
 ```
 
@@ -162,13 +162,13 @@ class SomeClass {
 ```java
 class SomeClass {
 
-    static <T> List<T> flatten(List<List<? extends T>> lists) {
-	List<T> result = new ArrayList<>();
-	for (List<? extends T> list : lists) {
-	    result.addAll(list);
-	}
-	return result;
+  static <T> List<T> flatten(List<List<? extends T>> lists) {
+    List<T> result = new ArrayList<>();
+    for (List<? extends T> list : lists) {
+      result.addAll(list);
     }
+    return result;
+  }
 }
 ```
 
@@ -178,7 +178,7 @@ class SomeClass {
 
 ```java
 class Client {
-    Audience audience = flatten(List.of(friends, romans, countrymen));
+  Audience audience = flatten(List.of(friends, romans, countrymen));
 }
 ```
 
@@ -193,14 +193,14 @@ class Client {
 
 ```java
 public class Someclass {
-    static <T> List<T> pickTwo(T a, T b, T c) {
-	switch(ThreadLocalRandom.current().nextInt(3)) {
-	    case 0: return List.of(a, b);
-	    case 1: return List.of(a, c);
-	    case 2: return List.of(b, c);
-	}
-	throw new AssertionError();  // unreachable
+  static <T> List<T> pickTwo(T a, T b, T c) {
+    switch(ThreadLocalRandom.current().nextInt(3)) {
+      case 0: return List.of(a, b);
+      case 1: return List.of(a, c);
+      case 2: return List.of(b, c);
     }
+    throw new AssertionError();  // unreachable
+  }
 }
 ```
 
@@ -208,13 +208,13 @@ public class Someclass {
 
 ```java
 public class Client {
-    List<String> attributes = pickTwo("Good", "Fast", "Cheap");
+  List<String> attributes = pickTwo("Good", "Fast", "Cheap");
 }
 ```
 
 - 결과 코드는 배열 없이 제네릭만 사용하므로 타입 안전함이 보장된다.
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -224,4 +224,4 @@ public class Client {
   먼저 그 메소드가 타입 안전한지 확인한 다음 `@SafeVarargs` 어노테이션을 달아 사용하는 데  
   불편함이 없도록 하자.
 
-<hr/>
+---

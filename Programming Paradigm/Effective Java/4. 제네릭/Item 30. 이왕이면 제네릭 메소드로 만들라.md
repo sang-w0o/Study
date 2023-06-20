@@ -9,9 +9,9 @@
 
 ```java
 public static Set union(Set s1, Set s2) {
-    Set result = new HashSet(s1); // (1)
-    result.addAll(s2); // (2)
-    return result;
+  Set result = new HashSet(s1); // (1)
+  result.addAll(s2); // (2)
+  return result;
 }
 ```
 
@@ -25,9 +25,9 @@ public static Set union(Set s1, Set s2) {
 
 ```java
 public static <E> Set<E> union(Set<E> s1, Set<E> s2) {
-    Set<E> result = new HashSet<E>(s1);
-    result.addAll(s2);
-    return result;
+  Set<E> result = new HashSet<E>(s1);
+  result.addAll(s2);
+  return result;
 }
 ```
 
@@ -37,11 +37,11 @@ public static <E> Set<E> union(Set<E> s1, Set<E> s2) {
 
 ```java
 public static void main(String[] args) {
-    Set<String> guys = Set.of("Tom", "Dick", "Harry");
-    Set<String> stooges = Set.of("Larry", "Moe", "Curly");
-    Set<String> alfCio = union(guys, stooges);
-    System.out.println(alfCio);
-    // {Tom, Dick, Harry, Larry, Moe, Curly}
+  Set<String> guys = Set.of("Tom", "Dick", "Harry");
+  Set<String> stooges = Set.of("Larry", "Moe", "Curly");
+  Set<String> alfCio = union(guys, stooges);
+  System.out.println(alfCio);
+  // {Tom, Dick, Harry, Larry, Moe, Curly}
 }
 ```
 
@@ -66,7 +66,7 @@ private static UnaryOperator<Object> IDENTITY_FN = (t) -> t;
 
 @SuppressWarnings("unchecked")
 public static <T> UnaryOperator<T> identityFunction() {
-    return (UnaryOperator<T>) IDENTITY_FN;
+  return (UnaryOperator<T>) IDENTITY_FN;
 }
 ```
 
@@ -82,19 +82,19 @@ public static <T> UnaryOperator<T> identityFunction() {
 ```java
 public static void main(String[] args) {
 
-    //..
+  //..
 
-    String[] strings = {"a", "b", "c"};
-    UnaryOperator<String>  sameString = identityFunction();
-    for(String s: strings) {
-	System.out.println(sameString.apply(s));
-    }
+  String[] strings = {"a", "b", "c"};
+  UnaryOperator<String>  sameString = identityFunction();
+  for(String s: strings) {
+    System.out.println(sameString.apply(s));
+  }
 
-    Number[] numbers = {1, 2.0, 3L};
-    UnaryOperator<Number> sameNumber = identityFunction();
-    for(Number n: numbers) {
-	System.out.println(sameNumber.apply(n));
-    }
+  Number[] numbers = {1, 2.0, 3L};
+  UnaryOperator<Number> sameNumber = identityFunction();
+  for(Number n: numbers) {
+    System.out.println(sameNumber.apply(n));
+  }
 }
 ```
 
@@ -106,7 +106,7 @@ public static void main(String[] args) {
 ```java
 
 public interface Comparable<T> {
-    int compareTo(T o);
+  int compareTo(T o);
 }
 ```
 
@@ -131,13 +131,13 @@ public static <E extends Comparable<E>> E max(Collection<E> c);
 
 ```java
 public static <E extends Comparable<E>> E max(Collection<E> c) {
-    if(c.isEmpty())
-        throw new IllegalArgumentException("empty collection");
-    E result = null;
-    for(E e: c) {
+  if(c.isEmpty())
+    throw new IllegalArgumentException("empty collection");
+  E result = null;
+  for(E e: c) {
 	if(result == null || e.compareTo(result) > 0)
-	    result = Objects.requireNonNull(e);
-    }
+    result = Objects.requireNonNull(e);
+  }
 }
 ```
 
@@ -149,7 +149,7 @@ public static <E extends Comparable<E>> E max(Collection<E> c) {
   그리고 시뮬레이트한 셀프 타입 관용구를 이해하고 나면 실전에서 마주치는 대부분의  
   재귀적 타입 한정을 무리 없이 다룰 수 있을 것이다.
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -159,4 +159,4 @@ public static <E extends Comparable<E>> E max(Collection<E> c) {
   역시 타입과 마찬가지로, 형변환을 해줘야 하는 기존 메소드는 제네릭하게 만들자.  
   기존 클라이언트는 그대로 둔 채 새로운 사용자의 삶을 훨씬 편하게 만들어줄 것이다.
 
-<hr/>
+---

@@ -34,8 +34,8 @@ private final Collection stamps = /* ... */;
 
 ```java
 for(Iterator i = stamps.iterator(); i.hasNext(); ) {
-    Stamp stamp = (Stamp) i.next();  // @throws ClassCastException
-    stamp.use();
+  Stamp stamp = (Stamp) i.next();  // @throws ClassCastException
+  stamp.use();
 }
 ```
 
@@ -78,12 +78,12 @@ private final Collection<Stamp> stamps = /* ... */;
 
 ```java
 public static void main(String[] args) {
-    List<String> strings = new ArrayList<>();
-    unsafeAdd(strings, Integer.valueOf(42));
+  List<String> strings = new ArrayList<>();
+  unsafeAdd(strings, Integer.valueOf(42));
 }
 
 private static void unsafeAdd(List list, Object o) {
-    list.add(o);
+  list.add(o);
 }
 ```
 
@@ -110,13 +110,13 @@ error: incompatible types: List<String> cannot be converted to List<Object>
 
 ```java
 static int numElementsInCommon(Set s1, Set s2) {
-    int result = 0;
-    for (Object o : s1) {
-	if (s2.contains(o)) {
-	    result++;
-	}
+  int result = 0;
+  for (Object o : s1) {
+    if (s2.contains(o)) {
+      result++;
     }
-    return result;
+  }
+  return result;
 }
 ```
 
@@ -165,11 +165,11 @@ s1.add("ASDF");
 
 ```java
 static boolean foo(Object o) {
-    if(o instanceof Set) {
-        Set<?> s = (Set<?>) o;
-	//..
-    }
+  if(o instanceof Set) {
+    Set<?> s = (Set<?>) o;
     //..
+  }
+  //..
 }
 ```
 
@@ -177,7 +177,7 @@ static boolean foo(Object o) {
 > (raw 타입인 `Set`이 아니다.) 이는 검사 형변환(checked cast)이므로 컴파일러  
 > 경고가 뜨지 않는다.
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -187,4 +187,4 @@ static boolean foo(Object o) {
   저장할 수 있는 와일드카드 타입이다. 그리고 이들의 raw 타입인 `Set`은 제네릭 타입 시스템에  
   속하지 않는다. `Set<Object>`와 `Set<?>`는 안전하지만, raw 타입인 `Set`은 안전하지 않다.
 
-<hr/>
+---

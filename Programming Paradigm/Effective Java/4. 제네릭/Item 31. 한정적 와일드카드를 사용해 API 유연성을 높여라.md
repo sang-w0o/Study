@@ -1,6 +1,6 @@
 # 한정적 와일드카드를 사용해 API 유연성을 높여라
 
-- Item 28에서 봤듯이 매개변수화 타입은 불공변(invariant)이다.  
+- [Item 28: 배열 보다는 리스트를 사용하라.](https://github.com/sang-w0o/Study/blob/master/Programming%20Paradigm/Effective%20Java/4.%20%EC%A0%9C%EB%84%A4%EB%A6%AD/Item%2028.%20%EB%B0%B0%EC%97%B4%EB%B3%B4%EB%8B%A4%EB%8A%94%20%EB%A6%AC%EC%8A%A4%ED%8A%B8%EB%A5%BC%20%EC%82%AC%EC%9A%A9%ED%95%98%EB%9D%BC.md)에서 봤듯이 매개변수화 타입은 불공변(invariant)이다.  
   즉, 서로 다른 타입 `Type1`와 `Type2`가 있을 때 `List<Type1>`은  
   `List<Type2>`의 하위 타입도, 상위 타입도 아니다. 직관적이지 않겠지만  
   `List<String>`은 `List<Object>`의 하위 타입이 아니라는 뜻인데,  
@@ -14,10 +14,10 @@
 
 ```java
 public class Stack<E> {
-    public Stack();
-    public void push(E e);
-    public E pop();
-    public boolean isEmpty();
+  public Stack();
+  public void push(E e);
+  public E pop();
+  public boolean isEmpty();
 }
 ```
 
@@ -25,12 +25,12 @@ public class Stack<E> {
 
 ```java
 public class Stack<E> {
-    //..
-    public void pushAll(Iterable<E> elements) {
-	for(E element: elements) {
-	    push(element);
-	}
+  //..
+  public void pushAll(Iterable<E> elements) {
+    for(E element: elements) {
+      push(element);
     }
+  }
 }
 ```
 
@@ -50,12 +50,12 @@ public class Stack<E> {
 
 ```java
 public class Stack<E> {
-    //..
-    public void pushAll(Iterable<? extends E> elements) {
-	for(E element: elements) {
-	    push(element);
-	}
-    }
+  //..
+  public void pushAll(Iterable<? extends E> elements) {
+    for(E element: elements) {
+      push(element);
+	  }
+  }
 }
 ```
 
@@ -68,12 +68,12 @@ public class Stack<E> {
 
 ```java
 public class Stack<E> {
-    //..
-    public void popAll(Collection<E> destination) {
-	while(!isEmpty()) {
-	    destination.add(pop());
-	}
+  //..
+  public void popAll(Collection<E> destination) {
+    while(!isEmpty()) {
+      destination.add(pop());
     }
+  }
 }
 ```
 
@@ -95,12 +95,12 @@ numberStack.popAll(objects);
 
 ```java
 public class Stack<E> {
-    //..
-    public void popAll(Collection<? super E> destination) {
-	while(!isEmpty()) {
-	    destination.add(pop());
-	}
+  //..
+  public void popAll(Collection<? super E> destination) {
+    while(!isEmpty()) {
+      destination.add(pop());
     }
+  }
 }
 ```
 
@@ -120,11 +120,11 @@ public class Stack<E> {
   PECS 공식은 와일드카드 타입을 사용하는 기본 원칙이다.
 
 - 위 공식을 기억해두고, 앞서 본 코드들의 메소드와 생성자 선언을 다시 살펴보자.  
-  Item 28의 `Chooser` 생성자는 아래와 같이 선언했었다.
+  [Item 28](https://github.com/sang-w0o/Study/blob/master/Programming%20Paradigm/Effective%20Java/4.%20%EC%A0%9C%EB%84%A4%EB%A6%AD/Item%2028.%20%EB%B0%B0%EC%97%B4%EB%B3%B4%EB%8B%A4%EB%8A%94%20%EB%A6%AC%EC%8A%A4%ED%8A%B8%EB%A5%BC%20%EC%82%AC%EC%9A%A9%ED%95%98%EB%9D%BC.md)의 `Chooser` 생성자는 아래와 같이 선언했었다.
 
 ```java
 public class Chooser<T> {
-    public Chooser(Collection<T> choices) {/*...*/}
+  public Chooser(Collection<T> choices) {/*...*/}
 }
 ```
 
@@ -133,7 +133,7 @@ public class Chooser<T> {
 
 ```java
 public class Chooser<T> {
-    public Chooser(Collection<? extends T> choices) {/*...*/}
+  public Chooser(Collection<? extends T> choices) {/*...*/}
 }
 ```
 
@@ -143,7 +143,7 @@ public class Chooser<T> {
 
 ```java
 public class SetUtils<E> {
-    public static<E> Set<E> union(Set<E> s1, Set<E> s3) { /*...*/ }
+  public static<E> Set<E> union(Set<E> s1, Set<E> s2) { /*...*/ }
 }
 ```
 
@@ -151,7 +151,7 @@ public class SetUtils<E> {
 
 ```java
 public class SetUtils<E> {
-    public static<E> Set<E> union(Set<? extends E> s1, Set<? extends E> s2) { /*...*/ }
+  public static<E> Set<E> union(Set<? extends E> s1, Set<? extends E> s2) { /*...*/ }
 }
 ```
 
@@ -186,17 +186,17 @@ Set<Number> numbers = SetUtils.<Number>union(integers, doubles);
 > `class Set<T> {..}`와 `Set<Integer> = {..}`가 있을 때 `T`는 타입 매개변수가 되고,  
 > `Integer`는 타입 인수가 된다.
 
-- 이번에는 Item 30에서 본 아래 코드를 보자.
+- 이번에는 [Item 30](https://github.com/sang-w0o/Study/blob/master/Programming%20Paradigm/Effective%20Java/4.%20%EC%A0%9C%EB%84%A4%EB%A6%AD/Item%2030.%20%EC%9D%B4%EC%99%95%EC%9D%B4%EB%A9%B4%20%EC%A0%9C%EB%84%A4%EB%A6%AD%20%EB%A9%94%EC%86%8C%EB%93%9C%EB%A1%9C%20%EB%A7%8C%EB%93%A4%EB%9D%BC.md)에서 본 아래 코드를 보자.
 
 ```java
 public static <E extends Comparable<E>> E max(List<E> c) {
-    if(c.isEmpty())
-        throw new IllegalArgumentException("empty collection");
-    E result = null;
-    for(E e: c) {
+  if(c.isEmpty())
+    throw new IllegalArgumentException("empty collection");
+  E result = null;
+  for(E e: c) {
 	if(result == null || e.compareTo(result) > 0)
-	    result = Objects.requireNonNull(e);
-    }
+    result = Objects.requireNonNull(e);
+  }
 }
 ```
 
@@ -204,7 +204,7 @@ public static <E extends Comparable<E>> E max(List<E> c) {
 
 ```java
 public static <E extends Comparable<? super E>> E max(List<? extends E> list) {
-    //..
+  //..
 }
 ```
 
@@ -212,7 +212,7 @@ public static <E extends Comparable<? super E>> E max(List<? extends E> list) {
   입력 매개변수에서는 `E` 인스턴스를 생성하므로 원래의 `List<E>`를 `List<? extends E>`로 수정했다.
 
 - 다음으로 타입 매개변수 `E`를 보자. 원래 선언에서는 `<E extends Comparable<E>>`, 즉 `E`가  
-  `Comparable<E>`를 확장한다 선어했는데, 이때 `Comparable<E>`는 `E` 인스턴스를 소비한다.  
+  `Comparable<E>`를 확장한다 선언했는데, 이때 `Comparable<E>`는 `E` 인스턴스를 소비한다.  
   소비하고 선후 관계를 뜻하는 정수를 생산한다. 그래서 매개변수화 타입 `Comparable<E>`를 한정적  
   와일드카드 타입인 `Comparable<? super E>`로 대체했다. `Comparable`은 언제나 소비자이므로  
   일반적으로는 **`Comparable<E>` 보다는 `Comparable<? super E>`를 사용하는 편이 낫다.**  
@@ -239,8 +239,8 @@ List<ScheduledFuture<?>> scheduledFutures = /* ... */;
 
 ```java
 public class ListUtils<E> {
-    public static <E> void swap(List<E> list, int i, int j);
-    public static void swap(List<?> list, int i, int j);
+  public static <E> void swap(List<E> list, int i, int j);
+  public static void swap(List<?> list, int i, int j);
 }
 ```
 
@@ -257,9 +257,9 @@ public class ListUtils<E> {
 
 ```java
 public class ListUtils<E> {
-    public static void swap(List<?> list, int i, int j) {
-	list.set(i, list.set(j, list.get(i)));
-    }
+  public static void swap(List<?> list, int i, int j) {
+    list.set(i, list.set(j, list.get(i)));
+  }
 }
 ```
 
@@ -272,13 +272,13 @@ public class ListUtils<E> {
 
 ```java
 public class ListUtils<E> {
-    public static void swap(List<?> list, int i, int j) {
-	swapHelper(list, i, j);
-    }
+  public static void swap(List<?> list, int i, int j) {
+    swapHelper(list, i, j);
+  }
 
-    private static <E> void swapHelper(List<E> list, int i, int j) {
-	list.set(i, list.set(j, list.get(i)));
-    }
+  private static <E> void swapHelper(List<E> list, int i, int j) {
+    list.set(i, list.set(j, list.get(i)));
+  }
 }
 ```
 
@@ -289,7 +289,7 @@ public class ListUtils<E> {
   즉, `swap()`을 호출하는 클라이언트는 복잡한 `swapHelper()`의 존재를 모른 채 그 혜택을  
   누리는 것이다.
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -298,4 +298,4 @@ public class ListUtils<E> {
   `extends`를, 소비자(Consumer)는 `super`를 사용한다. `Comparable`, `Comparator`는 모두  
   소비자라는 사실도 잊지 말자.
 
-<hr/>
+---
