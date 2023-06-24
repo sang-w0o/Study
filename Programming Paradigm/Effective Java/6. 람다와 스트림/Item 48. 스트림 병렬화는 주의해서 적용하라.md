@@ -3,23 +3,23 @@
 - 주류 언어 중 동시성 프로그래밍 측면에서 Java는 항상 앞서갔다. 처음 릴리즈된 1996년부터  
   스레드, 동기화, wait, notify 를 지원했다. Java5부터는 동시성 컬렉션인  
   `java.util.concurrent` 라이브러리와 `Executor` 프레임워크를 지원했다.  
-  Java7부터는 고성능 병렬 분해(parallel decom-position) 프레임워크인 fork-join 패키지를  
+  Java7부터는 고성능 병렬 분해(parallel decomposition) 프레임워크인 fork-join 패키지를  
   추가했다. 그리고 Java8부터는 `parallel()` 메소드만 한 번 호출하면 파이프라인을 병렬 실행할  
   수 있는 스트림을 지원했다. 이처럼 Java로 동시성 프로그램을 작성하기가 점점 쉬워지고는 있지만,  
   이를 올바르고 빠르게 작성하는 일은 여전히 어려운 작업이다. 동시성 프로그래밍을 할 때는 안전성(safety)과  
   응답 가능(liveness) 상태를 유지하기 위해 애써야 하는데, 병렬 스트림 파이프라인 프로그래밍에서도  
-  다를 바 없다. Item 45에서 다루었던 메르센 소수를 생성하는 프로그램을 다시 보자.
+  다를 바 없다. [Item 45](https://github.com/sang-w0o/Study/blob/master/Programming%20Paradigm/Effective%20Java/6.%20%EB%9E%8C%EB%8B%A4%EC%99%80%20%EC%8A%A4%ED%8A%B8%EB%A6%BC/Item%2045.%20%EC%8A%A4%ED%8A%B8%EB%A6%BC%EC%9D%80%20%EC%A3%BC%EC%9D%98%ED%95%B4%EC%84%9C%20%EC%82%AC%EC%9A%A9%ED%95%98%EB%9D%BC.md)에서 다루었던 메르센 소수를 생성하는 프로그램을 다시 보자.
 
 ```java
 public static void main(String[] args) {
-    primes().map(p -> TWO.pow(p.intValueExact()).subtract(ONE))
-        .filter(mersenne -> mersenne.isProbablePrime(50))
-        .limit(20)
-        .forEach(System.out::println);
+  primes().map(p -> TWO.pow(p.intValueExact()).subtract(ONE))
+    .filter(mersenne -> mersenne.isProbablePrime(50))
+    .limit(20)
+    .forEach(System.out::println);
 }
 
 static Stream<BigInteger> primes() {
-    return Stream.iterate(TWO, BigInteger::nextProbablePrime);
+  return Stream.iterate(TWO, BigInteger::nextProbablePrime);
 }
 ```
 
@@ -107,10 +107,10 @@ static Stream<BigInteger> primes() {
 
 ```java
 static long pi(long n) {
-    return LongStream.rangeClosed(2, n)
-        .mapToObj(BigInteger::valueOf)
-	.filter(i -> i.isProbablePrime(50))
-	.count();
+  return LongStream.rangeClosed(2, n)
+    .mapToObj(BigInteger::valueOf)
+    .filter(i -> i.isProbablePrime(50))
+    .count();
 }
 ```
 
@@ -118,11 +118,11 @@ static long pi(long n) {
 
 ```java
 static long pi(long n) {
-    return LongStream.rangeClosed(2, n)
-        .parallel()
-        .mapToObj(BigInteger::valueOf)
-	.filter(i -> i.isProbablePrime(50))
-	.count();
+  return LongStream.rangeClosed(2, n)
+    .parallel()
+    .mapToObj(BigInteger::valueOf)
+    .filter(i -> i.isProbablePrime(50))
+    .count();
 }
 ```
 
@@ -133,7 +133,7 @@ static long pi(long n) {
   빠르지는 않을 것이다. 마지막으로 그냥 `Random`은 모든 연산을 동기화하기 때문에 병렬 처리하면  
   최악의 성능을 보일 것이다.
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -143,4 +143,4 @@ static long pi(long n) {
   유심히 관찰하자. 그래서 계산도 정확하고 성능도 좋아졌음이 확실해졌을 때, 오직 그럴 때만 병렬화 버전을  
   운영 코드에 반영하자.
 
-<hr/>
+---

@@ -8,9 +8,9 @@
 
 ```java
 Collections.sort(words, new Comparator<String>() {
-    public int compare(String s1, String s2) {
-	return Integer.compare(s1.length(), s2.length());
-    }
+  public int compare(String s1, String s2) {
+    return Integer.compare(s1.length(), s2.length());
+  }
 });
 ```
 
@@ -26,8 +26,7 @@ Collections.sort(words, new Comparator<String>() {
   어떤 동작을 하는지가 명확히 드러난다.
 
 ```java
-Collections.sort(words,
-    (s1, s2) -> Integer.compare(s1.length(), s2.length()));
+Collections.sort(words, (s1, s2) -> Integer.compare(s1.length(), s2.length()));
 ```
 
 - 여기서 람다, 매개변수(s1, s2), 반환값의 타입은 각각 `Comparator<String>`, `String`, int지만  
@@ -38,8 +37,8 @@ Collections.sort(words,
   **람다의 모든 매개변수 타입은 생략하자.** 그런 다음 컴파일러가 _"타입을 알 수 없다."_ 는 오류를 낼 때만  
   해당 타입을 명시하면 된다. 반환값이나 람다식 전체를 형변환해야 할 때도 있겠지만, 아주 드물 것이다.
 
-> 타입 추론에 대해 Item 26에서는 _제네릭의 raw 타입을 사용하지 말라_ 고 했고, Item 29에서는  
-> _제네릭을 써라_ 했고, Item 30에서는 _제네릭 메소드를 사용하라_ 고 했다. 이 조언들은 람다와 함께 쓸 때는  
+> 타입 추론에 대해 [Item 26](https://github.com/sang-w0o/Study/blob/master/Programming%20Paradigm/Effective%20Java/4.%20%EC%A0%9C%EB%84%A4%EB%A6%AD/Item%2026.%20Raw%20%ED%83%80%EC%9E%85%EC%9D%80%20%EC%82%AC%EC%9A%A9%ED%95%98%EC%A7%80%20%EB%A7%88%EB%9D%BC.md)에서는 _제네릭의 raw 타입을 사용하지 말라_ 고 했고, [Item 29](https://github.com/sang-w0o/Study/blob/master/Programming%20Paradigm/Effective%20Java/4.%20%EC%A0%9C%EB%84%A4%EB%A6%AD/Item%2029.%20%EC%9D%B4%EC%99%95%EC%9D%B4%EB%A9%B4%20%EC%A0%9C%EB%84%A4%EB%A6%AD%20%ED%83%80%EC%9E%85%EC%9C%BC%EB%A1%9C%20%EB%A7%8C%EB%93%A4%EB%9D%BC.md)에서는  
+> _제네릭을 써라_ 했고, [Item 30](https://github.com/sang-w0o/Study/blob/master/Programming%20Paradigm/Effective%20Java/4.%20%EC%A0%9C%EB%84%A4%EB%A6%AD/Item%2030.%20%EC%9D%B4%EC%99%95%EC%9D%B4%EB%A9%B4%20%EC%A0%9C%EB%84%A4%EB%A6%AD%20%EB%A9%94%EC%86%8C%EB%93%9C%EB%A1%9C%20%EB%A7%8C%EB%93%A4%EB%9D%BC.md)에서는 _제네릭 메소드를 사용하라_ 고 했다. 이 조언들은 람다와 함께 쓸 때는  
 > 두 배로 중요해진다. 컴파일러가 타입을 추론하는 데 필요한 타입 정보 대부분을 제네릭에서 얻기 때문이다.  
 > 우리가 이 정보를 제공하지 않으면 컴파일러는 람다의 타입을 추론할 수 없게 되어, 결국 우리가 일일이 명시해야 한다.  
 > 좋은 예시로, 위 코드에서 words가 매개변수화 타입인 `List<String>`이 아니라 raw 타입인 `List`였다면  
@@ -58,31 +57,31 @@ words.sort(comparingInt(String::length));
 ```
 
 - 람다를 언어 차원에서 지원하면서 기존에는 적합하지 않았던 곳에서도 함수 객체를 실용적으로 사용할 수 있게 되었다.  
-  Item 34의 `Operation` 열거 타입을 예로 들어보자. `apply()` 메소드의 동작이 상수마다 달라야 해서  
+  [Item 34](https://github.com/sang-w0o/Study/blob/master/Programming%20Paradigm/Effective%20Java/5.%20%EC%97%B4%EA%B1%B0%20%ED%83%80%EC%9E%85%EA%B3%BC%20%EC%96%B4%EB%85%B8%ED%85%8C%EC%9D%B4%EC%85%98/Item%2034.%20int%20%EC%83%81%EC%88%98%20%EB%8C%80%EC%8B%A0%20%EC%97%B4%EA%B1%B0%20%ED%83%80%EC%9E%85%EC%9D%84%20%EC%82%AC%EC%9A%A9%ED%95%98%EB%9D%BC.md)의 `Operation` 열거 타입을 예로 들어보자. `apply()` 메소드의 동작이 상수마다 달라야 해서  
   상수별 클래스 몸체를 사용해 각 상수에서 `apply()`를 재정의하도록 했었다.
 
 ```java
 public enum Operation {
-    PLUS("+") {
-	public double apply(double x, double y) { return x + y; }
-    },
-    MINUS("-") {
-	public double apply(double x, double y) { return x - y; }
-    },
-    TIMES("*") {
-	public double apply(double x, double y) { return x * y; }
-    },
-    DIVIDE("/") {
-	public double apply(double x, double y) { return x / y; }
-    };
+  PLUS("+") {
+    public double apply(double x, double y) { return x + y; }
+  },
+  MINUS("-") {
+    public double apply(double x, double y) { return x - y; }
+  },
+  TIMES("*") {
+    public double apply(double x, double y) { return x * y; }
+  },
+  DIVIDE("/") {
+    public double apply(double x, double y) { return x / y; }
+  };
 
-    private final String symbol;
-    Operation(String symbol) { this.symbol = symbol; }
-    public abstract double apply(double x, double y);
+  private final String symbol;
+  Operation(String symbol) { this.symbol = symbol; }
+  public abstract double apply(double x, double y);
 }
 ```
 
-- Item 34에서는 상수별 클래스 몸체를 구현하는 방식보다는 열거 타입에 인스턴스 필드를 두는 편이 낫다 했다.  
+- [Item 34](https://github.com/sang-w0o/Study/blob/master/Programming%20Paradigm/Effective%20Java/5.%20%EC%97%B4%EA%B1%B0%20%ED%83%80%EC%9E%85%EA%B3%BC%20%EC%96%B4%EB%85%B8%ED%85%8C%EC%9D%B4%EC%85%98/Item%2034.%20int%20%EC%83%81%EC%88%98%20%EB%8C%80%EC%8B%A0%20%EC%97%B4%EA%B1%B0%20%ED%83%80%EC%9E%85%EC%9D%84%20%EC%82%AC%EC%9A%A9%ED%95%98%EB%9D%BC.md)에서는 상수별 클래스 몸체를 구현하는 방식보다는 열거 타입에 인스턴스 필드를 두는 편이 낫다 했다.  
   람다를 이용하면 후자의 방식, 즉 열거 타입의 인스턴스 필드를 이용하는 방식으로 상수별로 다르게 동작하는  
   코드를 쉽게 구현할 수 있다. 단순히 각 열거 타입 상수의 동작을 람다로 구현해 생성자에 넘기고,  
   생성자는 이 람다를 인스턴스 필드로 저장해둔다. 그런 다음 `apply()`에 필드에 저장된 람다를 호출하기만  
@@ -90,29 +89,43 @@ public enum Operation {
 
 ```java
 public enum Operation {
-    PLUS("+", (x, y) -> x + y),
-    MINUS("-", (x, y) -> x - y),
-    TIMES("*", (x, y) -> x * y),
-    DIVIDE("/", (x, y) -> x / y);
+  PLUS("+", (x, y) -> x + y),
+  MINUS("-", (x, y) -> x - y),
+  TIMES("*", (x, y) -> x * y),
+  DIVIDE("/", (x, y) -> x / y);
 
-    private final String symbol;
-    private final DoubleBinaryOperator op;
+  private final String symbol;
+  private final DoubleBinaryOperator op;
 
-    Operation(String symbol, DoubleBinaryOperator op) {
-	this.symbol = symbol;
-	this.op = op;
-    }
+  Operation(String symbol, DoubleBinaryOperator op) {
+    this.symbol = symbol;
+    this.op = op;
+  }
 
-    @Override public String toString() { return symbol; }
+  @Override public String toString() { return symbol; }
 
-    public double apply(double x, double y) {
-	return op.applyAsDouble(x, y);
-    }
+  public double apply(double x, double y) {
+    return op.applyAsDouble(x, y);
+  }
 }
 ```
 
 > `DoubleBinaryOperator`는 `java.util.function` 패키지가 제공하는 다양한 함수 인터페이스 중 하나로,  
 > double 타입 인수 2개를 받아 double 타입의 결과를 반환한다.
+>
+> ```java
+> @FunctionalInterface
+> public interface DoubleBinaryOperator {
+>    /**
+>     * Applies this operator to the given operands.
+>     *
+>     * @param left the first operand
+>     * @param right the second operand
+>     * @return the operator result
+>     */
+>   double applyAsDouble(double left, double right);
+> }
+> ```
 
 - 람다 기반 `Operation` 열거 타입을 보면 상수별 클래스 몸체는 더 이상 사용할 이유가 없다고 생각할 수 있지만,  
   꼭 그렇지는 않다. 메소드나 클래스와 달리, **람다는 이름이 없고 문서화도 못한다. 따라서 코드 자체로 동작이**  
@@ -134,7 +147,7 @@ public enum Operation {
   따라서 **람다를 직렬화하는 일은 극히 삼가야 한다.(익명 클래스 인스턴스도 마찬가지다.)**  
   직렬화해야만 하는 함수 객체가 있다면(가령 `Comparator`처럼) private 정적 중첩 클래스의 인스턴스를 사용하자.
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -142,4 +155,4 @@ public enum Operation {
   **익명 클래스는 함수형 인터페이스가 아닌 타입의 인스턴스를 만들 때만 사용하자.**  
   람다는 작은 함수 객체를 아주 쉽게 표현할 수 있어 함수형 프로그래밍의 지평을 열었다.
 
-<hr/>
+---

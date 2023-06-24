@@ -14,10 +14,10 @@
 
 ```java
 public class LinkedHashMapChild extends LinkedHashMap {
-    //..
-    protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
-	return size() > 100;
-    }
+  //..
+  protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
+    return size() > 100;
+  }
 }
 ```
 
@@ -32,7 +32,7 @@ public class LinkedHashMapChild extends LinkedHashMap {
 ```java
 @FunctionalInterface
 interface EldestEntryRemovalFunction<K, V> {
-    boolean remove(Map<K, V> map, Map.Entry<K, V> eldest)l
+  boolean remove(Map<K, V> map, Map.Entry<K, V> eldest);
 }
 ```
 
@@ -91,7 +91,7 @@ interface EldestEntryRemovalFunction<K, V> {
   더해서 표준 함수형 인터페이스는 총 43개다.
 
 - 표준 함수형 인터페이스 대부분은 기본 타입만 지원한다. 그렇다고 **기본 함수형 인터페이스에 박싱된 기본 타입을**  
-  **넣어 사용하지는 말자.** 동작은 하지만 _"박싱된 기본 타입 대신 기본 타입을 사용하라"_ 는 Item 61의  
+  **넣어 사용하지는 말자.** 동작은 하지만 _"박싱된 기본 타입 대신 기본 타입을 사용하라"_ 는 [Item 61](https://github.com/sang-w0o/Study/blob/master/Programming%20Paradigm/Effective%20Java/8.%20%EC%9D%BC%EB%B0%98%EC%A0%81%EC%9D%B8%20%ED%94%84%EB%A1%9C%EA%B7%B8%EB%9E%98%EB%B0%8D%20%EC%9B%90%EC%B9%99/Item%2061.%20%EB%B0%95%EC%8B%B1%EB%90%9C%20%EA%B8%B0%EB%B3%B8%20%ED%83%80%EC%9E%85%EB%B3%B4%EB%8B%A4%EB%8A%94%20%EA%B8%B0%EB%B3%B8%20%ED%83%80%EC%9E%85%EC%9D%84%20%EC%82%AC%EC%9A%A9%ED%95%98%EB%9D%BC.md)의  
   조언을 위배한다. 특히 계산량이 많을 때는 성능이 처참히 느려질 수 있다.
 
 - 이제 대부분의 상황에서는 직접 작성하는 것보다 표준 함수형 인터페이스를 사용하는 편이 나음을 알았을 것이다.  
@@ -132,7 +132,7 @@ interface EldestEntryRemovalFunction<K, V> {
   다중정의했다. 그래서 올바른 메소드를 알려주기 위해 형변환해야 할 때가 종종 생긴다. 이런 문제를 피하는 가장 쉬운  
   방법은 서로 다른 함수형 인터페이스를 같은 위치의 인수로 사용하는 다중 정의를 피하는 것이다.
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -141,4 +141,4 @@ interface EldestEntryRemovalFunction<K, V> {
   표준 함수형 인터페이스를 사용하는 것이 가장 좋은 선택이다. 단, 흔하지는 않지만 직접 새로운 함수형  
   인터페이스를 만들어 쓰는 편이 나을 수도 있음을 잊지 말자.
 
-<hr/>
+---

@@ -9,7 +9,7 @@
   개념이 들어오면서 이 선택이 아주 복잡한 일이 되어버렸다.
 
 - 원소 시퀀스를 반환할 때는 당연히 `Stream`을 사용해야 한다는 이야기를 들어봤을 수 있겠지만,  
-  Item 45에서 봤듯이 `Stream`은 반복(iteration)을 지원하지 않는다. 따라서 스트림과 반복을  
+  [Item 45](https://github.com/sang-w0o/Study/blob/master/Programming%20Paradigm/Effective%20Java/6.%20%EB%9E%8C%EB%8B%A4%EC%99%80%20%EC%8A%A4%ED%8A%B8%EB%A6%BC/Item%2045.%20%EC%8A%A4%ED%8A%B8%EB%A6%BC%EC%9D%80%20%EC%A3%BC%EC%9D%98%ED%95%B4%EC%84%9C%20%EC%82%AC%EC%9A%A9%ED%95%98%EB%9D%BC.md)에서 봤듯이 `Stream`은 반복(iteration)을 지원하지 않는다. 따라서 스트림과 반복을  
   알맞게 조합해야 좋은 코드가 나온다. API를 스트림만 반환하도록 만들어 놓으면 반환된 스트림을  
   for-each로 반복하길 원하는 사용자는 당연히 불만을 느낄 것이다. 여기서 재밌는 사실이 있는데,  
   사실 `Stream` 인터페이스는 `Iterable` 인터페이스가 정의한 추상 메소드들을 전부 포함할 뿐만  
@@ -21,7 +21,7 @@
 
 ```java
 for(ProcessHandle ph : ProcessHandle.allProcesses()::iterator) {
-    // iterating..
+  // iterating..
 }
 ```
 
@@ -30,7 +30,7 @@ for(ProcessHandle ph : ProcessHandle.allProcesses()::iterator) {
 
 ```java
 for(ProcessHandle ph: (Iterable<ProcessHandle>) ProcessHandle.allProcesses()::iterator) {
-    // iterating..
+  // iterating..
 }
 ```
 
@@ -40,8 +40,8 @@ for(ProcessHandle ph: (Iterable<ProcessHandle>) ProcessHandle.allProcesses()::it
   따로 형변환하지 않아도 된다.
 
 ```java
-public static <E> Iterable<E> iterableOf(StreaM<E> stream) {
-    return stream::iterator;
+public static <E> Iterable<E> iterableOf(Stream<E> stream) {
+  return stream::iterator;
 }
 ```
 
@@ -49,11 +49,11 @@ public static <E> Iterable<E> iterableOf(StreaM<E> stream) {
 
 ```java
 for(ProcessHandler ph : iterableOf(ProcessHandle.allProcessors())) {
-    // iterating..
+  // iterating..
 }
 ```
 
-- Item 45의 아나그램 프로그램에서 스트림 버전은 사전을 읽을 때 `Files.lines()`를 이용했고,  
+- [Item 45](https://github.com/sang-w0o/Study/blob/master/Programming%20Paradigm/Effective%20Java/6.%20%EB%9E%8C%EB%8B%A4%EC%99%80%20%EC%8A%A4%ED%8A%B8%EB%A6%BC/Item%2045.%20%EC%8A%A4%ED%8A%B8%EB%A6%BC%EC%9D%80%20%EC%A3%BC%EC%9D%98%ED%95%B4%EC%84%9C%20%EC%82%AC%EC%9A%A9%ED%95%98%EB%9D%BC.md)의 아나그램 프로그램에서 스트림 버전은 사전을 읽을 때 `Files.lines()`를 이용했고,  
   반복 버전을 `Scanner`를 사용했다. 둘 중 파일을 읽는 동안 발생하는 모든 예외를 알아서  
   처리해준다는 점에서 `Files.lines()` 쪽이 더 우수하다. 그래서 이상적으로는 반복 버전에서도  
   `Files.lines()`를 써야 한다. 이는 스트림만 반환하는 API가 반환한 값을 for-each로  
@@ -90,31 +90,31 @@ public static <E> Stream<E> streamOf(Iterable<E> iterable) {
 
 ```java
 public class PowerSet {
-    public static final <E> Collection<Set<E>> of(Set<E> s) {
-	List<E> src = new ArrayList<>(s);
-	if(src.size() > 30) {
-	    throw new IllegalArgumentException("To many elements in set(max: 30)");
-	}
-	return new AbstractList<Set<E>>() {
-	    @Override public int size() {
-		return 1 << src.size();
-	    }
-
-	    @Override public boolean contains(Object o) {
-		return o instanceof Set && src.containsAll((Set)o);
-	    }
-
-	    @Override public Set<E> get(int index) {
-		Set<E> result = new HashSet<>();
-		for(int i = 0; i != 0; i++, index >>= 1) {
-		    if((index & 1) == 1) {
-			result.add(src.get(i));
-		    }
-		}
-		return result;
-	    }
-	};
+  public static final <E> Collection<Set<E>> of(Set<E> s) {
+    List<E> src = new ArrayList<>(s);
+    if(src.size() > 30) {
+      throw new IllegalArgumentException("To many elements in set(max: 30)");
     }
+    return new AbstractList<Set<E>>() {
+      @Override public int size() {
+        return 1 << src.size();
+      }
+
+      @Override public boolean contains(Object o) {
+        return o instanceof Set && src.containsAll((Set)o);
+      }
+
+      @Override public Set<E> get(int index) {
+        Set<E> result = new HashSet<>();
+        for(int i = 0; i != 0; i++, index >>= 1) {
+          if((index & 1) == 1) {
+            result.add(src.get(i));
+          }
+        }
+        return result;
+      }
+    };
+  }
 }
 ```
 
@@ -140,20 +140,20 @@ public class PowerSet {
 
 ```java
 public class SubLists {
-    public static <E> Stream<List<E>> of(List<E> list) {
-	return Stream.concat(Stream.of(Collections.emptyList()),
-	    prefixes(list).flatMap(SubLists::suffixes));
-    }
+  public static <E> Stream<List<E>> of(List<E> list) {
+    return Stream.concat(Stream.of(Collections.emptyList()),
+      prefixes(list).flatMap(SubLists::suffixes));
+  }
 
-    private static <E> Stream<List<E>> prefixes(List<E> list) {
-	return IntStream.rangeClosed(1, list.size())
-	    .mapToObj(end -> list.subList(0, end));
-    }
+  private static <E> Stream<List<E>> prefixes(List<E> list) {
+    return IntStream.rangeClosed(1, list.size())
+      .mapToObj(end -> list.subList(0, end));
+  }
 
-    private static <E> Stream<List<E>> suffixes(List<E> list) {
-	return IntStream.range(0, list.size())
-	    .mapToObj(start -> list.subList(start, list.size()));
-    }
+  private static <E> Stream<List<E>> suffixes(List<E> list) {
+    return IntStream.range(0, list.size())
+      .mapToObj(start -> list.subList(start, list.size()));
+  }
 }
 ```
 
@@ -165,21 +165,21 @@ public class SubLists {
 
 ```java
 for(int start = 0; start < src.size(); start++) {
-    for(int end = start + 1; end <= src.size(); end++) {
-	System.out.println(src.subList(start, end));
-    }
+  for(int end = start + 1; end <= src.size(); end++) {
+    System.out.println(src.subList(start, end));
+  }
 }
 ```
 
 - 이 반복문을 그대로 스트림으로 변환할 수 있다. 그렇게 하면 앞서의 구현보다 간결해지지만, 가독성은  
-  떨어진다. 이 방식의 취지는 Item 45에서 본 데카르트 곱용 코드와 비슷하다.
+  떨어진다. 이 방식의 취지는 [Item 45](https://github.com/sang-w0o/Study/blob/master/Programming%20Paradigm/Effective%20Java/6.%20%EB%9E%8C%EB%8B%A4%EC%99%80%20%EC%8A%A4%ED%8A%B8%EB%A6%BC/Item%2045.%20%EC%8A%A4%ED%8A%B8%EB%A6%BC%EC%9D%80%20%EC%A3%BC%EC%9D%98%ED%95%B4%EC%84%9C%20%EC%82%AC%EC%9A%A9%ED%95%98%EB%9D%BC.md)에서 본 데카르트 곱용 코드와 비슷하다.
 
 ```java
 public static <E> Stream<List<E>> of(List<E> list) {
-    return IntStream.range(0, list.size())
-        .mapToObj(start -> IntStream.rangeClosed(start + 1, list.size())
-	.mapToObj(end -> list.subList(start, end)))
-	.flatMap(x -> x);
+  return IntStream.range(0, list.size())
+    .mapToObj(start -> IntStream.rangeClosed(start + 1, list.size())
+    .mapToObj(end -> list.subList(start, end)))
+    .flatMap(x -> x);
 }
 ```
 
@@ -192,7 +192,7 @@ public static <E> Stream<List<E>> of(List<E> list) {
   하지만 이러한 어댑터는 클라이언트 코드를 어수선하게 만들고 속도도 느리다. 반면, 직접 구현한 전용 컬렉션을  
   사용하니 속도는 빠르지만, 스트림을 활용한 구현보다 가독성은 떨어진다.
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -205,4 +205,4 @@ public static <E> Stream<List<E>> of(List<E> list) {
   만약 나중에 `Stream` 인터페이스가 `Iterable`을 지원하도록 Java가 수정된다면, 그때는  
   안심하고 스트림을 반환하면 될 것이다.(스트림 처리 및 반복 모두에 사용 가능하기 때문)
 
-<hr/>
+---

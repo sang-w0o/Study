@@ -46,29 +46,29 @@
 
 ```java
 public class Anagrams {
-    public static void main(String[] args) {
-	File dictionary = new File(args[0]);
-	int minGroupSize = Integer.parseInt(args[1]);
+  public static void main(String[] args) {
+	  File dictionary = new File(args[0]);
+	  int minGroupSize = Integer.parseInt(args[1]);
 
-	Map<String, Set<String>> groups = new HashMap<>();
-	try(Scanner s = new Scanner(dictionary)) {
-	    while(s.hasNext()) {
-		String word = s.next();
-		groups.computeIfAbsent(alphabetize(word), (unused) -> new TreeSet<>()).add(word); // (1)
+	  Map<String, Set<String>> groups = new HashMap<>();
+	  try(Scanner s = new Scanner(dictionary)) {
+      while(s.hasNext()) {
+        String word = s.next();
+        groups.computeIfAbsent(alphabetize(word), (unused) -> new TreeSet<>()).add(word); // (1)
+      }
+	  }
+	  for(Set<String> group : groups.values()) {
+      if(group.size() > minGroupSize) {
+        System.out.println(group.size() + ": " + group);
 	    }
-	}
-	for(Set<String> group : groups.values()) {
-	    if(group.size() > minGroupSize) {
-		System.out.println(group.size() + ": " + group);
-	    }
-	}
-    }
+	  }
+  }
 
-    private static String alphabetize(String word) {
-	char[] chars = word.toCharArray();
-	Arrays.sort(a);
-	return new String(a);
-    }
+  private static String alphabetize(String word) {
+    char[] chars = word.toCharArray();
+    Arrays.sort(a);
+    return new String(a);
+  }
 }
 ```
 
@@ -84,22 +84,22 @@ public class Anagrams {
 
 ```java
 public class Anagrams {
-    public static void main(String[] args) {
-	Path dictionary = Paths.get(args[0]);
-	int minGroupSize = Integer.parseInt(args[1]);
+  public static void main(String[] args) {
+    Path dictionary = Paths.get(args[0]);
+    int minGroupSize = Integer.parseInt(args[1]);
 
-	try(Stream<String> words = Files.lines(dictionary)) {
-	    words.collect(
-		groupingBy(word -> word.chars().sorted()
-				.collect(StringBuilder::new,
-				    (sb, c) -> sb.append((char) c),
-				    StringBuilder::append).toString()))
-	    .values().stream()
-	    .filter(group -> group.size() >= minGroupSize)
-	    .map(group -> group.size() + ": " + group)
-	    .forEach(System.out::println);
-	}
+    try(Stream<String> words = Files.lines(dictionary)) {
+      words.collect(
+        groupingBy(word -> word.chars().sorted()
+          .collect(StringBuilder::new,
+            (sb, c) -> sb.append((char) c),
+            StringBuilder::append).toString()))
+        .values().stream()
+        .filter(group -> group.size() >= minGroupSize)
+        .map(group -> group.size() + ": " + group)
+        .forEach(System.out::println);
     }
+  }
 }
 ```
 
@@ -111,19 +111,19 @@ public class Anagrams {
 
 ```java
 public class Anagrams {
-    public static void main(String[] args) {
-	Path dictionary = Paths.get(args[0]);
-	int minGroupSize = Integer.parseInt(args[1]);
+  public static void main(String[] args) {
+    Path dictionary = Paths.get(args[0]);
+    int minGroupSize = Integer.parseInt(args[1]);
 
-	try(Stream<String> words = Files.lines(dictionary)) {
-	    words.collect(groupingBy(word -> alphabetize(word)))
-	        .values().stream()
-		.filter(group -> group.size() >= minGroupSize)
-		.forEach(group -> System.out.println(group.size() + ": " + g));
-	}
+    try(Stream<String> words = Files.lines(dictionary)) {
+      words.collect(groupingBy(word -> alphabetize(word)))
+        .values().stream()
+        .filter(group -> group.size() >= minGroupSize)
+        .forEach(group -> System.out.println(group.size() + ": " + g));
     }
+  }
 
-    // alphabetize()
+  // alphabetize()
 }
 ```
 
@@ -190,7 +190,7 @@ public class Anagrams {
 
 - 이러한 일들 중 하나를 수행하는 로직이라면 스트림을 적용하기에 좋은 후보다.
 
-- 한편, 스트림으로 처리하기 어려운 일도 있다. 대포적인 예로, 한 데이터가 파이프라인의 여러 단계(state)를  
+- 한편, 스트림으로 처리하기 어려운 일도 있다. 대표적인 예로, 한 데이터가 파이프라인의 여러 단계(state)를  
   통과할 때 이 데이터의 각 단계에서의 값들에 동시에 접근하기는 어려운 경우다. 스트림 파이프라인은 일단 한  
   값을 다른 값에 매핑하고 나면 원래의 값은 잃는 구조이기 때문이다. 원래 값과 새로운 값의 쌍을 저장하는  
   객체를 사용해 매핑하는 우회 방법도 있겠지만, 그리 만족스러운 해법은 아닐 것이다. 매핑 객체가 필요한  
@@ -204,7 +204,7 @@ public class Anagrams {
 
 ```java
 static Stream<BigInteger> primes() {
-    return Stream.iterate(BigInteger.TWO, BigInteger::nextProbablePrime);
+  return Stream.iterate(BigInteger.TWO, BigInteger::nextProbablePrime);
 }
 ```
 
@@ -216,14 +216,14 @@ static Stream<BigInteger> primes() {
 
 ```java
 public static void main(String[] args) {
-    primes().map(p -> TWO.pow(p.intValueExact()).subtract(ONE))
-        .filter(mersenne -> mersenne.isProbablePrime(50))
-        .limit(20)
-        .forEach(System.out::println);
+  primes().map(p -> TWO.pow(p.intValueExact()).subtract(ONE))
+    .filter(mersenne -> mersenne.isProbablePrime(50))
+    .limit(20)
+    .forEach(System.out::println);
 }
 ```
 
-- 위 코드는 앞서의 설명을 정직하게 구현했다. 소수들을 사용해 메르센 수를 계싼하고, 결과값이 소수인 경우에만  
+- 위 코드는 앞서의 설명을 정직하게 구현했다. 소수들을 사용해 메르센 수를 계산하고, 결과값이 소수인 경우에만  
   남긴 다음, 결과 스트림의 원소 수를 20개로 제한해놓고, 작업이 끝나면 결과를 출력한다.
 
 - 이제 우리가 각 메르센 소수 앞에 지수(p)를 출력하길 원한다고 해보자.  
@@ -234,7 +234,7 @@ public static void main(String[] args) {
 
 ```java
 ///..
-    .forEach(mp -> System.out.println(mp.bitLength() + ": " + mp));
+  .forEach(mp -> System.out.println(mp.bitLength() + ": " + mp));
 ```
 
 - 스트림과 반복 중 어느 쪽을 써야 할지 바로 알기 어려울 때도 많다. 카드 덱(Card Deck)을 초기화하는  
@@ -245,13 +245,13 @@ public static void main(String[] args) {
 
 ```java
 private static List<Card> newDeck() {
-    List<Card> result = new ArrayList<>();
-    for(Suit suit : Suit.values()) {
-	for(Rank rank : Rank.values()) {
-	    result.add(new Card(suit, rank));
-	}
+  List<Card> result = new ArrayList<>();
+  for(Suit suit : Suit.values()) {
+    for(Rank rank : Rank.values()) {
+      result.add(new Card(suit, rank));
     }
-    return result;
+  }
+  return result;
 }
 ```
 
@@ -261,17 +261,17 @@ private static List<Card> newDeck() {
 
 ```java
 private static List<Card> newDeck() {
-    return Stream.of(Suit.values())
-        .flatMap(suit ->
-	    Stream.of(Rank.values())
-	        .map(rank -> new Card(suit, rank)))
-	.collect(toList());
+  return Stream.of(Suit.values())
+    .flatMap(suit ->
+      Stream.of(Rank.values())
+        .map(rank -> new Card(suit, rank)))
+    .collect(toList());
 }
 ```
 
 - 결국 어느 코드가 더 좋아보이는지는 개인 취향과 프로그래밍 환경의 문제다.
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -282,4 +282,4 @@ private static List<Card> newDeck() {
 
 - **스트림과 반복 중 어느 쪽이 더 나은지 확신하기 어렵다면 둘 다 해보고 더 나은쪽을 선택하자.**
 
-<hr/>
+---

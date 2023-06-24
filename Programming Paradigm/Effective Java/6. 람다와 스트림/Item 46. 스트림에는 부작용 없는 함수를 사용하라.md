@@ -19,9 +19,9 @@
 // (1)
 Map<String, Long> freq = new HashMap<>();
 try(Stream<String> words = new Scanner(file).tokens()) {
-    words.forEach(word- > {
-	freq.merge(word.toLowerCase(), 1L, Long::sum);
-    });
+  words.forEach(word- > {
+    freq.merge(word.toLowerCase(), 1L, Long::sum);
+  });
 }
 ```
 
@@ -39,8 +39,8 @@ try(Stream<String> words = new Scanner(file).tokens()) {
 // (2)
 Map<String, Long> freq;
 try(Stream<String> words = new Scanner(file).tokens()) {
-    freq = words
-        .collect(groupingBy(String::toLowerCase, counting()));
+  freq = words
+    .collect(groupingBy(String::toLowerCase, counting()));
 }
 ```
 
@@ -65,9 +65,9 @@ try(Stream<String> words = new Scanner(file).tokens()) {
 
 ```java
 List<String> topTen = freq.keySet().stream()
-    .sorted(comparing(freq::get).reversed())
-    .limit(10)
-    .collect(toList());
+  .sorted(comparing(freq::get).reversed())
+  .limit(10)
+  .collect(toList());
 ```
 
 > 마지막 `toList()`는 `Collectors`의 메소드를 static import해서 사용한 것이다.
@@ -88,11 +88,10 @@ List<String> topTen = freq.keySet().stream()
 
 ```java
 private static final Map<String, Operation> stringToEnum =
-    Stream.of(values()).collect(
-	toMap(Object::toString, e -> e));
+  Stream.of(values()).collect(toMap(Object::toString, e -> e));
 
 public static Optional<Operation> fromString(String symbol) {
-    return Optional.ofNullable(stringToEnum.get(symbol));
+  return Optional.ofNullable(stringToEnum.get(symbol));
 }
 ```
 
@@ -111,7 +110,7 @@ public static Optional<Operation> fromString(String symbol) {
 
 ```java
 Map<Artist, Album> topHits = albums.collect(
-    toMap(Album::artist, a -> a, maxBy(comparing(Album::sales))));
+  toMap(Album::artist, a -> a, maxBy(comparing(Album::sales))));
 ```
 
 - 여기서 비교자로는 `BinaryOperator`에서 static import한 `maxBy()`라는 정적 팩토리  
@@ -123,7 +122,7 @@ Map<Artist, Album> topHits = albums.collect(
 
 - 인수가 3개인 `toMap()`은 충돌이 나면 마지막 값을 취하는(last-write-wins) 수집기를 만들 때도  
   유용하다. 많은 스트림의 결과가 비결정적이다. 하지만 매핑 함수가 key 하나에 연결해준 value들이 모두  
-  같을 때, 혹은 value이 다르더라도 모두 혀용되는 value일 때 이렇게 동작하는 수집기가 필요하다.
+  같을 때, 혹은 value이 다르더라도 모두 허용되는 value일 때 이렇게 동작하는 수집기가 필요하다.
 
 ```java
 toMap(keyMapper, valueMapper, (oldVal, newVal) -> newVal)
@@ -131,34 +130,34 @@ toMap(keyMapper, valueMapper, (oldVal, newVal) -> newVal)
 
 - 세 번째이자 마지막 `toMap()`은 네 번째 인수로 맵 팩토리를 받는다. 이 인수로는 `EnumMap`이나  
   `TreeMap`처럼 원하는 특정 `Map` 구현체를 직접 지정할 수 있다.  
-  Item 37의 `Phase` 열거 타입 예시를 보자.
+  [Item 37](https://github.com/sang-w0o/Study/blob/master/Programming%20Paradigm/Effective%20Java/5.%20%EC%97%B4%EA%B1%B0%20%ED%83%80%EC%9E%85%EA%B3%BC%20%EC%96%B4%EB%85%B8%ED%85%8C%EC%9D%B4%EC%85%98/Item%2037.%20ordinal%20%EC%9D%B8%EB%8D%B1%EC%8B%B1%20%EB%8C%80%EC%8B%A0%20EnumMap%EC%9D%84%20%EC%82%AC%EC%9A%A9%ED%95%98%EB%9D%BC.md)의 `Phase` 열거 타입 예시를 보자.
 
 ```java
 public enum Phase {
-    SOLID, LIQUID, GAS;
+  SOLID, LIQUID, GAS;
 
-    public enum Transition {
-	MELT(SOLID, LIQUID), FREEZE(LIQUID, SOLID),
-	BOIL(LIQUID, GAS), CONDENSE(GAS, LIQUID),
-	SUBLIME(SOLID, GAS), DEPOSIT(GAS, SOLID);
+  public enum Transition {
+    MELT(SOLID, LIQUID), FREEZE(LIQUID, SOLID),
+    BOIL(LIQUID, GAS), CONDENSE(GAS, LIQUID),
+    SUBLIME(SOLID, GAS), DEPOSIT(GAS, SOLID);
 
-	private final Phase from;
-	private final Phase to;
+    private final Phase from;
+    private final Phase to;
 
-	Transition(Phase from, Phase to) {
-	    this.from = from;
-	    this.to = to;
-	}
-
-	// 상태 전이 맵 초기화
-	private static final Map<Phase, Map<Phase, Transition>> m =
-	    Stream.of(values()).collect(groupingBy(t -> t.from, () -> new EnumMap<>(Phase.class),
-	        toMap(t -> t.to, t -> t, (x, y) -> y, () -> new EnumMap<>(Phase.class))));
-
-	public static Transition from(Phase from, Phase to) {
-	    return m.get(from).get(to);
-	}
+    Transition(Phase from, Phase to) {
+      this.from = from;
+      this.to = to;
     }
+
+    // 상태 전이 맵 초기화
+    private static final Map<Phase, Map<Phase, Transition>> m =
+      Stream.of(values()).collect(groupingBy(t -> t.from, () -> new EnumMap<>(Phase.class),
+        toMap(t -> t.to, t -> t, (x, y) -> y, () -> new EnumMap<>(Phase.class))));
+
+    public static Transition from(Phase from, Phase to) {
+      return m.get(from).get(to);
+    }
+  }
 }
 ```
 
@@ -170,28 +169,28 @@ public enum Phase {
   `Map`을 담을 수집기를 반환한다. 분류 함수는 입력받은 원소가 속하는 카테고리를 반환한다.  
   그리고 이 카테고리가 해당 원소의 `Map` key로 쓰인다. 다중정의된 `groupingBy()` 중 형태가  
   가장 단순한 것은 분류 함수 하나를 인수로 받아 `Map`을 반환한다. 반환된 `Map`에 담긴 각각의  
-  값은 해당 카테고리에 속하는 원소들을 모두 담은 리스트다. 이는 Item 43의 `Anagram` 프로그램에서  
+  값은 해당 카테고리에 속하는 원소들을 모두 담은 리스트다. 이는 [Item 43](https://github.com/sang-w0o/Study/blob/master/Programming%20Paradigm/Effective%20Java/6.%20%EB%9E%8C%EB%8B%A4%EC%99%80%20%EC%8A%A4%ED%8A%B8%EB%A6%BC/Item%2043.%20%EB%9E%8C%EB%8B%A4%EB%B3%B4%EB%8B%A4%EB%8A%94%20%EB%A9%94%EC%86%8C%EB%93%9C%20%EC%B0%B8%EC%A1%B0%EB%A5%BC%20%EC%82%AC%EC%9A%A9%ED%95%98%EB%9D%BC.md)의 `Anagram` 프로그램에서  
   사용했는데, 알파벳화한 단어를 알파벳화 결과가 같은 단어들의 리스트로 매핑하는 맵을 생성했다.
 
 ```java
 public class Anagrams {
-    public static void main(String[] args) {
-	Path dictionary = Paths.get(args[0]);
-	int minGroupSize = Integer.parseInt(args[1]);
+  public static void main(String[] args) {
+    Path dictionary = Paths.get(args[0]);
+    int minGroupSize = Integer.parseInt(args[1]);
 
-	try(Stream<String> words = Files.lines(dictionary)) {
-	    words.collect(groupingBy(word -> alphabetize(word)))
-	        .values().stream()
-		.filter(group -> group.size() >= minGroupSize)
-		.forEach(group -> System.out.println(group.size() + ": " + g));
-	}
+    try(Stream<String> words = Files.lines(dictionary)) {
+      words.collect(groupingBy(word -> alphabetize(word)))
+        .values().stream()
+        .filter(group -> group.size() >= minGroupSize)
+        .forEach(group -> System.out.println(group.size() + ": " + g));
     }
+  }
 
-    private static String alphabetize(String word) {
-	char[] chars = word.toCharArray();
-	Arrays.sort(a);
-	return new String(a);
-    }
+  private static String alphabetize(String word) {
+    char[] chars = word.toCharArray();
+    Arrays.sort(a);
+    return new String(a);
+  }
 }
 ```
 
@@ -232,7 +231,7 @@ Map<String, Long> freq =
   대부분의 프로그래머는 이들의 존재를 모르고 있어도 상관 없다. 설계 관점에서 보면, 이 수집기들은 스트림 기능의 일부를  
   복제해 downstream 수집기를 작은 스트림처럼 동작하게 한 것이다.
 
-- 이제 3개만 더 살펴보면 `Collectors`의 메소드를 모두 훑게 된다. 남은 3게의 메소드들은 특이하게도  
+- 이제 3개만 더 살펴보면 `Collectors`의 메소드를 모두 훑게 된다. 남은 3개의 메소드들은 특이하게도  
   `Collectors`에 정의되어 있지만, _'수집'_ 과는 관련이 없다. 그중 `minBy()`와 `maxBy()`는 인수로 받은  
   비교자를 이용해 스트림에서 값이 가장 작은, 혹은 가장 큰 원소를 찾아 반환한다. `Stream` 인터페이스의 min과  
   max를 살짝 일반화한 것이자, `java.util.function.BinaryOperator`의 `minBy()`와 `maxBy()` 메소드가  
@@ -247,7 +246,7 @@ Map<String, Long> freq =
   예를 들어 접두, 구분, 접미문자를 각각 `[`, `,`, `]`로 지정하여 얻은 수집기는 `[came, saw, conquered]` 처럼  
   마치 컬렉션을 출력한듯한 문자열을 생성한다.
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -257,4 +256,4 @@ Map<String, Long> freq =
   수집기를 잘 알아둬야 한다. 가장 중요한 수집기 팩토리는 `toList()`, `toSet()`, `toMap()`,  
   `groupingBy()`, `joining()`이다.
 
-<hr/>
+---
