@@ -5,18 +5,18 @@
 
 ```java
 class Plant {
-    enum LifeCycle { ANNUAL, PERENNIAL, BIENNIAL }
-    final String name;
-    final LifeCycle lifeCycle;
+  enum LifeCycle { ANNUAL, PERENNIAL, BIENNIAL }
+  final String name;
+  final LifeCycle lifeCycle;
 
-    Plant(String name, LifeCycle lifeCycle) {
-	this.name = name;
-	this.lifeCycle = lifeCycle;
-    }
+  Plant(String name, LifeCycle lifeCycle) {
+    this.name = name;
+    this.lifeCycle = lifeCycle;
+  }
 
-    @Override public String toString() {
-	return name;
-    }
+  @Override public String toString() {
+    return name;
+  }
 }
 ```
 
@@ -27,15 +27,15 @@ class Plant {
 
 ```java
 public class Client {
-    public void sortPlants() {
-	Set<Plant>[] plantsByLifeCycle = (Set<Plant>[]) new Set[Plant.LifeCycle.values().length];
-	for(int i = 0; i < plantsByLifeCycle.length; i++) {
-	    plantsByLifeCycle[i] = new HashSet<>();
-	}
-	for(Plant p : garden) {
-	    plantsByLifeCycle[p.lifeCycle.ordinal()].add(p);
-	}
+  public void sortPlants() {
+    Set<Plant>[] plantsByLifeCycle = (Set<Plant>[]) new Set[Plant.LifeCycle.values().length];
+    for(int i = 0; i < plantsByLifeCycle.length; i++) {
+      plantsByLifeCycle[i] = new HashSet<>();
     }
+    for(Plant p : garden) {
+      plantsByLifeCycle[p.lifeCycle.ordinal()].add(p);
+    }
+  }
 }
 ```
 
@@ -51,15 +51,15 @@ public class Client {
 
 ```java
 public class Client {
-    public void sortPlants() {
-	Map<Plant.LifeCycle, Set<Plant>> plantsbyLifeCycle = new EnumMap<>(Plant.LifeCycle.class);
-	for(Plant.LifeCycle lc : Plant.LifeCycle.values()) {
-	    plantsbyLifeCycle.put(lc, new HashSet<>());
-	}
-	for(Plant p : garden) {
-	    plantsbyLifeCycle.get(p.lifeCycle).add(p);
-	}
+  public void sortPlants() {
+    Map<Plant.LifeCycle, Set<Plant>> plantsbyLifeCycle = new EnumMap<>(Plant.LifeCycle.class);
+    for(Plant.LifeCycle lc : Plant.LifeCycle.values()) {
+      plantsbyLifeCycle.put(lc, new HashSet<>());
     }
+    for(Plant p : garden) {
+      plantsbyLifeCycle.get(p.lifeCycle).add(p);
+    }
+  }
 }
 ```
 
@@ -76,9 +76,9 @@ public class Client {
 
 ```java
 public class Client {
-    public void sortPlants() {
-	Arrays.stream(garden).collect(groupingBy(p -> p.lifeCycle));
-    }
+  public void sortPlants() {
+    Arrays.stream(garden).collect(groupingBy(p -> p.lifeCycle));
+  }
 }
 ```
 
@@ -89,9 +89,9 @@ public class Client {
 
 ```java
 public class Client {
-    public void sortPlants() {
-	Arrays.stream(garden).collect(groupingBy(p -> p.lifeCycle, () -> new EnumMap<>(LifeCycle.class), toSet()));
-    }
+  public void sortPlants() {
+    Arrays.stream(garden).collect(groupingBy(p -> p.lifeCycle, () -> new EnumMap<>(LifeCycle.class), toSet()));
+  }
 }
 ```
 
@@ -105,28 +105,28 @@ public class Client {
 
 - 두 열거 타입 값들을 매핑하느라 `ordinal()`을 두 번이나 쓴 배열들의 배열을 본 적이 있을 것이다.  
   다음은 이 방식을 적용해 두 가지 상태(`Phase`)를 전이(`Transition`)와 매핑하도록 구현한  
-  프로그램이다. 예를 들어, `LIQUID`에서 `SOLID`로의 전이는 `FREEZE`가 되고, `LIQUIED`에서  
+  프로그램이다. 예를 들어, `LIQUID`에서 `SOLID`로의 전이는 `FREEZE`가 되고, `LIQUID`에서  
   `GAS`로의 전이는 `BOIL`이 된다.
 
 ```java
 public enum Phase {
-    SOLID, LIQUID, GAS;
+  SOLID, LIQUID, GAS;
 
-    public enum Transition {
-	MELT, FREEZE, BOIL, CONDENSE, SUBLIME, DEPOSIT;
-    }
+  public enum Transition {
+    MELT, FREEZE, BOIL, CONDENSE, SUBLIME, DEPOSIT;
+  }
 
-    // 행은 from의 ordinal을, 열은 to의 ordinal을 인덱스로 쓴다.
-    private static final Transition[][] TRANSITIONS = {
-	{ null, MELT, SUBLIME },
-	{ FREEZE, null, BOIL },
-	{ DEPOSIT, CONDENSE, null }
-    };
+  // 행은 from의 ordinal을, 열은 to의 ordinal을 인덱스로 쓴다.
+  private static final Transition[][] TRANSITIONS = {
+    { null, MELT, SUBLIME },
+    { FREEZE, null, BOIL },
+    { DEPOSIT, CONDENSE, null }
+  };
 
-    // 한 상태에서 다른 상태로의 전이를 반환한다.
-    public static Transition from(Phase from, Phase to) {
-	return TRANSITIONS[from.ordinal()][to.ordinal()];
-    }
+  // 한 상태에서 다른 상태로의 전이를 반환한다.
+  public static Transition from(Phase from, Phase to) {
+    return TRANSITIONS[from.ordinal()][to.ordinal()];
+  }
 }
 ```
 
@@ -145,30 +145,30 @@ public enum Phase {
 
 ```java
 public enum Phase {
-    SOLID, LIQUID, GAS;
+  SOLID, LIQUID, GAS;
 
-    public enum Transition {
-	MELT(SOLID, LIQUID), FREEZE(LIQUID, SOLID),
-	BOIL(LIQUID, GAS), CONDENSE(GAS, LIQUID),
-	SUBLIME(SOLID, GAS), DEPOSIT(GAS, SOLID);
+  public enum Transition {
+      MELT(SOLID, LIQUID), FREEZE(LIQUID, SOLID),
+      BOIL(LIQUID, GAS), CONDENSE(GAS, LIQUID),
+      SUBLIME(SOLID, GAS), DEPOSIT(GAS, SOLID);
 
-	private final Phase from;
-	private final Phase to;
+      private final Phase from;
+      private final Phase to;
 
-	Transition(Phase from, Phase to) {
-	    this.from = from;
-	    this.to = to;
-	}
+      Transition(Phase from, Phase to) {
+        this.from = from;
+        this.to = to;
+      }
 
-	// 상태 전이 맵 초기화
-	private static final Map<Phase, Map<Phase, Transition>> m =
-	    Stream.of(values()).collect(groupingBy(t -> t.from, () -> new EnumMap<>(Phase.class),
-	        toMap(t -> t.to, t -> t, (x, y) -> y, () -> new EnumMap<>(Phase.class))));
+    // 상태 전이 맵 초기화
+    private static final Map<Phase, Map<Phase, Transition>> m =
+      Stream.of(values()).collect(groupingBy(t -> t.from, () -> new EnumMap<>(Phase.class),
+        toMap(t -> t.to, t -> t, (x, y) -> y, () -> new EnumMap<>(Phase.class))));
 
-	public static Transition from(Phase from, Phase to) {
-	    return m.get(from).get(to);
-	}
+    public static Transition from(Phase from, Phase to) {
+      return m.get(from).get(to);
     }
+  }
 }
 ```
 
@@ -176,7 +176,7 @@ public enum Phase {
   _"이전 상태에서 '이후 상태에서 전이로의 맵'에 대응시키는 맵"_ 이라는 뜻이다. 이러한 맵의 맵을 초기화하기  
   위해 `Collector` 2개를 차례로 이용했다. 첫 번째 `Collector`인 `groupingBy()`에서는 전이를  
   이전 상태를 기준으로 묶고, 두 번째 `Collector`인 `toMap()`에서는 이후 상태를 전이에 대응시키는  
-  `EnumMap`을 생성한다. `toMap()`의 병함 함수인 `(x, y) -> y`는 선언한 하고 실제로는 쓰이지 않는데,  
+  `EnumMap`을 생성한다. `toMap()`의 병합 함수인 `(x, y) -> y`는 선언한 하고 실제로는 쓰이지 않는데,  
   이는 단지 `EnumMap`을 얻으려면 맵 팩토리가 필요하고 `Collector`들은 점층적 팩토리를 제공하기  
   때문이다.
 
@@ -191,16 +191,16 @@ public enum Phase {
 
 ```java
 public enum Phase {
-    SOLID, LIQUID, GAS, PLASMA;
+  SOLID, LIQUID, GAS, PLASMA;
 
-    public enum Transition {
-	MELT(SOLID, LIQUID), FREEZE(LIQUID, SOLID),
-	BOIL(LIQUID, GAS), CONDENSE(GAS, LIQUID),
-	SUBLIME(SOLID, GAS), DEPOSIT(GAS, SOLID),
-	IONIZE(GAS, PLASMA), DEIONIZE(PLASMA, GAS);
+  public enum Transition {
+    MELT(SOLID, LIQUID), FREEZE(LIQUID, SOLID),
+    BOIL(LIQUID, GAS), CONDENSE(GAS, LIQUID),
+    SUBLIME(SOLID, GAS), DEPOSIT(GAS, SOLID),
+    IONIZE(GAS, PLASMA), DEIONIZE(PLASMA, GAS);
 
-	//..
-    }
+    //..
+  }
 }
 ```
 
@@ -208,11 +208,11 @@ public enum Phase {
   실제 내부에서는 맵들의 맵이 배열들의 배열로 구현되니 낭비되는 공간과 시간도  
   거의 없어 명확하고 안전하고 유지보수하기 좋다.
 
-<hr/>
+---
 
 ## 핵심 정리
 
 - **배열의 index를 얻기 위해 ordinal을 사용하는 것은 일반적으로 좋지 않으니, 대신 `EnumMap`을**  
   **사용하라.** 다차원 관계는 `EnumMap<..., EnumMap<...>>`으로 표현하라.
 
-<hr/>
+---

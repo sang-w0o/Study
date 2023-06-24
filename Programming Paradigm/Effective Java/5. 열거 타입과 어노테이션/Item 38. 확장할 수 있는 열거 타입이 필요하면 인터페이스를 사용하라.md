@@ -7,13 +7,13 @@
 
 - 그런데 확장할 수 있는 열거 타입이 어울리는 쓰임이 최소한 하나는 있다.  
   바로 연산 코드(operation code)이다. 연산 코드의 각 원소는 특정 기계가 수행하는 연산을  
-  뜻한다.(ex. Item 34의 `Operation` 타입) 이따끔 API가 제공하는 기본 연산 외에  
+  뜻한다.(ex. [Item 34](https://github.com/sang-w0o/Study/blob/master/Programming%20Paradigm/Effective%20Java/5.%20%EC%97%B4%EA%B1%B0%20%ED%83%80%EC%9E%85%EA%B3%BC%20%EC%96%B4%EB%85%B8%ED%85%8C%EC%9D%B4%EC%85%98/Item%2034.%20int%20%EC%83%81%EC%88%98%20%EB%8C%80%EC%8B%A0%20%EC%97%B4%EA%B1%B0%20%ED%83%80%EC%9E%85%EC%9D%84%20%EC%82%AC%EC%9A%A9%ED%95%98%EB%9D%BC.md)의 `Operation` 타입) 이따끔 API가 제공하는 기본 연산 외에  
   사용자 확장 연산을 추가할 수 있도록 열어줘야 할 때가 있다.
 
 - 다행이 열거 타입으로 이 효과를 내는 멋진 방법이 있다. 기본 아이디어는 열거 타입이 임의의  
   인터페이스를 구현할 수 있다는 사실을 이용하는 것이다. 연산 코드용 인터페이스를 정의하고  
   열거 타입이 이 인터페이스를 구현하게 하면 된다. 이때 열거 타입이 그 인터페이스의 표준 구현체  
-  역할을 한다. 아래는 Item 34의 `Operation` 타입을 확장할 수 있게 만든 코드다.
+  역할을 한다. 아래는 [Item 34](https://github.com/sang-w0o/Study/blob/master/Programming%20Paradigm/Effective%20Java/5.%20%EC%97%B4%EA%B1%B0%20%ED%83%80%EC%9E%85%EA%B3%BC%20%EC%96%B4%EB%85%B8%ED%85%8C%EC%9D%B4%EC%85%98/Item%2034.%20int%20%EC%83%81%EC%88%98%20%EB%8C%80%EC%8B%A0%20%EC%97%B4%EA%B1%B0%20%ED%83%80%EC%9E%85%EC%9D%84%20%EC%82%AC%EC%9A%A9%ED%95%98%EB%9D%BC.md)의 `Operation` 타입을 확장할 수 있게 만든 코드다.
 
 ```java
 public interface Operation {
@@ -22,24 +22,24 @@ public interface Operation {
 
 public enum BasicOperation implements Operation {
     PLUS("+") {
-	public double apply(double x, double y) {
-	    return x + y;
-	}
+        public double apply(double x, double y) {
+            return x + y;
+        }
     },
     MINUS("-") {
-	public double apply(double x, double y) {
-	    return x - y;
-	}
+        public double apply(double x, double y) {
+            return x - y;
+        }
     },
     TIMES("*") {
-	public double apply(double x, double y) {
-	    return x * y;
-	}
+        public double apply(double x, double y) {
+            return x * y;
+        }
     },
     DIVIDE("/") {
-	public double apply(double x, double y) {
-	    return x / y;
-	}
+        public double apply(double x, double y) {
+            return x / y;
+        }
     };
 
     private final String symbol;
@@ -59,14 +59,14 @@ public enum BasicOperation implements Operation {
 ```java
 public enum ExtendedOperation implements Operation {
     EXP("^") {
-	public double apply(double x, double y) {
-	    return Math.pow(x, y);
-	}
+        public double apply(double x, double y) {
+            return Math.pow(x, y);
+        }
     },
     REMAINDER("%") {
-	public double apply(double x, double y) {
-	    return x % y;
-	}
+        public double apply(double x, double y) {
+            return x % y;
+        }
     };
 
     private final String symbol;
@@ -96,9 +96,9 @@ public class Client {
     }
 
     private static <T extends Enum<T> & Operation> void test(Class<T> opEnumtype, double x, double y) {
-	for(Operation op: opEnumType.getEnumConstants()) {
-	    System.out.printf("%f %s %f = %f%n", x, op, y, op.apply(x, y));
-	}
+        for(Operation op: opEnumType.getEnumConstants()) {
+            System.out.printf("%f %s %f = %f%n", x, op, y, op.apply(x, y));
+        }
     }
 }
 ```
@@ -113,15 +113,15 @@ public class Client {
 ```java
 public class Client {
     public static void main(String[] args) {
-	double x = Double.parseDouble(args[0]);
-	double y = Double.parseDouble(args[1]);
-	test(Arrays.asList(ExtendedOperation.values()), x, y);
+        double x = Double.parseDouble(args[0]);
+        double y = Double.parseDouble(args[1]);
+        test(Arrays.asList(ExtendedOperation.values()), x, y);
     }
 
     private static void test(Collection<? extends Operation> opSet, double x, double y) {
-	for(Operation op: opSet) {
-	    System.out.printf("%f $s %f = %f%n", x, op, y, op.apply(x, y));
-	}
+        for(Operation op: opSet) {
+            System.out.printf("%f $s %f = %f%n", x, op, y, op.apply(x, y));
+        }
     }
 
 }
@@ -140,7 +140,7 @@ public class Client {
 - Java 라이브러리도 이번 아이템에서 본 패턴을 사용한다. 그 예시로 `java.nio.file.LinkOption` 열거 타입은  
   `CopyOption`과 `OpenOption` 인터페이스를 구현했다.
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -149,4 +149,4 @@ public class Client {
   만들 수 있다. 그리고 API가 기본 열거 타입을 직접 명시하지 않고 인터페이스 기반으로 작성되었다면 기본 열거 타입의  
   인스턴스가 쓰이는 모든 곳을 새로 확장한 열거 타입의 인스턴스로 대체해 사용할 수 있다.
 
-<hr/>
+---

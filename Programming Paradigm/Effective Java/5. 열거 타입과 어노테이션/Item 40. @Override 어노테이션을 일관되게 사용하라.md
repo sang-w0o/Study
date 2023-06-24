@@ -9,26 +9,26 @@
 ```java
 @AllArgsConstructor
 public class Bigram {
-    private final char first;
-    private final char second;
+  private final char first;
+  private final char second;
 
-    public int hashCode() {
-        return 31 * first + second;
-    }
+  public int hashCode() {
+    return 31 * first + second;
+  }
 
-    public boolean equals(Bigram b) {
-        return b.first == first && b.second == second;
-    }
+  public boolean equals(Bigram b) {
+    return b.first == first && b.second == second;
+  }
 
-    public static void main(String[] args) {
-        Set<Bigram> set = new HashSet<>();
-        for(int i = 0; i < 10; i++) {
-            for(char ch = 'a'; ch <= 'z'; ch++) {
-                set.add(new Bigram(ch, ch));
-            }
-            System.out.println(set.size());
-        }
+  public static void main(String[] args) {
+    Set<Bigram> set = new HashSet<>();
+    for(int i = 0; i < 10; i++) {
+      for(char ch = 'a'; ch <= 'z'; ch++) {
+        set.add(new Bigram(ch, ch));
+      }
+      System.out.println(set.size());
     }
+  }
 }
 ```
 
@@ -37,19 +37,19 @@ public class Bigram {
   출력될 것 같지만, 실제로는 260이 출력된다. 뭐가 잘못된 것일까?
 
 - 확실히 `Bigram`의 작성자는 `equals()`를 재정의하려 한 것으로 보이고, `hashCode()`도  
-  함께 재정의해야 한다는 사실을 잊지 않았다.(Item 11)  
+  함께 재정의해야 한다는 사실을 잊지 않았다.([Item 11: equals를 재정의하려거든 hashCode도 재정의하라.](https://github.com/sang-w0o/Study/blob/master/Programming%20Paradigm/Effective%20Java/2.%20%EA%B0%9D%EC%B2%B4%EC%9D%98%20%EA%B3%B5%ED%86%B5%20%EB%A9%94%EC%86%8C%EB%93%9C/Item%2011.%20equals%EB%A5%BC%20%EC%9E%AC%EC%A0%95%EC%9D%98%ED%95%98%EB%A9%B4%20hashCode%EB%8F%84%20%EC%9E%AC%EC%A0%95%EC%9D%98%ED%95%98%EB%9D%BC.md))  
   하지만 **`equals()`를 재정의한게 아니라 다중정의 해버렸다.** `Object#equals()`를 재정의하려면  
   매개변수 타입을 `Object`로 해야만 하는데, 그렇게 하지 않은 것이다. 그래서 `Object`에서 상속한  
   `equals()`와는 별개인 `equals()`를 새로 정의한 꼴이 되었다. `Object#equals()`는 `==`  
   연산자와 똑같이 객체 식별성(identity)만을 확인한다. 따라서 같은 소문자를 소유한 `Bigram` 10개  
   각각이 서로 다른 객체로 인식되고, 결국은 260개가 있다고 한 것이다.
 
-- 다행이 이 오류는 컴파일러가 찾아낼 수 있지만, 그러려면 **`Object#equals()`를 재정의한다는 의도를 명시** 해야 한다.  
+- 다행이 이 오류는 컴파일러가 찾아낼 수 있는데, 그러려면 **`Object#equals()`를 재정의한다는 의도를 명시** 해야 한다.  
   아래 코드처럼 말이다.
 
 ```java
 @Override public boolean equals(Bigram b) {
-    return b.first == first && b.second == second;
+  return b.first == first && b.second == second;
 }
 ```
 
@@ -58,9 +58,9 @@ public class Bigram {
 
 ```java
 @Override public boolean equals(Object o) {
-    if(!(o instanceof Bigram)) return false;
-    Bigram b = (Bigram) o;
-    return b.first == first && b.second == second;
+  if(!(o instanceof Bigram)) return false;
+  Bigram b = (Bigram) o;
+  return b.first == first && b.second == second;
 }
 ```
 
@@ -86,7 +86,7 @@ public class Bigram {
   `Set` 인터페이스는 `Collection` 인터페이스를 확장했지만, 새로 추가한 메소드는 없다. 따라서 모든  
   메소드 선언에 `@Override`를 달아 실수로 추가한 메소드가 없음을 보장했다.
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -94,4 +94,4 @@ public class Bigram {
   컴파일러가 바로 알려줄 것이다. 예외는 한 가지 뿐이다. 구체 클래스에서 상위 클래스의  
   추상 메소드를 재정의한 경우엔 이 어노테이션을 달지 않아도 된다.
 
-<hr/>
+---

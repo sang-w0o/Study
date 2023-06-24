@@ -88,35 +88,35 @@ public enum Orange { NAVEL, TEMPLE, BLOOD }
 
 ```java
 public enum Planet {
-    MERCURY(3.303e+23, 2.4397e6),
-    VENUS(4.869e+24, 6.0518e6),
-    EARTH(5.976e+24, 6.37814e6),
-    MARS(6.421e+23, 3.3972e6),
-    JUPITER(1.9e+27, 7.1492e7),
-    SATURN(5.688e+26, 6.0268e7),
-    URANUS(8.686e+25, 2.5559e7),
-    NEPTUNE(1.024e+26, 2.4746e7);
+  MERCURY(3.303e+23, 2.4397e6),
+  VENUS(4.869e+24, 6.0518e6),
+  EARTH(5.976e+24, 6.37814e6),
+  MARS(6.421e+23, 3.3972e6),
+  JUPITER(1.9e+27, 7.1492e7),
+  SATURN(5.688e+26, 6.0268e7),
+  URANUS(8.686e+25, 2.5559e7),
+  NEPTUNE(1.024e+26, 2.4746e7);
 
-    // 질량(kg)
-    private final double mass;
-    // 반지름(m)
-    private final double radius;
-    // 표면중력(m / s^2)
-    private final double surfaceGravity;
+  // 질량(kg)
+  private final double mass;
+  // 반지름(m)
+  private final double radius;
+  // 표면중력(m / s^2)
+  private final double surfaceGravity;
 
-    Planet(double mass, double radius) {
-	this.mass = mass;
-	this.radius = radius;
-	surfaceGravity = G * mass / (radius * radius);
-    }
+  Planet(double mass, double radius) {
+    this.mass = mass;
+    this.radius = radius;
+    surfaceGravity = G * mass / (radius * radius);
+  }
 
-    public double mass() { return mass; }
-    public double radius() { return radius; }
-    public double surfaceGravity() { return surfaceGravity; }
+  public double mass() { return mass; }
+  public double radius() { return radius; }
+  public double surfaceGravity() { return surfaceGravity; }
 
-    public double surfaceWeight(double mass) {
-	return mass * surfaceGravity;
-    }
+  public double surfaceWeight(double mass) {
+    return mass * surfaceGravity;
+  }
 }
 ```
 
@@ -135,13 +135,13 @@ public enum Planet {
 
 ```java
 public class WeightTable {
-    public static void main(String[] args) {
-	double earthWeight = Double.parseDouble(args[0]);
-	double mass = earthWeight / Planet.EARTH.surfaceGravity();
-	for(Planet p : Planet.values()) {
-	    System.out.printf("Your weight on %s is %f%n", p, p.surfaceWeight(mass));
-	}
+  public static void main(String[] args) {
+    double earthWeight = Double.parseDouble(args[0]);
+    double mass = earthWeight / Planet.EARTH.surfaceGravity();
+    for(Planet p : Planet.values()) {
+      System.out.printf("Your weight on %s is %f%n", p, p.surfaceWeight(mass));
     }
+  }
 }
 ```
 
@@ -156,7 +156,7 @@ public class WeightTable {
 
 - 열거 타입을 선언한 클래스 혹은 그 패키지에서만 유용한 기능은 private이나 package-private  
   메소드로 구현한다. 이렇게 구현된 열거 타입 상수는 자신을 선언한 클래스 혹은 패키지에서만  
-  사용할 수 있는 기능을 담게 된다. 일반 크래스와 마찬가지로 그 기능을 클라이언트에게 노출해야 할  
+  사용할 수 있는 기능을 담게 된다. 일반 클래스와 마찬가지로 그 기능을 클라이언트에게 노출해야 할  
   합당한 이유가 없다면 private으로, 혹은 필요하다면 package-private으로 선언하라.
 
 - 널리 쓰이는 열거 타입은 Top-Level 클래스로 만들고, 특정 Top-Level 클래스에서만 쓰인다면  
@@ -174,17 +174,17 @@ public class WeightTable {
 
 ```java
 public enum Operation {
-    PLUS, MINUS, TIMES, DIVIDE;
+  PLUS, MINUS, TIMES, DIVIDE;
 
-    public double apply(double x, double y) {
-	switch (this) {
-	    case PLUS: return x + y;
-	    case MINUS: return x - y;
-	    case TIMES: return x * y;
-	    case DIVIDE: return x / y;
-	}
-	throw new AssertionError();
+  public double apply(double x, double y) {
+    switch (this) {
+      case PLUS: return x + y;
+      case MINUS: return x - y;
+      case TIMES: return x * y;
+      case DIVIDE: return x / y;
     }
+    throw new AssertionError();
+  }
 }
 ```
 
@@ -200,12 +200,12 @@ public enum Operation {
 
 ```java
 public enum Operation {
-    PLUS { public double apply(double x, double y) { return x + y; } },
-    MINUS { public double apply(double x, double y) { return x - y; } },
-    TIMES { public double apply(double x, double y) { return x * y; } },
-    DIVIDE { public double apply(double x, double y) { return x / y; } };
+  PLUS { public double apply(double x, double y) { return x + y; } },
+  MINUS { public double apply(double x, double y) { return x - y; } },
+  TIMES { public double apply(double x, double y) { return x * y; } },
+  DIVIDE { public double apply(double x, double y) { return x / y; } };
 
-    public abstract double apply(double x, double y);
+  public abstract double apply(double x, double y);
 }
 ```
 
@@ -218,17 +218,18 @@ public enum Operation {
 
 ```java
 public enum Operation {
-    PLUS("+") { public double apply(double x, double y) { return x + y; } },
-    MINUS("-") { public double apply(double x, double y) { return x - y; } },
-    TIMES("*") { public double apply(double x, double y) { return x * y; } },
-    DIVIDE("/") { public double apply(double x, double y) { return x / y; } };
+  PLUS("+") { public double apply(double x, double y) { return x + y; } },
+  MINUS("-") { public double apply(double x, double y) { return x - y; } },
+  TIMES("*") { public double apply(double x, double y) { return x * y; } },
+  DIVIDE("/") { public double apply(double x, double y) { return x / y; } };
 
-    private final String symbol;
+  private final String symbol;
 
-    Operation(String symbol) { this.symbol = symbol; }
+  Operation(String symbol) { this.symbol = symbol; }
 
-    @Override public String toString() { return symbol; }
-    public abstract double apply(double x, double y);
+  @Override public String toString() { return symbol; }
+
+  public abstract double apply(double x, double y);
 }
 ```
 
@@ -240,10 +241,10 @@ public enum Operation {
 
 ```java
 private static final Map<String, Operation> stringToEnum =
-    Stream.of(values()).collect(toMap(Object::toString, e -> e));
+  Stream.of(values()).collect(toMap(Object::toString, e -> e));
 
 public static Optional<Operation> fromString(String symbol) {
-    return Optional.ofNullable(stringToEnum.get(symbol));
+  return Optional.ofNullable(stringToEnum.get(symbol));
 }
 ```
 
@@ -270,24 +271,23 @@ public static Optional<Operation> fromString(String symbol) {
 
 ```java
 enum PayrollDay {
-    MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY;
+  MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY;
 
-    private static final int MINS_PER_SHIFT = 8 * 60;
+  private static final int MINS_PER_SHIFT = 8 * 60;
 
-    int pay(int minutesWorked, int payRate) {
-	int basePay = minutesWorked * payRate;
-
-	int overtimePay;
-	switch(this) {
-	    case SATURDAY: case SUNDAY:
-	        overtimePay = basePay / 2;
-		break;
-	    default:
-	        overtimePay = minutesWorked <= MINS_PER_SHIFT ? 0 :
-		    (minutesWorked - MINS_PER_SHIFT) * payRate / 2;
-	}
-	return basePay + overtimePay;
+  int pay(int minutesWorked, int payRate) {
+    int basePay = minutesWorked * payRate;
+    int overtimePay;
+    switch(this) {
+      case SATURDAY: case SUNDAY:
+        overtimePay = basePay / 2;
+        break;
+      default:
+        overtimePay = minutesWorked <= MINS_PER_SHIFT ? 0 :
+          (minutesWorked - MINS_PER_SHIFT) * payRate / 2;
     }
+    return basePay + overtimePay;
+  }
 }
 ```
 
@@ -314,39 +314,39 @@ enum PayrollDay {
 
 ```java
 enum PayrollDay {
-    MONDAY(WEEKDAY), TUESDAY(WEEKDAY), WEDNESDAY(WEEKDAY), THURSDAY(WEEKDAY), FRIDAY(WEEKDAY),
-    SATURDAY(WEEKEND), SUNDAY(WEEKEND);
+  MONDAY(WEEKDAY), TUESDAY(WEEKDAY), WEDNESDAY(WEEKDAY), THURSDAY(WEEKDAY), FRIDAY(WEEKDAY),
+  SATURDAY(WEEKEND), SUNDAY(WEEKEND);
 
-    private final PayType payType;
+  private final PayType payType;
 
-    PayrollDay(PayType payType) { this.payType = payType; }
+  PayrollDay(PayType payType) { this.payType = payType; }
+
+  int pay(int minutesWorked, int payRate) {
+    return payType.pay(minutesWorked, payRate);
+  }
+
+  // 전략 열거 타입
+  enum PayType {
+	  WEEKDAY {
+      int overtimePay(int minutesWorked, int payRate) {
+        return minutesWorked <= MINS_PER_SHIFT ? 0 :
+          (minutesWorked - MINS_PER_SHIFT) * payRate / 2;
+      }
+    },
+    WEEKEND {
+      int overtimePay(int minutesWorked, int payRate) {
+        return minutesWorked * payRate / 2;
+      }
+    };
+
+    abstract int overtimePay(int minutesWorked, int payRate);
+    private static final int MINS_PER_SHIFT = 8 * 60;
 
     int pay(int minutesWorked, int payRate) {
-	return payType.pay(minutesWorked, payRate);
+      int basePay = minutesWorked * payRate;
+      return basePay + overtimePay(minutesWorked, payRate);
     }
-
-    // 전략 열거 타입
-    enum PayType {
-	WEEKDAY {
-	    int overtimePay(int minutesWorked, int payRate) {
-		return minutesWorked <= MINS_PER_SHIFT ? 0 :
-		    (minutesWorked - MINS_PER_SHIFT) * payRate / 2;
-	    }
-	},
-	WEEKEND {
-	    int overtimePay(int minutesWorked, int payRate) {
-		return minutesWorked * payRate / 2;
-	    }
-	};
-
-	abstract int overtimePay(int minutesWorked, int payRate);
-	private static final int MINS_PER_SHIFT = 8 * 60;
-
-	int pay(int minutesWorked, int payRate) {
-	    int basePay = minutesWorked * payRate;
-	    return basePay + overtimePay(minutesWorked, payRate);
-	}
-    }
+  }
 }
 ```
 
@@ -357,15 +357,15 @@ enum PayrollDay {
 
 ```java
 public class SomeClass {
-    public static Operation inverse(Operation op) {
-	switch (op) {
-	    case PLUS: return Operation.MINUS;
-	    case MINUS: return Operation.PLUS;
-	    case TIMES: return Operation.DIVIDE;
-	    case DIVIDE: return Operation.TIMES;
-	    default: throw new AssertionError();
-	}
+  public static Operation inverse(Operation op) {
+    switch (op) {
+      case PLUS: return Operation.MINUS;
+      case MINUS: return Operation.PLUS;
+      case TIMES: return Operation.DIVIDE;
+      case DIVIDE: return Operation.TIMES;
+      default: throw new AssertionError();
     }
+  }
 }
 ```
 
@@ -382,7 +382,7 @@ public class SomeClass {
   알고 있을 때도 쓸 수 있다. **열거 타입에 정의된 상수의 개수가 영원히 고정 불변일 필요는 없다.**  
   열거 타입은 나중에 상수가 추가돼도 바이너리 수준에서 호환되도록 설계되었다.
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -392,4 +392,4 @@ public class SomeClass {
   할 때도 있다. 이런 열거 타입에서는 switch문 대신 상수별 메소드 구현을 사용하자.  
   열거 타입 상수 일부가 같은 동작을 공유한다면 전략 열거 타입 패턴을 사용하자.
 
-<hr/>
+---

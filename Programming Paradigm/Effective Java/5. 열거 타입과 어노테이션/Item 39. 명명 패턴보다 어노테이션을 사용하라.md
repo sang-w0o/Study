@@ -52,13 +52,13 @@ public class Sample {
     @Test public static void m1() { } // should success
     public static void m2() { }
     @Test public static void m3() {
-	throw new RuntimeException("Fail"); // should fail
+	    throw new RuntimeException("Fail"); // should fail
     }
     public static void m4() { }
     @Test public void m5() { } // Wrong usage: Not static method
     public static void m6() { }
     @Test public static void m7() {
-	throw new RuntimeException("Fail"); // should fail
+	    throw new RuntimeException("Fail"); // should fail
     }
     public static void m8() { }
 }
@@ -169,7 +169,7 @@ public class RunTests {
             if(method.isAnnotationPresent(ExceptionTest.class)) {
                 tests++;
                 try {
-                   method.invoke(null);
+                    method.invoke(null);
                     System.out.printf("Test %s fail: Exception not thrown%n", method);
                 } catch(InvocationTargetException wrappedException) {
                     Throwable exception = wrappedException.getCause();
@@ -240,7 +240,7 @@ public class RunTests {
             if(method.isAnnotationPresent(ExceptionTest.class)) {
                 tests++;
                 try {
-                   method.invoke(null);
+                    method.invoke(null);
                     System.out.printf("Test %s fail: Exception not thrown%n", method);
                 } catch(InvocationTargetException wrappedException) {
                     Throwable exception = wrappedException.getCause();
@@ -321,8 +321,8 @@ public class RunTests {
             if(method.isAnnotationPresent(ExceptionTest.class) || method.isAnnotationPresent(ExceptionTestContainer.class)) {
                 tests++;
                 try {
-                   method.invoke(null);
-                   System.out.printf("Test %s fail: Exception not thrown%n", method);
+                    method.invoke(null);
+                    System.out.printf("Test %s fail: Exception not thrown%n", method);
                 } catch(InvocationTargetException wrappedException) {
                     Throwable exception = wrappedException.getCause();
                     int oldPassed = passed;
@@ -359,4 +359,4 @@ public class RunTests {
   IDE나 정적 분석 도구가 제공하는 어노테이션을 사용하면, 해당 도구가 제공하는 진단 정보의 품질을  
   높여줄 것이다. 단, 이러한 어노테이션들은 표준이 아니니 도구를 바꾸거나 표준이 만들어지면 수정 작업이 필요할 것이다.
 
-<hr/>
+---

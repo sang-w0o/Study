@@ -46,10 +46,10 @@ text.applyStyles(STYLE_BOLD | STYLE_ITALIC);
 
 ```java
 public class Text {
-    public enum Style { BOLD, ITALIC, UNDERLINE, STRIKETHROUGH }
+  public enum Style { BOLD, ITALIC, UNDERLINE, STRIKETHROUGH }
 
-    // 어떤 Set을 넘겨도 되나, EnumSet이 가장 좋다.
-    public void applyStyles(Set<Style> styles) { /* ... */ }
+  // 어떤 Set을 넘겨도 되나, EnumSet이 가장 좋다.
+  public void applyStyles(Set<Style> styles) { /* ... */ }
 }
 ```
 
@@ -59,7 +59,7 @@ public class Text {
 
 ```java
 public class Client {
-    text.applyStyles(EnumSet.of(Style.BOLD, Style.ITALCE));
+  text.applyStyles(EnumSet.of(Style.BOLD, Style.ITALCE));
 }
 ```
 
@@ -68,7 +68,7 @@ public class Client {
   일반적으로 좋은 습관이다. 이렇게 하면 좀 특이한 클라이언트가 다른 `Set` 구현체를  
   넘기더라도 처리할 수 있기 때문이다.
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -77,4 +77,4 @@ public class Client {
   선사하기 때문이다. `EnumSet`의 유일한 단점이라는 Java9 전까지는 불변 `EnumSet`을  
   만들 수 없다는 점이다.
 
-<hr/>
+---
