@@ -361,3 +361,78 @@
   "false positive rate"(잘못 거절된 요청들)과 "false negative rate"(잘못 허용된 요청들)을 측정한다.
 
 ---
+
+## Architectural approaches to avoid quotas
+
+- 이렇게 서버단의 가용성을 확보하고, 고객들을 보호하기 위해 admission control을 적용하는 것은 쉬워보일 수 있다.  
+  하지만 어떻게 보면 quota라는 것이 고객들에게 불편하게 작용할 수 있다. Quota가 있다면 고객이 자신이 원하는 일을 수행하는 시간이  
+  느려지게 된다. 형평성 메커니즘과 함께 고객들이 작업을 빠르게 처리할 수 있는 방법을 알아보자.
+
+- AWS의 경우, 클라이언트가 자신의 rate-based quota를 넘어서지 않도록 방지하는 방식은 API가 control plane API인지,  
+  data plane API인지에 따라 달라진다. Data plane API의 경우, 상대적으로 더 많이 호출되고, rate도 높게 가져간다.  
+  예를 들어 S3 GetObject, DynamoDB GetItem, SQS ReceiveMessage API 등이 data plane API에 포함된다.  
+  반면 control plane API는 data plane API의 사용량에 관계없이 때때로 호출되고, 호출량도 적은 API들을 의미한다.  
+  예를 들어, S3 CreateBucket, DynamoDB DescribeTable, EC2 DescribeInstances API 등이 있다.
+
+### Capacity management approaches to avoid exceeding quotas
+
+- Data plane workload들은 유동적으로 변하기 때문에, service 도 마찬가지로 유동성을 가져야 한다.  
+  서비스가 유동성을 가지기 위해서는 고객의 workload에 따라 기반 인프라도 함께 확장할 수 있어야 한다.  
+  거기에 더해 고객들이 quota를 관리할 때도 유연성을 가질 수 있게 해야 한다. AWS의 경우, 아래의 다양한 기술들을 적용해  
+  고객들이 quota를 관리하고 유연성을 확보할 수 있도록 지원한다.
+
+  - Provison된 공간에 비해 활용도가 적은 부분이 있다면, 다른 부분이 해당 여유 공간을 사용하도록 한다.
+  - Auto scaling을 구현해 비즈니스의 성장과 호출자의 rate limit을 증가시킨다.
+  - 고객들이 자신의 limit에 얼마나 가까운지 알 수 있게 하고, 특정 임계치를 넘으면 알림을 받을 수 있게 한다.
+  - 호출자들이 자신의 limit에 가까워지는 경우에 대한 모니터링을 집중적으로 한다.
+
+### API design approaches to avoid exceeding quotas
+
+- 위에서 말한 기술들은 control plane들에 대해서는 적용하기 어려울 수 있다. Control plane은 애초에 비교적 덜 많이 호출될  
+  것임을 가정으로 하고 설계된 반면, data plane은 요청이 굉장히 많은 것을 가정하고 설계된다. 하지만 control plane의 경우에도  
+  만약 고객이 수많은 리소스를 생성하고, 이들에 대해 관리, 감사, 기타 작업들을 수행해야 한다면 자신의 quota를 모두 사용하고  
+  API rate limit을 마주할 수 있게 될 수도 있다. AWS는 이런 사례를 위해 rate-based quota를 모두 사용하지 않는 아래의  
+  대안들을 제시한다.
+
+#### Supporting a change stream
+
+- 예를 들어, 일부 사용자들은 Amazon EC2 DescribeInstances API를 주기적으로 호출해 자신들이 관리하는 EC2 인스턴스들의  
+  목록을 가져온다. 그리고 최근에 생성되거나 삭제된 인스턴스들을 식별한다. 이러한 고객들의 EC2 fleet이 커지면, API call은  
+  더 횟수가 많아지고, 비싸지게 되고, 결과적으로 rate-based quota를 초과하게 된다. 이와 유사한 사용 사례의 경우,  
+  AWS는 AWS CloudTrail이라는 서비스를 제공해 특정 연산의 change log를 제공함으로써 고객들이 주기적으로 API를 호출하지  
+  않아도 되게 한다.
+
+#### Exporting data to another place that supports higher call volumes
+
+- 이 방식을 활용한 사례로는 S3 Inventory API가 있다. 일부 고객들은 S3 bucket 내에 무수히 많은 object들이 담겨 있으며,  
+  이 bucket 내에서 특정 object들을 찾아내고 싶어한다. 이들은 처음에는 ListObjects API를 사용했다. 하지만 이렇게 하지  
+  않고 더 높은 처리량을 달성하도록 하기 위해 S3는 특정 bucket 내의 object들의 목록을 JSON 형태로 직렬화해 다른 S3
+  object로 비동기적으로 export 해주는 Inventory API를 만들었다. 즉, control plane API 대신 data plane API를  
+  활용해 동일한 목적을 달성할 수 있게 한 것이다.
+
+#### Adding a bulk API to support high volumes of writes
+
+- 일부 고객들은 control plane이 관리하는 entity를 매우 많이 생성하거나 갱신하는 API를 호출하고 싶어한다.  
+  일부 고객들은 API가 제공하는 rate limit을 준수할 의향이 있었지만, 이를 준수하기 위해 특정 작업을 하는 데에 드는 시간이  
+  길어지는 것은 원하지 않았다. AWS IoT의 경우, 이 문제를 API 설계를 바꿈으로써 해결했다. 비동기적으로 동작하는  
+  Bulk Provisioning API들을 제공함으로써, 고객들은 자신이 원하는 변경 사항들을 담은 파일들을 업로드하고, 서비스가 변경  
+  사항들을 반영하고 나서 결과를 담은 파일들을 반환하게 했다. 이렇게 함으로써 고객들은 거대한 batch 작업들을 더욱 편리하게  
+  수행할 수 있게 되었고, 부분 실패, 재시도 등에 대해 고민하지 않아도 되게 되었다.
+
+#### Projecting control plane data into places where it needs to be commonly referenced
+
+- EC2 DescribeInstances control plane API는 각 인스턴스의 network interface부터 block mapping 정보까지 거의 모든  
+  metadata를 반환한다. 하지만 일부 metadata는 인스턴스에서 실행되는 코드에 의존적이다. 만약 인스턴스 개수가 많다면, DescribeInstances  
+  API에 의해 각 인스턴스가 반환하는 정보도 거대해질 것이다. 만약 API가 rate 초과, 혹은 모종의 이유로 실패한다면 인스턴스에서  
+  실행되고 있는 고객의 애플리케이션에도 문제를 끼치게 된다. 이를 해결하기 위해 EC2는 각 인스턴스에 대해 특정 인스턴스의 metadata를  
+  조회할 수 있는 기능을 제공한다. 이렇게 control plane이 관리하는 데이터를 인스턴스단에서도 볼 수 있게 함으로써, 고객들의  
+  애플리케이션들은 API rate limit에 다가가는 것을 피할 수 있게 된다.
+
+### Admission control as a feature
+
+- 일부 경우에는 무한한 유연성 대신 admission control을 더 선호하게 되는데, 주로 비용을 조절할 수 있기 때문이다.  
+  일반적으로 서비스들은 거절된 요청들에 대해서는 과금하지 않는데, 요청이 거절되는 것은 드물게 발생하고 처리 비용이 싸기 때문이다.  
+  예를 들어, AWS Lambda의 고객들은 lambda 함수의 동시 호출 가능 횟수를 제한시켜 비용을 조절하는 기능을 원했다.  
+  고객들이 이런 기능을 원할 때는 limit을 손쉽게 API call로 바꾸고, 충분한 가시성과 알림 기능을 제공해야 한다.
+
+---
