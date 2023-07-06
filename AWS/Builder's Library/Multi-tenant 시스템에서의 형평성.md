@@ -2,7 +2,7 @@
 
 > - [Amazon Builder's Library - Fairness in multi-tenant systems](https://aws.amazon.com/builders-library/fairness-in-multi-tenant-systems/)
 
-## 소개
+## Introduction
 
 - 이 글은 Amazon이 rate limiting(처리율 제한, throttling, admission control)의 오버헤드를 유발하지  
   않으면서 시스템의 API 요청을 관리하는 방법에 대한 몇 가지 접근법을 소개한다. 이러한 보호 체계가 있지 않다면  
@@ -434,5 +434,31 @@
   일반적으로 서비스들은 거절된 요청들에 대해서는 과금하지 않는데, 요청이 거절되는 것은 드물게 발생하고 처리 비용이 싸기 때문이다.  
   예를 들어, AWS Lambda의 고객들은 lambda 함수의 동시 호출 가능 횟수를 제한시켜 비용을 조절하는 기능을 원했다.  
   고객들이 이런 기능을 원할 때는 limit을 손쉽게 API call로 바꾸고, 충분한 가시성과 알림 기능을 제공해야 한다.
+
+---
+
+## Conclusion
+
+- Multi-tenant 서비스들은 리소스를 공유함으로써 인프라 비용을 낮추고, 운영 효율성을 높이게 해준다.  
+  Amazon에서는 multi-tenant 시스템에 형평성을 보장함으로써 고객들에게 안정적인 성능과 가용성을 제공한다.
+
+- 형평성을 구현하기 위해 service quota가 유용하게 사용될 수 있다. Rate-based quota는 예측 불가한 workload의 증가로  
+  다른 서비스까지 영향을 끼치는 것을 막음으로써 웹 서비스를 더욱 안정적으로 제공할 수 있게 해준다. 하지만, rate-based quota는  
+  고객의 사용 경험에 해를 끼칠 수 있다는 점에 유의해야 한다. 이를 위해 quota와 관련된 가시성 제공, burst sharing, 그리고  
+  다른 방법들을 활용해 고객들이 자신의 quota를 넘지 않도록 하는 방법을 제공해야 한다.
+
+- 분산 시스템에서 admission control을 구현하는 것은 꽤나 까다롭다. AWS의 경우 API Gateway는 throttling을 위한  
+  여러 가지 방법들을 제공하고, WAF는 서비스 보호를 위한 layer를 제공하며 API Gateway와 Load Balancer와 연계할 수 있다.  
+  DynamoDB는 각 index 레벨에서의 provisioned throughput을 제공함으로써 고객들이 서로 다른 workload들에 대해  
+  처리량 요구사항을 격리할 수 있도록 한다. 이와 유사하게 AWS Lambda는 함수마다의 동시 호출 횟수를 제한할 수 있게 함으로써  
+  서로 다른 workload들이 격리될 수 있게 한다.
+
+- Amazon은 quota를 사용한 admission control을 안정적이고 예측 가능한 성능을 제공하는 시스템을 만들기 위한 중요한  
+  요소로 생각한다. 하지만 admission control만으로는 불충분하다. 거기에 더해 auto scaling 등을 제공해 만약  
+  의도하지 못한 load shedding이 발생하는 경우, 시스템이 auto scaling을 통해 자동으로 확장할 수 있게 한다.
+
+- 표면적으로 봤을 때 비용과 workload의 격리 측면에서 서비스를 single-tenant하게 노출시키는 것과 multi-tenant하게  
+  노출시키는 것에 tradeoff 관계가 있는 것처럼 보일 수 있다. 하지만 multi-tenant system에 형평성을 보장할 수 있다면,  
+  고객들은 마치 single-tenant system을 사용하는 것처럼 느낄 수 있다.
 
 ---
