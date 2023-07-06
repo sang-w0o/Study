@@ -141,6 +141,10 @@
 
 > LOR(Least Outstanding Requests) 알고리즘: 특정 서버가 시간이 오래 걸리는 요청을 처리하거나 요청을  
 > 처리하는 데에 시간이 오래 걸리는 경우, 그렇지 않은 대상에게 트래픽을 전달하는 알고리즘
+>
+> 즉, LOR 알고리즘을 사용하면 상대적으로 처리 시간이 짧은 부하가 걸린 대상(빠른 에러 응답)에게
+> 되려 요청을 전달함으로써 과부하된 대상이 트래픽을 더 받는 현상이 발생할 수 있기 때문에
+> 경우에 따라 에러 메시지도 성공적으로 처리되는 요청들의 latency에 맞춰 반환한다는 것이다.
 
 - 하지만 multi-tenant 서비스의 경우, load shedding만을 사용한다고 사용자들에게 마치 single-tenant  
   서비스를 사용하는 것과 같은 경험을 줄 수 없다. 일반적으로 여러 개의 tenant가 가지는 부하는 각자 다르다.  
@@ -224,5 +228,136 @@
   예를 들어, 일부 서비스들은 성장과 비례해 quota를 증가시킨다. 하지만 일부 경우에는 클라이언트들이 고정된  
   quota를 요구할 수도 있는데, 예를 들어 비용 조절을 위한 quota 등이 있다. 이러한 경우, quota는 보호 메커니즘이  
   아니라 서비스의 기능으로써 노출되는 경우가 많다.
+
+---
+
+## Implementing layers of admission control
+
+- 트래픽을 관리하고, load shedding과 rate-based quota를 구현한 시스템을 _admission control system_ 이라 한다.
+
+- Amazon이 제공하는 많은 서비스들은 거절되는 수많은 요청들로부터 보호하기 위해 수십개의 admission control layer로  
+  구성되어 있다. 일반적으로는 서비스 앞단에 Amazon API Gateway를 둬서, quota와 rate limiting의 일부를  
+  위임한다. API Gateway만으로 수많은 트래픽을 처리할지 말지를 결정할 수 있기 때문에, 뒷단에 있는 서비스 server들은  
+  영향을 받지 않은 채 실 트래픽을 처리할 수 있다. 여기에 더해 ALB, CloudFront, 그리고 WAF까지 활용해  
+  admission control의 역할을 더욱 위임한다.
+
+- Amazon은 이러한 admission control layer들을 수십년간 고도화해왔고, 여기서는 그 중 일부를 소개한다.
+
+### Local admission control
+
+- Admission control을 구현하는 일반적인 방법 중 하나는 token bucket 알고리즘을 활용하는 것이다.  
+  Token bucket은 token들을 가지며, 요청이 수신될 때마다 하나의 token을 bucket에서 사용한다.  
+  더 이상 token이 남아있지 않다면 요청은 거절되고, bucket은 빈 상태로 계속 남아있다.  
+  설정된 rate에 따라 token이 bucket에 추가로 전달되고, 지정된 최대 용량만큼 쌓이게 된다.  
+  이 최대 용량은 burst traffic에 의해 즉시 소모될 수 있기 때문에 burst capacity라고도 불린다.
+
+- 이렇게 token이 즉시 모두 소모되는 것은 양날의 검이다. 균등하지 못한 트래픽에 어느정도 대처가 가능하지만  
+  만약 traffic burst volume이 너무 크다면 rate limiting의 동작을 못하게 되기 때문이다.
+
+- 이에 대한 대안으로 서로 다른 token bucket들이 함께 구성되도록 할 수 있다. 하나의 token bucket은  
+  상대적으로 낮은 rate를 가지고 높은 burst capacity를 가지도록 하고, 다른 bucket은 rate는 높지만  
+  burst capacity는 낮게 가지도록 하는 것이다. 첫 번째 bucket부터 확인하고 그 다음 bucket을  
+  확인하는 식으로 구현하면 큰 burst까지 대처할 수 있다.
+
+- Serverless architecture를 사용하지 않는 전통적인 서비스들에서는 특정 사용자로부터 발생한 요청이  
+  얼마나 균등하게 서버들에게 전달되는지도 고려해야 한다. 만약 요청들이 균등하지 않다면 bursting capacity를  
+  더 넉넉하게 잡고, 분산 admission control 기술들을 사용한다.
+
+### Distributed admission control
+
+- Local admission control은 로컬 리소스를 보호하기 위해 유용하지만, quota를 강요하는 것과 형평성을  
+  지키기 위해서는 수평적으로 확장된 fleet 전반에 대한 admission control이 필요하다.
+
+#### Computing rates locally and dividing the quota by the number of servers
+
+- 이 접근법을 사용하면 서버들은 자신들이 받는 트래픽의 rate를 기반으로 admission control을 수행하지만,  
+  각 key 별 quota를 트래픽을 감당하는 서버의 개수로 나눈다. 이 접근법은 트래픽이 서버들로 상대적으로 균등하게  
+  배분된다는 가정 하에 진행된다. Load balancer가 round robin 방식으로 동작한다면, 이 전제는 대부분 참이다.
+
+- 아래 그림은 하나의 load balancer를 사용해 트래픽이 서버들로 균등하게 배분하는 경우를 나타낸다.
+
+  ![picture 4](/images/AWS_BL_MTSF_4.png)
+
+- 트래픽의 고른 분산이라는 전제는 특정 fleet의 경우 참이 아닐 수 있다. 예를 들어 만약 load balancer가 요청을 분산하는 것이  
+  아니라 connection을 분산하는 방식을 사용한다면, 적은 수의 connection을 가지는 클라이언트들은 동일한 서버와만 연결할  
+  것이다. 이 경우, key별 quota가 충분히 크다면 문제가되지 않는다. 또한 load balancer를 여러 개 사용하는 굉장히 큰  
+  fleet의 경우도 고려해야 한다. 이 경우, 클라이언트는 여러 개의 load balancer와 연결을 수립하고, 이 클라이언트의 요청을  
+  처리하는 서버 인스턴스도 여러 개가 될 수 있다. 이 경우도 이전과 마찬가지로 quota가 충분히 크거나 클라이언트들이 자신에게  
+  할당된 quota를 최대한 사용하는 경우가 없으면 문제가 되지 않는다.
+
+- 아래 그림은 DNS caching 때문에 여러 개의 load balancer가 있어도 특정 클라이언트로부터의 요청이 고르게 분산되지  
+  않는 경우의 모습을 나타낸다. 이 문제는 규모가 커지고 시간이 지남에 따라 클라이언트들이 connection을 열고 닫음에 따라  
+  문제가 될 여지가 적다.
+
+  ![picture 5](/images/AWS_BL_MTSF_5.png)
+
+#### Using consistent hashing for distributed admission control
+
+- 특정 서비스 관리자들은 Amazon ElastiCache for Redis fleet과 같이 별도의 fleet을 관리한다.  
+  이때, 특정 throttle key에 안정 해시를 수행해 특정 rate tracker server로 트래픽을 배치하고, 해당 rate tracker가  
+  local하게 admission control을 수행하게 할 수 있다. 이 접근법은 key의 cardinality가 높은 경우, 즉 key의 수가  
+  많은 경우에도 잘 동작하는데, 이는 각 rate tracker는 자신이 처리할 key들에 대해서만 알아도 되기 때문이다.  
+  하지만 기본 구현 방식을 사용하면 특정 throttle key를 사용한 요청량이 커지면 cache fleet에 대해 "hotspot" 현상을  
+  발생시킬 수 있기 때문에, 특정 key의 요청량이 증가했을 때도 원활히 처리할 수 있도록 local admission control 시스템을  
+  고도화해야 한다.
+
+- 아래 그림은 data store에 대해 안정 해시를 사용하는 모습을 나타낸다. 트래픽이 균등하지 않더라도 cache와 같은 데이터베이스로  
+  전달되는 트래픽을 안정 해시를 사용해 계산하는 것은 분산 admission control의 문제를 해결할 수 있다.  
+  하지만 이 접근법은 시스템 규모가 커지면 문제가 발생할 수 있다.
+
+  ![picture 6](/images/AWS_BL_MTSF_6.png)
+
+#### Taking other approaches
+
+- Amazon에서는 사용 사례에 따라 overhead, 정확도를 고려해 distributed admission control 시스템이 구현된다.  
+  그리고 이들은 대부분 각 throttle key들의 관측된 rate를 fleet 내의 서버들이 공유하는 과정을 포함한다.  
+  이 접근법에는 확장성, 정확성, 그리고 운영의 단순함 측면에서 많은 tradeoff가 발생한다.
+
+- 아래 그림은 균등하지 못한 트래픽에 대응하기 위해 서버들이 비동기적으로 정보를 공유하는 모습을 나타낸다.  
+  물론 이 방식도 나름의 확장성, 정확성 문제가 발생한다.
+
+  ![picture 7](/images/AWS_BL_MTSF_7.png)
+
+### Reactive admission control
+
+- 예측할 수 없는 traffic spike에 대응하기 위한 수단으로 quota는 분명히 중요하지만, 서비스 또한 예측할 수 없는 workload를  
+  원활히 처리할 수 있어야 한다. 예를 들어 클라이언트가 의도적으로 잘못된 요청을 보내거나, 예상한 것보다 처리하는 데 훨씬 더 오래  
+  걸리는 workload를 보낼 수 있을 것이다. 이런 경우에 대응하고 유연성을 확보하기 위해 user-agent HTTP header, URI,  
+  source IP 주소 등 요청의 다양한 부분을 확인하는 admission control system을 별도로 둘 수 있다.
+
+- 추가적으로 rate limit 규칙은 빠르게 조절하고, 변경될 수 있어야 한다. 하나의 방법으로 process 시작 시 규칙 설정 파일을  
+  메모리에서 불러오는 것을 생각할 수도 있지만, 이렇게 하면 규칙의 변경 사항을 빠르게 배포할 수 없다. 즉, 안정성을 고려하면서  
+  동적으로 설정할 수 있는 방식을 사용해야 한다.
+
+### Admission control of high cardinality dimensions
+
+- 지금까지 살펴본 quota의 종류들 중 대부분의 경우, admission control system은 관측된 rate와 함께 quota 값들을  
+  지속적으로 추적해야 한다. 예를 들어, 만약 한 서비스가 10개의 다른 애플리케이션에 의해 호출되었다면, admission control  
+  system은 10개의 서로 다른 rate와 quota 값을 추적해야 한다. 이렇기에 요청의 cardinality가 높아질수록 admission  
+  control 과정이 복잡해지게 된다. 예를 들어, 시스템은 전세계의 모든 IPv6 주소 각각에 대해 rate-based quota를  
+  추적해야 하거나, DynamoDB table 내의 각 row에 대해 추적하거나, 아니면 S3 bucket 내의 각 object에 대한 quota를  
+  추적해야 할 수 있다.
+
+### Reacting to rate-exceeded responses
+
+- 클라이언트가 rate 초과와 관련된 에러를 만난다면, 재시도를 하거나, 그냥 에러를 반환할 수 있다.  
+  Amazon의 경우, 이 문제에 대해 동기 시스템과 비동기 시스템의 경우를 나누어 다르게 처리한다.
+
+- 동기 시스템은 응답을 기다리는 무언가가 있기 때문에 빠르게 처리할 수 있어야 한다. 요청을 재시도해 성공할 수도 있겠지만,  
+  rate 초과의 경우에는 재시도하는 것은 이미 과부하된 시스템에 추가적인 부하를 발생시키고 응답을 더 늦출 수 있게 된다.  
+  일례로 AWS SDK는 `STANDARD` retry mode를 지정하면 에러가 자주 반환될 경우 자동으로 재시도를 중단한다.
+
+- 많은 비동기 시스템은 이를 더 쉽게 처리할 수 있다. Rate 초과 관련 에러 응답을 받으면, 단순히 배압을 적용해  
+  요청이 성공적으로 올 때까지 특정 시간 동안 처리 시간을 늦추기만 하면 된다. 일부 비동기 시스템은 주기적으로 동작하며  
+  작업을 처리하는 데에 오랜 시간이 소요된다. 이러한 시스템들에 대해서는 최대한 빨리 실행하고, 일부 의존성을 가지는  
+  시스템에서 병목 현상이 일어나면 배압을 적용해야 한다.
+
+### Evaluating admission control accuracy
+
+- 서비스를 보호하기 위해 사용하는 admission control 알고리즘이 무엇이든, 해당 알고리즘의 정확성은 꼭 측정해야 한다.  
+  이를 위한 한 가지 방법은 throttle key와 해당 key의 rate 관련 로그를 request마다 쌓고, 로그 분석을 통해  
+  fleet 단위에서의 각 throttle key의 RPS를 측정하는 것이다. 그리고 이 RPS를 설정한 rate limit과 비교한다.  
+  이때 "true positve rate"(올바르게 거절된 요청들)과 "true negative rate"(올바르게 허용된 요청들),  
+  "false positive rate"(잘못 거절된 요청들)과 "false negative rate"(잘못 허용된 요청들)을 측정한다.
 
 ---
