@@ -120,3 +120,55 @@
   발견하고, 어떤 보호 메커니즘을 적용해야 하는지 알 수 있기 때문이다.
 
 ---
+
+## Visibility
+
+- AWS는 부하로부터 보호하기 위해 어떤 기술을 사용하는지와 무관하게 메트릭과 가시성을 충분히 확보하고, 관찰함으로써 어떤 기술이 적합한지를 지속적으로 검사한다.
+
+- 만약 잘못된 보호 메커니즘이 요청을 거절하면, 거절된 요청들에 의해 서비스의 가용성이 저하된다.  
+  만약 서비스가 처리할 수 있는 리소스가 충분히 있음에도 불구하고 max connection이 너무 낮게 설정되는 등의 이유로 요청을 거절하게 되면  
+  false positive 수치가 증가하게 된다. 이 false positive 수치는 0이어야 한다. 만약 이 수치가 주기적으로 0이 아닌 값을  
+  가지게 된다면, 서비스가 너무 민감하게 tuning되어 있지 않은지, 지속적으로 과부하되는 인스턴스가 있는지, 확장 또는 load balancing에  
+  문제가 있는지 등을 확인해야 한다. 이와 같은 경우, 애플리케이션 성능 튜닝을 해야하거나 더 큰 인스턴스 타입으로 바꿔  
+  부하를 더 우아하게 처리할 수 있도록 해야 한다.
+
+- 가시성의 경우, 만약 load shedding이 발생해 요청들이 거절되면 어떤 클라이언트의 요청이었는지, 어떤 작업을 호출했는지, 그리고 이 외에  
+  보호 메커니즘을 튜닝하는 데에 도움이 될만한 정보들을 항상 함께 확인할 수 있어야 한다. 또한 load shedding에 의해 거절된 트래픽의  
+  양도 항상 모니터링해야 한다. 만약 문제가 있다면 우선적으로 capacity를 추가하고 현재 병목 지점을 해결해야 한다.
+
+In terms of visibility, when load shedding rejects requests, we make sure that we have proper instrumentation to know who the client was, which operation they were calling, and any other information that will help us tune our protection measures. We also use alarms to detect whether the countermeasures are rejecting any significant volume of traffic. When there is a brownout, our priority is to add capacity and to address the current bottleneck.
+
+- Load shedding에는 가시성과 관련해 미묘하지만, 중요한 고려 사항이 하나 더 있다. 실패한 요청들의 latency가 서비스가 실제로 처리하는  
+  요청들의 latency 관련 메트릭에 영향을 미치지 않도록 해야한다. 요청을 거절하는 latency는 실제로 처리되는 요청들의 latency에 비해  
+  현저히 낮다는 것은 자명하다. 예를 들어, 만약 서비스가 받는 트래픽의 60%가 load shedding되어 거절된다면, 서비스가 실제로  
+  처리하는 요청들의 latency는 매우 높더라도 median latency는 꽤나 좋아보일 수도 있다.
+
+### Load shedding effects on automatic scaling and AZ failure
+
+- 설정이 잘못된 경우, load shedding에 의해 auto scaling이 동작하지 않게될 수 있다. 다음 예시를 살펴보자.
+
+  - 서비스에 CPU 사용량 기반의 auto scaling 정책이 적용되어 있고, 그와 동시에 비슷한 CPU 사용량에 도달했을 때 트래픽을 거절하는  
+    load shedding도 함께 설정되어 있다.
+
+- 위의 경우 load shedding 시스템에 의해 요청이 거절되면서 CPU 부하는 낮게 유지될 것이고, 결과적으로 CPU 사용량 기반의  
+  auto scaling 정책은 동작할 일이 없을 것이다.
+
+- AZ 단위 장애에 대응하기 위한 auto scaling 정책을 세울 때도 load shedding 로직을 고려해야 한다.  
+  서비스는 우리가 설정한 latency를 지키기 위해 AZ가 제공하는 capacity를 모두 채울만큼 확장할 수 있다.  
+  AWS에서는 CPU와 같은 시스템 메트릭들을 살펴보면서 서비스가 capacity limit에 얼만큼 다가가는지를 지속적으로 모니터링한다.  
+  하지만 load shedding이 있다면 시스템 메트릭은 충분히 낮은데 요청이 거절되는 상황이 발생할 수 있으며, 결국  
+  AZ 장애를 위해 마련된 auto scaling 정책이 적용되지 않게될 수 있다. 따라서 load shedding을 사용하는 경우, fleet의  
+  capacity와 여유 공간이 항상 어떤 상태인지를 알 수 있도록 테스트를 더욱 정확히 진행해야 한다.
+
+- 사실 치명적이지 않고 순간적으로 발생하는 대용량 트래픽에 대응해 비용을 아끼기 위해 load shedding을 사용할 수도 있다.  
+  예를 들어, `amazon.com`의 웹사이트 트래픽을 감당하는 fleet이 있다고 해보자. 이때, 크롤러에 의해 수행되는 검색 트래픽의 경우에는 확장을  
+  할 때 고려할 요소가 아닐 가능성이 높다. 하지만 이런 결정을 할 때는 굉장히 조심해야 한다. 모든 요청을 처리하는 데 드는 비용이 절대 동일하지  
+  않고, 사람이 만들어내는 트래픽과 크롤러가 발생시키는 트래픽을 함께 고려해 AZ 단위의 가용성을 확보하는 것은 고도화된 설계, 지속적인 테스트  
+  등이 필요하다. 그리고 만약 서비스의 클라이언트들이 서비스가 이렇게 구성된 것을 모른다면, AZ 장애가 발생했을 때 load shedding이 발생하는  
+  것이 아니라 AZ 장애에 대처하지 못한 것처럼 보여 가용성이 떨어진 것처럼 느끼게 될 수 있다.  
+  이러한 이유들 때문에 SoA의 경우, 이런 설계를 최대한 빠르게 시스템에 녹여넣어야 한다.
+
+> 잘못된 설계를 한다면 AZ 단위의 장애 감래는 성공했지만, load shedding에 의해 사용자의 요청이 실패한다는 말이다.  
+> 그리고 이를 사용자는 AZ 단위 장애에 대한 대처를 하지 못한 것으로 인지하고, 가용성이 떨어진다고 생각한다는 것이다.
+
+---
