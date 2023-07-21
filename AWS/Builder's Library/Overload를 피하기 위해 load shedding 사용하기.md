@@ -340,3 +340,34 @@ In terms of visibility, when load shedding rejects requests, we make sure that w
   때문이다. 서버가 거절할 수 있는 트래픽의 양에는 한계가 있기 때문에, 이를 초과하는 엄청난 양의 트래픽에 대해서는 앞단의 layer에서 보호해야 한다.
 
 ---
+
+## Thinking about overload differently
+
+- 이 문서에서 우리는 시스템이 동시다발적으로 요청을 받으면서 리소스 제한, 경합 등의 문제가 발생함에 따라 load shedding의 필요성이  
+  대두됨을 살펴보았다. 과부하 feedback loop는 latency를 기준으로 동작하는데, 이렇게 되면 결과적으로 낭비되는 작업들을  
+  하게 되고, 요청률은 증폭되며, 더욱 과부하되는 상황을 야기한다. 그리고 Amazon은 여기에 더해 예측 가능하고 일관된 성능을  
+  제공하는 것을 가장 중요한 설계 원칙으로 가져가기 때문에 load shedding을 적극적으로 사용한다.
+
+- 예를 들어, Amazon DynamoDB는 예측 가능한 성능과 고가용성을 지원하는 데이터베이스 서비스이다.  
+  심지어 workload가 재빠르게 급증하고 provision된 리소스를 초과하더라도 DynamoDB는 해당 workload를 예측 가능한 goodput  
+  latency 내에 모두 처리해낸다. 이런 과정에는 auto scaling, adaptive capacity, 그리고 on-demand 개념이 적용되어 있다.  
+  그리고 workload가 급증해도 goodput은 안정적으로 유지되어 DynamoDB를 사용하는 서비스들의 성능 또한 예측 가능해지고,  
+  전체 시스템의 안정성을 향상시킬 수 있다.
+
+- AWS Lambda는 예측 가능한 성능을 더욱 정확하게 제공하는데, Lambda를 사용해 서비스를 구현한 경우 각 API는 요청을 처리하기 위해  
+  일정한 컴퓨팅 리소스가 제공되는 자신만의 실행 환경을 부여받는다. 이렇게 하나의 서버가 여러 API를 처리하는 서버 기반의 패러다임과는  
+  차이점을 가져간다.
+
+- 각 API 요청을 처리하는 작업을 격리하고 리소스(컴퓨팅, 메모리, 디스크, 네트워크) 또한 격리하는 것은 과부하 feedback loop의  
+  악순환을 회피할 수 있는데, 하나의 API 요청이 다른 API 요청을 처리하기 위한 작업과 별도로 수행되기 때문이다. 따라서 처리량이  
+  goodput을 초과하는 경우, goodput은 서버 기반의 환경과 마찬가지로 여전히 이전과 동일하게 유지될 것이다.  
+  물론 이 방식이 은총알은 아닌데, 의존성을 가지는 컴포넌트가 느려져 동시성이 높아질 수 있기 때문이다. 하지만 최소한 앞에서  
+  다뤘던 호스트의 리소스 경합 관련 문제는 발생하지 않을 것이다.
+
+- 이러한 리소스의 격리는 사소해 보일지 몰라도, 현대적인 serverless 컴퓨팅 환경을 제공하는 AWS Fargate, Amazon ECS, AWS  
+  Lambda에서 가져갈 수 있는 굉장히 중요한 이점이다. Amazon에서는 thread pool 튜닝부터 load balancer의 max  
+  connection 수를 정하는 등 load shedding을 위해 알아야하고 수행해야 하는 작업이 만만치 않음을 파악했다.  
+  그리고 사실 이런 설정값들의 기본 값들을 정하는 것은 각 시스템의 운영 특성마다 너무 달라지기 때문에 말이 안된다.  
+  이에 반해 현대적인 serverless 컴퓨팅 환경은 low-level에서는 리소스 격리를 제공하고, high-level에서는 throttling과  
+  동시성 제어 등의 기능을 제공함으로써 더욱 쉽게 과부하로부터 서비스를 보호할 수 있게 해준다.  
+  이런 serverless 환경을 적극 활용하면 load shedding을 더욱 쉽게 구현하고, 운영 및 관리할 수 있다.
