@@ -275,3 +275,68 @@ In terms of visibility, when load shedding rejects requests, we make sure that w
   클라이언트는 처음부터 다시 요청하게 될 것이다. 이로써 위에서 본 `end()` 요청과 같이 첫 번째 페이지에 대한 요청이 이후 페이지에 대한  
   요청보다 중요도가 높아야 한다는 사실을 알 수 있다. 그리고 이런 이유로 동기 작업으로 처리되는 작업을 무한히 하는 것이 아니라,  
   paginate해 유한한 작업들로 나눠야하는 이유를 알 수 있다.
+
+### Watching out for queues
+
+- 내부에 queue를 두고 사용하는 경우, 요청의 duration을 살펴보는 것도 도움이 된다. 많은 현대 애플리케이션들은 in-memory queue를  
+  사용해 요청을 처리할 thread pool과 연결한다. 실행자(executor)를 가진 웹 서비스 프레임워크는 일반적으로 앞에 queue를 둔다.  
+  그리고 TCP 기반 서비스의 경우, OS는 각 socket 앞에 buffer를 두고 관리하며, 이 buffer에 처리되기를 기다리는 요청들이  
+  많이 쌓일 수 있다.
+
+- Queue에서 요청을 빼올 때, 해당 요청이 얼마나 오랫동안 queue에 보관되어 있는지 알 수 있다.  
+  이 duration은 서비스 메트릭에 기록되면 좋다. 그리고 queue의 크기를 유한하게 두는 것에 더해, 들어오는 요청들이 queue에 보관될  
+  최대 시간을 지정하고 만약 이 시간보다 오랫동안 보관되는 요청들이 있다면, 해당 요청들을 제거하는 것이 좋다.  
+  이 방식은 서버가 더 새로운 요청들을 처리하고, 처리에 성공할 가능성을 최대한 높여준다. 이 접근법을 고도화해 AWS에서는  
+  protocol이 지원하는 경우 LIFO(Last In First Out) queue를 사용한다.  
+  (HTTP/1.1 pipelining은 LIFO queue를 지원하지 않지만, HTTP/2는 일반적으로 지원한다.)
+
+- Load balancer 또한 서비스에 과부하가 걸렸을 때 surge queue라는 기능을 통해 들어오는 새로운 요청 혹은 connection들을  
+  queueing할 수 있다. 이 경우 문제가 생길 수 있는데, 서버가 최종적으로 queue로부터 요청을 받아가더라도, 해당 요청이 얼마나  
+  오랫동안 queue에 보관되어 있던 것인지 알 수 없기 때문이다. 이를 방지gk기 위해 초과되는 요청들을 queueing하지 않고 바로  
+  빠르게 실패처리(fail-fast) 하는 것이 더 낫다(spillover). AWS의 경우, CLB(Classic Load Balancer)는 surge queue를  
+  사용하며 ALB(Application Load Balancer)는 초과 트래픽을 바로 거절한다. 설정이 어떻든 관계없이 surge queue의 크기,  
+  spillover 양 등 load balancer의 메트릭은 지속적으로 모니터링되어야 한다.
+
+- AWS는 queue를 모니터링하는 것이 매우 중요하다고 생각한다. 실제로 예상하지 못한 곳(시스템, 라이브러리 등)들에서  
+  queue를 사용하고 있는 경우가 꽤 많다.
+
+### Protecting against overload in lower layers
+
+- 서비스는 꽤나 많은 layer들로 구성되는데, load balancer부터 netfilter와 iptables를 제공하는 OS까지, 서비스 프레임워크부터  
+  코드단까지 여러 layer들이 있으며 각 layer들은 서비스를 보호하기 위한 기능을 제공한다.
+
+- NGINX와 같은 HTTP proxy는 max connection(`max_conns`) 기능을 제공하는데, 이 기능을 사용하면 백엔드 서버에게  
+  전달될 활성 요청 혹은 connection의 최대 개수를 제한할 수 있다. 이는 유용한 기능이지만, 위에서 봤듯이 최후의 수단으로  
+  사용되어야 한다. Proxy를 사용하면 트래픽에 중요도를 부여하기 어려워지며, raw in-flight 요청들이 함께 집계되는 것은  
+  서비스가 실제로 과부하 상태인지 아닌지 여부를 판단하는 데에 때때로 부정확한 정보를 제공하기 때문이다.
+
+- 이 문서의 첫 부분에서 우리는 저자가 Service Frameworks 팀에서 근무했을 때 맞이했던 문제점들에 대해 알아보았다.  
+  저자의 팀은 각 팀이 사용하는 load balancer에게 기본적인 max connection 값을 추천하고 싶었다.  
+  결과적으로는 각 팀에게 load balancer와 proxy의 max connection을 높게 가져가도록 하고, 서버단에서 서버단의 정보를 토대로  
+  더욱 정교한 load shedding 알고리즘을 개발해 사용하도록 가이드했다. 하지만 여전히 max connection 값은 중요했는데,  
+  load balancer 또는 proxy의 max connection 값이 서버의 스레드, 프로세스, file descriptor 수 등의 리소스  
+  제한보다 더 크다면 서버가 load balancer의 health check 요청을 처리할 수 없게 되기 때문이다.
+
+- OS 단에서 서버의 리소스를 제한하도록 하는 기능은 굉장히 강력하고, 긴급 상황에 유용하게 사용될 수 있다.  
+  그리고 과부하는 언제든지 발생할 수 있기 때문에 적절한 처리 방식과 명령어들을 준비하도록 신경써야 한다.  
+  예를 들어, iptables 유틸리티는 서버가 수신할 수 있는 connection 수에 상한을 지정할 수 있고, 이를 초과하는 connection들을  
+  어느 서버 프로세스보다 더욱 효율적으로 거절할 수 있다. 그리고 제한된 단위 안에서 새로운 connection을 허용하거나, source IP 주소마다  
+  connection 수립률을 제한할 수 있다. Source IP 필터는 강력하지만 전통적인 load balancer에서는 사용할 수 없다.  
+  하지만 ELB Network Load Balancer는 네트워크 가상화(network virtualization)를 통해 OS단에서 호출자의  
+  source IP 주소를 보관함으로써 source IP filter와 같은 iptables의 규칙들이 예상대로 동작하도록 한다.
+
+### Protecting in layers
+
+- 일부 경우, 서버가 요청을 거절하면서 속도가 느려질 정도로 리소스가 매우 부족한 상황이 발생할 수 있다. 이런 경우는 굉장히 현실적이며,  
+  이에 대응하기 위해서는 서버와 클라이언트 사이의 모든 network hop을 지켜보고 이들이 load shedding을 구현하기 위해  
+  어떻게 협력해야 하는지 파악해야 한다. 예를 들어, 여러 AWS 서비스들은 기본적으로 load shedding을 지원한다.  
+  만약 Amazon API Gateway를 서비스의 앞에 둔다면, API Gateway 단에서 API마다 최대 요청 처리율을 지정할 수 있다.  
+  그리고 API Gateway, Load Balancer, CloudFront 중 하나라도 서비스 앞단에 두는 경우, AWS WAF를 통해  
+  다방면으로 초과되는 트래픽을 제한할 수 있다.
+
+- 가시성도 매우 중요하다. 초과되는 트래픽은 최대한 빨리 거절하는 것이 중요한데, 이 방식이 가장 비용이 저렴하기 때문이다.  
+  하지만 이를 제대로 관리하기 위해선 가시성이 확보되어야 한다. 이것이 layer들을 사용해 애플리케이션을 보호해야 하는 이유인데,  
+  서버가 요청을 거절하기 위한 작업을 최대한 적게 수행하도록 하고, 제한되는 트래픽에 대한 logging을 더욱 상세하게 할 수 있기  
+  때문이다. 서버가 거절할 수 있는 트래픽의 양에는 한계가 있기 때문에, 이를 초과하는 엄청난 양의 트래픽에 대해서는 앞단의 layer에서 보호해야 한다.
+
+---
