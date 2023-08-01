@@ -36,45 +36,45 @@
 
 ```java
 public static void main(String[] args) {
-    // 클래스명을 Class로 반환
-    Class<? extends Set<String>> cl = null;
-    try {
-	// 비검사 형변환
-	cl = (Class<? extends Set<String>>) Class.forName(args[0]);
-    } catch(ClassNotFoundException e) {
-	fatalError("Class not found");
-    }
+  // 클래스명을 Class로 반환
+  Class<? extends Set<String>> cl = null;
+  try {
+    // 비검사 형변환
+    cl = (Class<? extends Set<String>>) Class.forName(args[0]);
+  } catch(ClassNotFoundException e) {
+    fatalError("Class not found");
+  }
 
-    // 생성자 획득
-    Constructor<? extends Set<String>> cons = null;
-    try {
+  // 생성자 획득
+  Constructor<? extends Set<String>> cons = null;
+  try {
 	cons = cl.getDeclaredConstructor();
-    } catch(NoSuchMethodException e) {
+  } catch(NoSuchMethodException e) {
 	fatalError("No default constructor found");
-    }
+  }
 
-    // Set 인스턴스 생성
-    Set<String> s = null;
-    try {
-	s = cons.newInstance();
-    } catch(IllegalAccessException e) {
-	fatalError("Unable to access constructor");
-    } catch(InstantiationException e) {
-	fatalError("Cannot instantiate class");
-    } catch(InvocationTargetException e) {
-	fatalError("Constructor threw error: " + e.getCause());
-    } catch(ClassCastException e) {
-	fatalError("Class does not implement Set");
-    }
+  // Set 인스턴스 생성
+  Set<String> s = null;
+  try {
+    s = cons.newInstance();
+  } catch(IllegalAccessException e) {
+    fatalError("Unable to access constructor");
+  } catch(InstantiationException e) {
+    fatalError("Cannot instantiate class");
+  } catch(InvocationTargetException e) {
+    fatalError("Constructor threw error: " + e.getCause());
+  } catch(ClassCastException e) {
+    fatalError("Class does not implement Set");
+  }
 
-    // 생성한 집합 사용
-    s.addAll(Arrays.asList(args).subList(1, args.length));
-    System.out.println(s);
+  // 생성한 집합 사용
+  s.addAll(Arrays.asList(args).subList(1, args.length));
+  System.out.println(s);
 }
 
 private static void fatalError(String msg) {
-    System.err.println(msg);
-    System.exit(1);
+  System.err.println(msg);
+  System.exit(1);
 }
 ```
 
@@ -102,7 +102,7 @@ private static void fatalError(String msg) {
   사실을 반드시 감안해야 한다. 즉, 같은 목적을 이룰 수 있는 대체 수단을 이용하거나 기능을 줄여 동작하는 등의  
   적절한 조치를 취해야 한다.
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -111,4 +111,4 @@ private static void fatalError(String msg) {
   단, 되도록이면 객체 생성에만 사용하고, 생성한 객체를 이용할 때는 적절한 인터페이스나 컴파일타임에  
   알 수 있는 상위 클래스로 형변환해 사용해야 한다.
 
-<hr/>
+---

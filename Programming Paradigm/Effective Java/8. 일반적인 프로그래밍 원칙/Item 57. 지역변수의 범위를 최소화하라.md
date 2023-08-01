@@ -1,6 +1,6 @@
 # 지역 변수의 범위를 최소화하라
 
-- 이번 아이템은 기본적으로 _"클래스와 멤버의 접근 권한을 최소화하라"_ 고 한 Item 15와 취지가 비슷하다.  
+- 이번 아이템은 기본적으로 _"클래스와 멤버의 접근 권한을 최소화하라"_ 고 한 [Item 15](https://github.com/sang-w0o/Study/blob/master/Programming%20Paradigm/Effective%20Java/3.%20%ED%81%B4%EB%9E%98%EC%8A%A4%EC%99%80%20%EC%9D%B8%ED%84%B0%ED%8E%98%EC%9D%B4%EC%8A%A4/Item%2015.%20%ED%81%B4%EB%9E%98%EC%8A%A4%EC%99%80%20%EB%A9%A4%EB%B2%84%EC%9D%98%20%EC%A0%91%EA%B7%BC%20%EA%B6%8C%ED%95%9C%EC%9D%84%20%EC%B5%9C%EC%86%8C%ED%99%94%ED%95%98%EB%9D%BC.md)와 취지가 비슷하다.  
   지역 변수의 유효 범위를 최소로 줄이면 코드 가독성과 유지 보수성이 높아지고, 오류 가능성은 낮아진다.
 
 - C와 같이 역사가 깊은 프로그래밍 언어 중에는 지역 변수를 코드 블록의 첫머리에 선언하는 경우가 많고,  
@@ -31,7 +31,7 @@
 
 ```java
 for(Element e : c) {
-   // compute with e
+  // compute with e
 }
 ```
 
@@ -40,8 +40,8 @@ for(Element e : c) {
 
 ```java
 for(Iterator<Element> i = c.iterator; i.hasNext(); ) {
-    Element e = i.next();
-    // compute with e and i
+  Element e = i.next();
+  // compute with e and i
 }
 ```
 
@@ -51,14 +51,14 @@ for(Iterator<Element> i = c.iterator; i.hasNext(); ) {
 ```java
 Iterator<Element> i = c.iterator();
 while(i.hasNext()) {
-    doSomething(i.next());
+  doSomething(i.next());
 }
 
 //..
 
 Iterator<Element> i2 = c2.iterator();
 while(i.hasNext()) {
-    doSomethingElse(i2.next());
+  doSomethingElse(i2.next());
 }
 ```
 
@@ -74,15 +74,15 @@ while(i.hasNext()) {
 
 ```java
 for(Iterator<Element> i = c.iterator(); i.hasNext(); ) {
-    Element e = i.next();
-    // compute with e and i
+  Element e = i.next();
+  // compute with e and i
 }
 
 //..
 
 for(Iterator<Element> i2 = c2.iterator(); i.hasNext(); ) {
-    Element e = i2.next();
-    // compute with e2 and i2
+  Element e = i2.next();
+  // compute with e2 and i2
 }
 ```
 
@@ -97,7 +97,7 @@ for(Iterator<Element> i2 = c2.iterator(); i.hasNext(); ) {
 
 ```java
 for(int i = 0, n = expensiveComputation(); i < n; i++) {
-    // compute with i
+  // compute with i
 }
 ```
 
@@ -109,4 +109,4 @@ for(int i = 0, n = expensiveComputation(); i < n; i++) {
   한 메소드에서 여러 가지 기능을 처리한다면 그중 한 기능과만 관련된 지역 변수라도 다른 기능을 수행하는  
   코드에서 접근할 수 있을 것이다. 해결책은 간단하다. 단순히 메소드를 기능별로 쪼개면 된다.
 
-<hr/>
+---

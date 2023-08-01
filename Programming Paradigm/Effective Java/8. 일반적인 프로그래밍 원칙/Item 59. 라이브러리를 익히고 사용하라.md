@@ -7,7 +7,7 @@
 static Random random = new Random();
 
 static int random(int n) {
-    return Math.abs(random.nextInt()) % n;
+  return Math.abs(random.nextInt()) % n;
 }
 ```
 
@@ -20,14 +20,14 @@ static int random(int n) {
 
 ```java
 public static void main(String[] args) {
-    int n = 2 * (Integer.MAX_VALUE / 3);
-    int low = 0;
-    for(int i = 0; i < 1000000; i++) {
-	if(random(n) < n / 2) {
-	    low++;
-	}
+  int n = 2 * (Integer.MAX_VALUE / 3);
+  int low = 0;
+  for(int i = 0; i < 1000000; i++) {
+    if(random(n) < n / 2) {
+      low++;
     }
-    System.out.println(low);
+  }
+  System.out.println(low);
 }
 ```
 
@@ -78,9 +78,9 @@ public static void main(String[] args) {
 
 ```java
 public static void main(String[] args) throws IOException {
-    try (InputStream in = new URL(args[0]).openStream()) {
-	in.transferTo(System.out));
-    }
+  try (InputStream in = new URL(args[0]).openStream()) {
+    in.transferTo(System.out);
+  }
 }
 ```
 
@@ -100,7 +100,7 @@ public static void main(String[] args) throws IOException {
   항상 빈 구멍이 있기 마련이다. Java 표준 라이브러리에서 원하는 기능을 찾지 못하면, 그 다음 선택지는  
   고품질의 서드 파티 라이브러리가 될 것이다. 그래도 없다면 다른 선택이 없으니 직접 구현하자.
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -108,4 +108,4 @@ public static void main(String[] args) throws IOException {
   가능성이 크다. 그런 라이브러리가 있다면, 쓰면 된다. 있는지 모르겠다면 우선 찾아보자. 일반적으로  
   라이브러리 코드는 우리가 직접 작성한 것보다 품질이 좋고, 점차 개선될 가능성이 크다.
 
-<hr/>
+---

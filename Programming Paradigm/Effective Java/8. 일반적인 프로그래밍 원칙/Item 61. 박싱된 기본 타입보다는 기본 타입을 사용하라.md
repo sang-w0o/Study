@@ -1,11 +1,11 @@
 # 박싱된 기본 타입보다는 기본 타입을 사용하라
 
-- Java의 데이터 타입은 크게 두 가지고 나눌 수 있다. 바로 int, double, boolean과 같은  
+- Java의 데이터 타입은 크게 두 가지로 나눌 수 있다. 바로 int, double, boolean과 같은  
   기본 타입과 `String`, `List` 같은 참조 타입이다. 그리고 각각의 기본 타입에는  
   대응하는 참조 타입이 하나씩 있으며, 이를 Boxing된 기본 타입이라 한다. 예를 들어 int,  
   double, boolean에 대응하는 boxing된 기본 타입은 `Integer`, `Double`, `Boolean`이다.
 
-- Item6에서 봤듯이, auto boxing, auto unboxing 덕분에 두 타입을 크게 구분하지 않고  
+- [Item 6: 불필요한 객체 생성을 피하라.](https://github.com/sang-w0o/Study/blob/master/Programming%20Paradigm/Effective%20Java/1.%20%EA%B0%9D%EC%B2%B4%20%EC%83%9D%EC%84%B1%EA%B3%BC%20%ED%8C%8C%EA%B4%B4/Item%206.%20%EB%B6%88%ED%95%84%EC%9A%94%ED%95%9C%20%EA%B0%9D%EC%B2%B4%20%EC%83%9D%EC%84%B1%EC%9D%84%20%ED%94%BC%ED%95%98%EB%9D%BC.md)에서 봤듯이, auto boxing, auto unboxing 덕분에 두 타입을 크게 구분하지 않고  
   사용할 수는 있지만, 그렇다고 차이가 사라지는 것은 아니다. 둘 사이에는 분명한 차이가 있으니 어떤 타입을  
   사용하는지는 상당히 중요하다. 주의해서 선택해야 한다.
 
@@ -26,7 +26,7 @@
 
 ```java
 Comparator<Integer> naturalOrder =
-    (i, j) -> (i < j) ? -1 : (i == j ? 0 : 1);
+  (i, j) -> (i < j) ? -1 : (i == j ? 0 : 1);
 ```
 
 - 별다른 문제를 찾기 어렵고, 실제로 이것저것 테스트해봐도 잘 통과한다.  
@@ -39,7 +39,7 @@ Comparator<Integer> naturalOrder =
 - 원인이 뭘까? naturalOrder의 첫 번째 검사 `(i < j)`는 잘 작동한다. 여기서 i와 j가  
   참조하는 auto boxing된 `Integer` 인스턴스는 기본 타입 값으로 변환된다. 그런 다음  
   첫 번째 정수값이 두 번째 값보다 작은지를 평가한다. 만약 작지 않다면 두 번째 검사 `(i == j)`가  
-  이뤄진다. 그런데 이 두번째 검사에서는 두 _객체 참조_ 의 식별성을 검사하게 된다. i와 j가  
+  이뤄진다. 그런데 이 두 번째 검사에서는 두 _객체 참조_ 의 식별성을 검사하게 된다. i와 j가  
   서로 다른 `Integer` 인스턴스라면 비록 값은 같더라도 이 비교의 결과는 false가 되고, 비교자는  
   잘못된 결과인 1을 반환한다. 즉 첫 번째 `Integer` 값이 두 번째보다 크다는 것이다.  
   이처럼 같은 인스턴스끼리 비교하는 것이 아니라면 **boxing된 기본 타입에 `==` 연산자를 사용하면 오류가 난다.**
@@ -52,8 +52,8 @@ Comparator<Integer> naturalOrder =
 
 ```java
 Comparator<Integer> naturalOrder = (iBoxed, jBoxed) -> {
-    int i = iBoxed, j = jBoxed;
-    return i < j ? -1 : (i == j ? 0 : 1);
+  int i = iBoxed, j = jBoxed;
+  return i < j ? -1 : (i == j ? 0 : 1);
 };
 ```
 
@@ -61,12 +61,12 @@ Comparator<Integer> naturalOrder = (iBoxed, jBoxed) -> {
 
 ```java
 public class Unbelievable {
-    static Integer i;
+  static Integer i;
 
-    public static void main(String[] args) {
-	if(i == 42)
-	    System.out.println("i is 42");
-    }
+  public static void main(String[] args) {
+    if(i == 42)
+    System.out.println("i is 42");
+  }
 }
 ```
 
@@ -76,15 +76,15 @@ public class Unbelievable {
   거의 예외 없이 **기본 타입과 박싱된 기본 타입을 혼용한 연산에서는 boxing된 기본 타입의 boxing이 자동으로 풀린다.**  
   위 예시에서 보듯, 이런 일은 어디서든 벌어질 수 있다. 다행이 해법은 간단하다. i를 int로 선언하면 끝이다.
 
-- 이번에는 예전에 봤던 코드를 다시 봐보자.(Item 6)
+- 이번에는 예전에 봤던 코드를 다시 봐보자.([Item 6](https://github.com/sang-w0o/Study/blob/master/Programming%20Paradigm/Effective%20Java/1.%20%EA%B0%9D%EC%B2%B4%20%EC%83%9D%EC%84%B1%EA%B3%BC%20%ED%8C%8C%EA%B4%B4/Item%206.%20%EB%B6%88%ED%95%84%EC%9A%94%ED%95%9C%20%EA%B0%9D%EC%B2%B4%20%EC%83%9D%EC%84%B1%EC%9D%84%20%ED%94%BC%ED%95%98%EB%9D%BC.md))
 
 ```java
 public static void main(String[] args) {
-    Long sum = 0L;
-    for(long i = 0; i <= Integer.MAX_VALUE; i++) {
-	sum += i;
-    }
-    System.out.println(sum);
+  Long sum = 0L;
+  for(long i = 0; i <= Integer.MAX_VALUE; i++) {
+    sum += i;
+  }
+  System.out.println(sum);
 }
 ```
 
@@ -102,7 +102,7 @@ public static void main(String[] args) {
   `ThreadLocal<Integer>`를 써야 한다. 마지막으로 리플렉션을 통해 메소드를 호출할 때도 boxing된  
   기본 타입을 사용해야 한다.
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -114,4 +114,4 @@ public static void main(String[] args) {
   기본 타입을 혼용하면 auto unboxing이 이뤄지며, **unboxing 과정에서 NPE를 던질 수 있다.**  
   마지막으로, 기본 타입을 boxing하는 작업은 필요 없는 객체를 생성하는 부작용을 낳을 수 있다.
 
-<hr/>
+---

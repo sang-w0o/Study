@@ -1,12 +1,12 @@
 # 전통적인 for문보다는 for-each문을 사용하라
 
-- Item 45에서 봤듯이 `Stream`이 제격인 작업이 있고, 반복이 제격인 작업이 있다.  
+- [Item 45](https://github.com/sang-w0o/Study/blob/master/Programming%20Paradigm/Effective%20Java/6.%20%EB%9E%8C%EB%8B%A4%EC%99%80%20%EC%8A%A4%ED%8A%B8%EB%A6%BC/Item%2045.%20%EC%8A%A4%ED%8A%B8%EB%A6%BC%EC%9D%80%20%EC%A3%BC%EC%9D%98%ED%95%B4%EC%84%9C%20%EC%82%AC%EC%9A%A9%ED%95%98%EB%9D%BC.md)에서 봤듯이 `Stream`이 제격인 작업이 있고, 반복이 제격인 작업이 있다.  
   아래는 전통적인 for문으로 컬렉션을 순회하는 코드다.
 
 ```java
 for(Iterator<Element> i = c.iterator(); i.hasNext(); ) {
-    Element e = i.next();
-    // compute with e
+  Element e = i.next();
+  // compute with e
 }
 ```
 
@@ -14,7 +14,7 @@ for(Iterator<Element> i = c.iterator(); i.hasNext(); ) {
 
 ```java
 for(int i = 0; i < a.length; i++) {
-    // compute with a[i]
+  // compute with a[i]
 }
 ```
 
@@ -31,7 +31,7 @@ for(int i = 0; i < a.length; i++) {
 
 ```java
 for(Element e : elements) {
-    // compute with e
+  // compute with e
 }
 ```
 
@@ -52,8 +52,8 @@ static Collection<Rank> ranks = Arrays.asList(Rank.values());
 
 List<Card> deck = new ArrayList<>();
 for(Iterator<Suit> i = suits.iterator(); i.hasNext();)
-    for(Iterator<Rank> j = ranks.iterator(); j.hasNext();)
-        deck.add(new Card(i.next(), j.next()));
+  for(Iterator<Rank> j = ranks.iterator(); j.hasNext();)
+    deck.add(new Card(i.next(), j.next()));
 ```
 
 - 위 코드의 문제는 suits의 반복자에서 `next()`가 너무 많이 불린다는 것이다. 마지막 줄의 `i.next()`를  
@@ -67,8 +67,8 @@ for(Iterator<Suit> i = suits.iterator(); i.hasNext();)
 
 ```java
 for(Suit suit : suits)
-    for(Rank rank : ranks)
-        deck.add(new Card(suit, rank));
+  for(Rank rank : ranks)
+    deck.add(new Card(suit, rank));
 ```
 
 - 하지만 안타깝게도 for-each문을 사용할 수 없는 상황이 세 가지 존재한다.
@@ -90,7 +90,7 @@ for(Suit suit : suits)
 
 ```java
 public interface Iterable<E> {
-    Iterator<E> iterator();
+  Iterator<E> iterator();
 }
 ```
 
@@ -99,11 +99,11 @@ public interface Iterable<E> {
   했더라도 말이다. `Iterable`을 구현해두면 그 타입을 사용하는 클라이언트가 for-each문을 매우  
   편리하게 사용할 수 있다.
 
-<hr/>
+---
 
 ## 핵심 정리
 
 - 전통적인 for문과 비교했을 때 for-each문은 명료하고, 유연하고, 버그를 예방해준다.  
   성능 저하도 없다. 가능한 모든 곳에서 for문이 아닌 for-each문을 사용하자.
 
-<hr/>
+---

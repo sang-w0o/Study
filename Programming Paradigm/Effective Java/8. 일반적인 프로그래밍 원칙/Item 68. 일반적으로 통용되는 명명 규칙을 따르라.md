@@ -78,7 +78,7 @@
 
 ```java
 if(car.speed() > 2 * SPEED_LIMIT)
-    generateAudibleAlert("Watchout for police!");
+  generateAudibleAlert("Watchout for police!");
 ```
 
 - `get`으로 시작하는 형태는 주로 JavaBeans 명세에 뿌리를 두고 있다. JavaBeans는 재사용을 위한  
@@ -97,7 +97,7 @@ if(car.speed() > 2 * SPEED_LIMIT)
   단어를 뺀 형태다.(`initialized`, `composite` 등) 다른 타입의 필드라면 명사나 명사구를 사용한다.  
   (`height`, `digits`, `bodyStyle` 등) 지역변수명도 필드와 비슷하게 지으면 되나, 조금 더 느슨하다.
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -105,4 +105,4 @@ if(car.speed() > 2 * SPEED_LIMIT)
   문법 규칙은 더 복잡하고 느슨하다. JLS의 말을 인용하자면 _"오랫동안 따라온 규칙과 충돌한다면 그 규칙을 맹종해서는"_  
   _"안 된다."_ 상식이 이끄는 대로 따르자.
 
-<hr/>
+---

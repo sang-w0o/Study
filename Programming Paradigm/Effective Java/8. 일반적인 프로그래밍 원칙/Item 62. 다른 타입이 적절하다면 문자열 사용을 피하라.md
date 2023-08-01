@@ -11,7 +11,7 @@
   일반화해 이야기하자면, 기본 타입이든 참조 타입이든 적절한 값 타입이 있다면 그것을 사용하고, 없다면  
   새로 하나 작성하자. 당연한 말 같지만, 지켜지지 않는 경우가 꽤 많다.
 
-- **문자열은 열거 타입을 대신하기에 적합하지 않다.** Item 34에서 봤듯이, 상수를 열거할 때는 문자열보다는  
+- **문자열은 열거 타입을 대신하기에 적합하지 않다.** [Item 34](https://github.com/sang-w0o/Study/blob/master/Programming%20Paradigm/Effective%20Java/5.%20%EC%97%B4%EA%B1%B0%20%ED%83%80%EC%9E%85%EA%B3%BC%20%EC%96%B4%EB%85%B8%ED%85%8C%EC%9D%B4%EC%85%98/Item%2034.%20int%20%EC%83%81%EC%88%98%20%EB%8C%80%EC%8B%A0%20%EC%97%B4%EA%B1%B0%20%ED%83%80%EC%9E%85%EC%9D%84%20%EC%82%AC%EC%9A%A9%ED%95%98%EB%9D%BC.md)에서 봤듯이, 상수를 열거할 때는 문자열보다는  
   열거 타입이 훨씬 낫다.
 
 - **문자열은 혼합 타입을 대신하기에 적합하지 않다.** 여러 요소가 혼합된 데이터를 하나의 문자열로  
@@ -35,13 +35,13 @@ String compoundKey = className + "#" + i.next();
 
 ```java
 public class ThreadLocal {
-    private ThreadLocal() { }
+  private ThreadLocal() { }
 
-    // 현재 스레드의 값을 key로 구분해 저장한다.
-    public static void set(String key, Object value);
+  // 현재 스레드의 값을 key로 구분해 저장한다.
+  public static void set(String key, Object value);
 
-    // key가 가리키는 현재 스레드의 값을 반환한다.
-    public static Object get(String key);
+  // key가 가리키는 현재 스레드의 값을 반환한다.
+  public static Object get(String key);
 }
 ```
 
@@ -55,19 +55,19 @@ public class ThreadLocal {
 
 ```java
 public class ThreadLocal {
-    private ThreadLocal() { }
+  private ThreadLocal() { }
 
-    public static class Key {
-	Key() { }
-    }
+  public static class Key {
+    Key() { }
+  }
 
-    // 위조 불가능한 고유 key를 생성한다.
-    public static Key getKey() {
-	return new Key();
-    }
+  // 위조 불가능한 고유 key를 생성한다.
+  public static Key getKey() {
+    return new Key();
+  }
 
-    public static void set(Key key, Object value);
-    public static Object get(Key key);
+  public static void set(Key key, Object value);
+  public static Object get(Key key);
 }
 ```
 
@@ -79,9 +79,9 @@ public class ThreadLocal {
 
 ```java
 public final class ThreadLocal {
-    public ThreadLocal() { }
-    public void set(Object value);
-    public Object get();
+  public ThreadLocal() { }
+  public void set(Object value);
+  public Object get();
 }
 ```
 
@@ -91,16 +91,16 @@ public final class ThreadLocal {
 
 ```java
 public final class ThreadLocal<T> {
-    public ThreadLocal() { }
-    public void set(T value);
-    public T get();
+  public ThreadLocal() { }
+  public void set(T value);
+  public T get();
 }
 ```
 
 - 이제 java의 `java.lang.ThreadLocal`과 흡사해졌다. 문자열 기반 API의 문제를 해결해주며,  
   key 기반 API보다 빠르고 우아하다.
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -108,4 +108,4 @@ public final class ThreadLocal<T> {
   문자열은 잘못 사용하면 번거롭고, 덜 유연하고, 느리고, 오류 가능성도 크다. 문자열을 잘못  
   사용하는 흔한 예로는 기본 타입, 열거 타입, 혼합 타입이 있다.
 
-<hr/>
+---

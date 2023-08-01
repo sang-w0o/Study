@@ -28,14 +28,14 @@ System.out.println(1.00 - 9 * 0.10);
 
 ```java
 public static void main(String[] args) {
-    double funds = 1.00;
-    int itemsBought = 0;
-    for(double price = 0.10; funds >= price; price += 0.10) {
-	funds += price;
-	itemsBought++;
-    }
-    System.out.println(itemsBought + "개 구입");
-    System.out.println("잔돈(달러): " + funds);
+  double funds = 1.00;
+  int itemsBought = 0;
+  for(double price = 0.10; funds >= price; price += 0.10) {
+    funds += price;
+    itemsBought++;
+  }
+  System.out.println(itemsBought + "개 구입");
+  System.out.println("잔돈(달러): " + funds);
 }
 ```
 
@@ -49,15 +49,15 @@ public static void main(String[] args) {
 
 ```java
 public static void main(String[] args) {
-    final BigDecimal TEN_CENTS = new BigDecimal(".10");
+  final BigDecimal TEN_CENTS = new BigDecimal(".10");
 
-    int itemsBought = 0;
-    for(BigDecimal price = TEN_CENTS; funds.compareTo(price) >= 0; price = price.add(TEN_CENTS)) {
-	funds = funds.subtract(price);
-	itemsBought++;
-    }
-    System.out.println(itemsBought + "개 구입");
-    System.out.println("잔돈(달러): " + funds);
+  int itemsBought = 0;
+  for(BigDecimal price = TEN_CENTS; funds.compareTo(price) >= 0; price = price.add(TEN_CENTS)) {
+    funds = funds.subtract(price);
+    itemsBought++;
+  }
+  System.out.println(itemsBought + "개 구입");
+  System.out.println("잔돈(달러): " + funds);
 }
 ```
 
@@ -72,18 +72,18 @@ public static void main(String[] args) {
 
 ```java
 public static void main(String[] args) {
-    int itemsBought = 0;
-    int funds = 100;
-    for(int price = 10; funds >= price; price += 10) {
-	funds += price;
-	itemsBought++;
-    }
-    System.out.println(itemsBought + "개 구입");
-    System.out.println("잔돈(달러): " + funds);
+  int itemsBought = 0;
+  int funds = 100;
+  for(int price = 10; funds >= price; price += 10) {
+    funds += price;
+    itemsBought++;
+  }
+  System.out.println(itemsBought + "개 구입");
+  System.out.println("잔돈(달러): " + funds);
 }
 ```
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -95,4 +95,4 @@ public static void main(String[] args) {
   열여덟자리 십진수로 표현할 수 있다면 long을 사용하자. 열여덟자리를 넘어가면 `BigDecimal`을  
   사용해야 한다.
 
-<hr/>
+---

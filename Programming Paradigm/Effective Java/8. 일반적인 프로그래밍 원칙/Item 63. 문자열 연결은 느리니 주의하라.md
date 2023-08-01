@@ -10,11 +10,11 @@
 
 ```java
 public String statement() {
-    String result = "";
-    for(int i = 0; i < numItems(); i++) {
-	result += lineForItem(i);
-    }
-    return result;
+  String result = "";
+  for(int i = 0; i < numItems(); i++) {
+    result += lineForItem(i);
+  }
+  return result;
 }
 ```
 
@@ -23,18 +23,18 @@ public String statement() {
 
 ```java
 public String statement() {
-    StringBuilder b = new StringBuilder(numItems() * LINE_WIDTH);
+  StringBuilder b = new StringBuilder(numItems() * LINE_WIDTH);
 
-    for(int i = 0; i < numItems(); i++) {
-	b.append(lineForItem(i));
-    }
-    return b.toString();
+  for(int i = 0; i < numItems(); i++) {
+    b.append(lineForItem(i));
+  }
+  return b.toString();
 }
 ```
 
 - Java6 이후 문자열 연결 성능을 다방면으로 개선했지만, 이 두 메소드의 성능 차이는 여전히 크다.
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -42,4 +42,4 @@ public String statement() {
   대신 `StringBuilder`의 `append()` 메소드를 사용하자. 문자 배열을 사용하거나, 문자열을  
   연결하지 않고 하나씩 처리하는 방법도 있다.
 
-<hr/>
+---
