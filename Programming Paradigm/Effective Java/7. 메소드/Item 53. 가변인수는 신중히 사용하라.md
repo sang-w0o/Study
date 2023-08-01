@@ -9,11 +9,11 @@
 
 ```java
 static int sum(int... values) {
-    int sum = 0;
-    for (int value : values) {
-	sum += value;
-    }
-    return sum;
+  int sum = 0;
+  for (int value : values) {
+    sum += value;
+  }
+  return sum;
 }
 ```
 
@@ -23,16 +23,16 @@ static int sum(int... values) {
 
 ```java
 static int min(int... args) {
-    if(args.length == 0) {
-	throw new IllegalArgumentException("No values");
+  if(args.length == 0) {
+    throw new IllegalArgumentException("No values");
+  }
+  int min = args[0];
+  for (int i = 1; i < args.length; i++) {
+    if (args[i] < min) {
+      min = args[i];
     }
-    int min = args[0];
-    for (int i = 1; i < args.length; i++) {
-	if (args[i] < min) {
-	    min = args[i];
-	}
-    }
-    return min;
+  }
+  return min;
 }
 ```
 
@@ -45,13 +45,13 @@ static int min(int... args) {
 
 ```java
 static int min(int firstArg, int... remainingArgs) {
-    int min = firstArg;
-    for (int arg : remainingArgs) {
-	if (arg < min) {
-	    min = arg;
-	}
+  int min = firstArg;
+  for (int arg : remainingArgs) {
+    if (arg < min) {
+      min = arg;
     }
-    return min;
+  }
+  return min;
 }
 ```
 
@@ -86,64 +86,62 @@ package java.util;
 public abstract class EnumSet<E extends Enum<E>> extends AbstractSet<E>
     implements Cloneable, java.io.Serializable
 {
-    //..
+  //..
 
-    public static <E extends Enum<E>> EnumSet<E> of(E e) {
-        EnumSet<E> result = noneOf(e.getDeclaringClass());
-        result.add(e);
-        return result;
-    }
+  public static <E extends Enum<E>> EnumSet<E> of(E e) {
+    EnumSet<E> result = noneOf(e.getDeclaringClass());
+    result.add(e);
+    return result;
+  }
 
-    public static <E extends Enum<E>> EnumSet<E> of(E e1, E e2) {
-        EnumSet<E> result = noneOf(e1.getDeclaringClass());
-        result.add(e1);
-        result.add(e2);
-        return result;
-    }
+  public static <E extends Enum<E>> EnumSet<E> of(E e1, E e2) {
+    EnumSet<E> result = noneOf(e1.getDeclaringClass());
+    result.add(e1);
+    result.add(e2);
+    return result;
+  }
 
-    public static <E extends Enum<E>> EnumSet<E> of(E e1, E e2, E e3) {
-        EnumSet<E> result = noneOf(e1.getDeclaringClass());
-        result.add(e1);
-        result.add(e2);
-        result.add(e3);
-        return result;
-    }
+  public static <E extends Enum<E>> EnumSet<E> of(E e1, E e2, E e3) {
+    EnumSet<E> result = noneOf(e1.getDeclaringClass());
+    result.add(e1);
+    result.add(e2);
+    result.add(e3);
+    return result;
+  }
 
-    public static <E extends Enum<E>> EnumSet<E> of(E e1, E e2, E e3, E e4) {
-        EnumSet<E> result = noneOf(e1.getDeclaringClass());
-        result.add(e1);
-        result.add(e2);
-        result.add(e3);
-        result.add(e4);
-        return result;
-    }
+  public static <E extends Enum<E>> EnumSet<E> of(E e1, E e2, E e3, E e4) {
+    EnumSet<E> result = noneOf(e1.getDeclaringClass());
+    result.add(e1);
+    result.add(e2);
+    result.add(e3);
+    result.add(e4);
+    return result;
+  }
 
-    public static <E extends Enum<E>> EnumSet<E> of(E e1, E e2, E e3, E e4,
-                                                    E e5)
-    {
-        EnumSet<E> result = noneOf(e1.getDeclaringClass());
-        result.add(e1);
-        result.add(e2);
-        result.add(e3);
-        result.add(e4);
-        result.add(e5);
-        return result;
-    }
+  public static <E extends Enum<E>> EnumSet<E> of(E e1, E e2, E e3, E e4, E e5) {
+    EnumSet<E> result = noneOf(e1.getDeclaringClass());
+    result.add(e1);
+    result.add(e2);
+    result.add(e3);
+    result.add(e4);
+    result.add(e5);
+    return result;
+  }
 
-    @SafeVarargs
-    public static <E extends Enum<E>> EnumSet<E> of(E first, E... rest) {
-        EnumSet<E> result = noneOf(first.getDeclaringClass());
-        result.add(first);
-        for (E e : rest)
-            result.add(e);
-        return result;
-    }
+  @SafeVarargs
+  public static <E extends Enum<E>> EnumSet<E> of(E first, E... rest) {
+    EnumSet<E> result = noneOf(first.getDeclaringClass());
+    result.add(first);
+    for (E e : rest)
+      result.add(e);
+    return result;
+  }
 
-    //..
+  //..
 }
 ```
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -151,4 +149,4 @@ public abstract class EnumSet<E extends Enum<E>> extends AbstractSet<E>
   메소드를 정의할 때 필수 매개변수는 가변인수 앞에 두고, 가변인수를 사용할 때는  
   성능 문제까지 고려하자.
 
-<hr/>
+---

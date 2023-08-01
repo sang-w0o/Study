@@ -19,26 +19,26 @@
 
 ```java
 public final class Period {
-    private final Date start;
-    private final Date end;
+  private final Date start;
+  private final Date end;
 
-    /**
-     * @param start 시작 시각
-     * @param end 끝 시각; 시작 시각보다 뒤여야 한다.
-     * @throws IllegalAgrumentException 시작 시간이 종료 시각보다 늦을 때 발생한다.
-     * @throws NullPointerException start나 end가 null이면 발생한다.
-     */
-     public Period(Date start, Date end) {
-	if (start.compareTo(end) > 0) {
-	    throw new IllegalArgumentException("start must be before end");
-	}
-	this.start = start;
-	this.end = end;
-     }
+  /**
+   * @param start 시작 시각
+   * @param end 끝 시각; 시작 시각보다 뒤여야 한다.
+   * @throws IllegalAgrumentException 시작 시간이 종료 시각보다 늦을 때 발생한다.
+   * @throws NullPointerException start나 end가 null이면 발생한다.
+   */
+   public Period(Date start, Date end) {
+    if (start.compareTo(end) > 0) {
+      throw new IllegalArgumentException("start must be before end");
+    }
+    this.start = start;
+    this.end = end;
+  }
 
-     public Date start() { return start; }
+  public Date start() { return start; }
 
-     public Date end() { return end; }
+  public Date end() { return end; }
 }
 ```
 
@@ -65,14 +65,14 @@ end.setYear(78);  // period의 내부 수정
 
 ```java
 public Period(Date start, Date end) {
-    this.start = new Date(start.getTime());
-    this.end = new Date(end.getTime());
+  this.start = new Date(start.getTime());
+  this.end = new Date(end.getTime());
 
-    if(this.start.compareTo(this.end) > 0) {
-	throw new IllegalArgumentException("start must be before end");
-    }
+  if(this.start.compareTo(this.end) > 0) {
+    throw new IllegalArgumentException("start must be before end");
+  }
 
-    //..
+  //..
 }
 ```
 
@@ -105,15 +105,15 @@ p.end().setYear(79);  // p의 내부 수정
 ```java
 public final class Period {
 
-    //..
+  //..
 
-    public Date start() {
-	return new Date(start.getTime());
-    }
+  public Date start() {
+	  return new Date(start.getTime());
+  }
 
-    public Date end() {
-	return new Date(end.getTime());
-    }
+  public Date end() {
+    return new Date(end.getTime());
+  }
 }
 ```
 
@@ -162,7 +162,7 @@ public final class Period {
   wrapper에 넘긴 객체에 여전히 접근할 수 있다. 따라서 wrapper의 불변식을 쉽게 파괴할 수  
   있지만, 그 영향을 오직 클라이언트 자신만 받게 된다.
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -171,4 +171,4 @@ public final class Period {
   수정할 일이 없음을 신뢰한다면 방어적 복사를 수행하는 대신 해당 구성요소를 수정했을 때의  
   책임이 클라이언트에 있음을 문서에 명시하도록 하자.
 
-<hr/>
+---

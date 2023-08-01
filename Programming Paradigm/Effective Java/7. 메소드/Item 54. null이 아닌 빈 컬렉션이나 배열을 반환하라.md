@@ -10,7 +10,7 @@ private final List<Cheese> cheesesInStock = /* ... */;
  * 단, 재고가 하나도 없다면 null을 반환한다.
  */
 public List<Cheese> getCheeses() {
-    return cheesesInStock.isEmpty() ? null : new ArrayList<>(cheesesInStock);
+  return cheesesInStock.isEmpty() ? null : new ArrayList<>(cheesesInStock);
 }
 ```
 
@@ -20,7 +20,7 @@ public List<Cheese> getCheeses() {
 ```java
 List<Cheese> cheeses = shop.getCheeses();
 if (cheeses != null && cheeses.contains(Cheese.STILTON)) {
-    //..
+  //..
 }
 ```
 
@@ -37,7 +37,7 @@ if (cheeses != null && cheeses.contains(Cheese.STILTON)) {
 
 ```java
 public List<Cheese> getCheeses() {
-    return new ArrayList<>(cheesesInStock);
+  return new ArrayList<>(cheesesInStock);
 }
 ```
 
@@ -50,7 +50,7 @@ public List<Cheese> getCheeses() {
 
 ```java
 public List<Cheese> getCheeses() {
-    return cheesesInStock.isEmpty() ? Collections.emptyList() : new ArrayList<>(cheesesInStock);
+  return cheesesInStock.isEmpty() ? Collections.emptyList() : new ArrayList<>(cheesesInStock);
 }
 ```
 
@@ -60,7 +60,7 @@ public List<Cheese> getCheeses() {
 
 ```java
 public Cheese[] getCheeses() {
-    return cheesesInStock.toArray(new Cheese[0]);
+  return cheesesInStock.toArray(new Cheese[0]);
 }
 ```
 
@@ -71,7 +71,7 @@ public Cheese[] getCheeses() {
 private static final Cheese[] EMPTY_CHEESE_ARRAY = new Cheese[0];
 
 public Cheese[] getCheeses() {
-    return cheesesInStock.toArray(EMPTY_CHEESE_ARRAY);
+  return cheesesInStock.toArray(EMPTY_CHEESE_ARRAY);
 }
 ```
 
@@ -89,11 +89,11 @@ return cheesesInStock.toArray(new Cheese[cheesesInStock.size()]);
 > 원소가 하나라도 있다면 `Cheese[]` 타입의 배열을 새로 생성해 반환하고, 원소가 0개면  
 > EMPTY_CHEESE_ARRAY를 반환한다.
 
-<hr/>
+---
 
 ## 핵심 정리
 
 - **null이 아닌 빈 배열이나 컬렉션을 반환하자.** null을 반환하는 API는 사용하기 어렵고 오류 처리  
   코드도 늘어난다. 그렇다고 성능이 좋은 것도 아니다.
 
-<hr/>
+---

@@ -189,17 +189,17 @@ public interface Map<K, V> { /* .. */ }
  * An instrument section of a symphony orchestra.
  */
 public enum OrchestraSection {
-    /** Woodwinds, such as flute, clarinet, and oboe. */
-    WOODWIND,
+  /** Woodwinds, such as flute, clarinet, and oboe. */
+  WOODWIND,
 
-    /** Brass instruments, such as french horn and trumpet. */
-    BRASS,
+  /** Brass instruments, such as french horn and trumpet. */
+  BRASS,
 
-    /** Percussion instruments, such as timpani and cymbals. */
-    PERCUSSION,
+  /** Percussion instruments, such as timpani and cymbals. */
+  PERCUSSION,
 
-    /** Stringed instruments, such as violin and cello. */
-    STRING;
+  /** Stringed instruments, such as violin and cello. */
+  STRING;
 }
 ```
 
@@ -215,12 +215,12 @@ public enum OrchestraSection {
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface ExceptionTest {
-    /**
-     * The exception that the annotated test method must throw
-     * in order to pass. (The test is permitted to throw any
-     * subtype of the type described by this class object.)
-     */
-    Class<? extends Throwable> value();
+  /**
+   * The exception that the annotated test method must throw
+   * in order to pass. (The test is permitted to throw any
+   * subtype of the type described by this class object.)
+   */
+  Class<? extends Throwable> value();
 }
 ```
 
@@ -257,7 +257,7 @@ public @interface ExceptionTest {
   프로그램을 테스트하면 어김없이 수정할 코드가 나오듯이, 생성된 API 문서를 읽어보면 고쳐 써야할  
   주석이 눈에 들어오기 마련이다.
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -265,4 +265,4 @@ public @interface ExceptionTest {
   달아야 한다. 표준 규약을 일관되게 잘 지키자. 문서화 주석에 임의의 HTML 태그를 사용할 수  
   있음을 기억하자. 단, HTML 메타문자는 특별하게 취급해야 한다.
 
-<hr/>
+---

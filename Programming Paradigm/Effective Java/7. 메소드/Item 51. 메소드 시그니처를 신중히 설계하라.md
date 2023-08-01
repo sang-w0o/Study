@@ -71,4 +71,4 @@ public enum TemperatureScale { FAHRENHEIT, CELSIUS}
   나중에 다른 온도 단위를 지원해야 한다면, `TemperatureScale`에 새로운 열거 타입을 추가하고,  
   `Thermometer.instance()`에 인수로 넘겨주면 된다.
 
-<hr/>
+---

@@ -4,29 +4,29 @@
 
 ```java
 public class CollectionClassifier {
-    public static String classify(Set<?> s) {
-	return "Set";
-    }
+  public static String classify(Set<?> s) {
+    return "Set";
+  }
 
-    public static String classify(List<?> l) {
-	return "List";
-    }
+  public static String classify(List<?> l) {
+    return "List";
+  }
 
-    public static String classify(Collection<?> c) {
-	return "Else";
-    }
+  public static String classify(Collection<?> c) {
+    return "Else";
+  }
 
-    public static void main(String[] args) {
-	Collection<?>[] collections = {
-	    new HashSet<String>(),
-	    new ArrayList<BigInteger>(),
-	    new HashMap<String, String>().values()
-	};
+  public static void main(String[] args) {
+    Collection<?>[] collections = {
+      new HashSet<String>(),
+      new ArrayList<BigInteger>(),
+      new HashMap<String, String>().values()
+    };
 
-	for(Collection<?> c : collections) {
-	    System.out.println(classify(c));
-	}
+    for(Collection<?> c : collections) {
+      System.out.println(classify(c));
     }
+  }
 }
 ```
 
@@ -44,27 +44,27 @@ public class CollectionClassifier {
 
 ```java
 class Wine {
-    String name() { return "wine"; }
+  String name() { return "wine"; }
 }
 
 class SparklingWine extends Wine {
-    @Override String name() { return "sparkling wine"; }
+  @Override String name() { return "sparkling wine"; }
 }
 
 class Champagne extends SparklingWine {
-    @Override String name() { return "champagne"; }
+  @Override String name() { return "champagne"; }
 }
 
 public class App {
-   public static void main(String[] args) {
-	List<Wine> wineList = List.of(
-	    new Wine(), new SparklingWine(), new Champagne()
-	);
+  public static void main(String[] args) {
+    List<Wine> wineList = List.of(
+      new Wine(), new SparklingWine(), new Champagne()
+    );
 
-	for(Wine wine : wineList) {
-	    System.out.println(wine.name());
-	}
-   }
+    for(Wine wine : wineList) {
+      System.out.println(wine.name());
+    }
+  }
 }
 ```
 
@@ -83,11 +83,11 @@ public class App {
 
 ```java
 public class CollectionClassifier {
-    //..
+  //..
 
-    public static String classify(Collection<?> c) {
-	return c instanceof Set ? "Set" : C instanceof List ? "List" : "Else";
-    }
+  public static String classify(Collection<?> c) {
+    return c instanceof Set ? "Set" : C instanceof List ? "List" : "Else";
+  }
 }
 ```
 
@@ -129,22 +129,22 @@ public class CollectionClassifier {
 
 ```java
 public class SetList {
-    public static void main(String[] args) {
-	Set<Integer> set = new TreeSet<>();
-	List<Integer> list = new ArrayList<>();
+  public static void main(String[] args) {
+    Set<Integer> set = new TreeSet<>();
+    List<Integer> list = new ArrayList<>();
 
-	for(int i = -3; i < 3; i++) {
-	    set.add(i);
-	    list.add(i);
-	}
-
-	for(int i = 0; i < 3; i++) {
-	    set.remove(i);
-	    list.remove(i);
-	}
-
-	System.out.println(set + " " + list);
+    for(int i = -3; i < 3; i++) {
+      set.add(i);
+      list.add(i);
     }
+
+    for(int i = 0; i < 3; i++) {
+      set.remove(i);
+      list.remove(i);
+    }
+
+    System.out.println(set + " " + list);
+  }
 }
 ```
 
@@ -160,9 +160,9 @@ public class SetList {
 
 ```java
 for(int i = 0; i < 3; i++) {
-    set.remove(i);
-    list.remove((Integer)i);
-    // 또는 list.remove(Integer.valueOf(i));
+  set.remove(i);
+  list.remove((Integer)i);
+  // 또는 list.remove(Integer.valueOf(i));
 }
 ```
 
@@ -224,7 +224,7 @@ exc.submit(System.out::println);
 
 ```java
 public boolean contentEquals(StringBuffer sb) {
-    return contentEquals((CharSequence) sb);
+  return contentEquals((CharSequence) sb);
 }
 ```
 
@@ -233,7 +233,7 @@ public boolean contentEquals(StringBuffer sb) {
   전혀 다른 일을 수행한다. 이렇게 해야 할 이유가 없었음에도 혼란을 불러올 수 있는 잘못된 사례로  
   남게 되었다.
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -246,4 +246,4 @@ public boolean contentEquals(StringBuffer sb) {
   메소드나 생성자를 효과적으로 사용하지 못할 것이고, 의도대로 동작하지 않는 이유를 이해하지도  
   못할 것이다.
 
-<hr/>
+---

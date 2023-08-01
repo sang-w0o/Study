@@ -30,9 +30,9 @@
  * @throws java.lang.ArithmeticException m이 0보다 작거나 같으면 발생한다.
  */
 public BigInteger mod(BigInteger m) {
-    if(m.signum() <= 0)
-        throw new ArithmeticException("계수(m)는 양수여야 합니다. " + m);
-    //..
+  if(m.signum() <= 0)
+    throw new ArithmeticException("계수(m)는 양수여야 합니다. " + m);
+  //..
 }
 ```
 
@@ -64,10 +64,10 @@ this.strategy = Objects.requireNonNull(strategy, "전략");
 
 ```java
 private static void sort(long a[], int offset, int length() {
-    assert a != null;
-    assert offset >= 0 && offset <= a.length;
-    assert length >= 0 && length <= a.length - offset;
-    //..
+  assert a != null;
+  assert offset >= 0 && offset <= a.length;
+  assert length >= 0 && length <= a.length - offset;
+  //..
 }
 ```
 
@@ -82,23 +82,23 @@ private static void sort(long a[], int offset, int length() {
 
 ```java
 static List<Integer> intArrayAsList(int[] a) {
-    Objects.requireNonNull(a);
+  Objects.requireNonNull(a);
 
-    return new AbstractList<Integer>() {
-	@Override public Integer get(int i) {
-	    return a[i];  // Auto-Boxing
-	}
-
-	@Override public Integer set(int i, Integer val) {
-	    int oldVal = a[i];
-	    a[i] = val;  // Auto-Unboxing
-	    return oldVal;  // Auto-Boxing
-	}
-
-	@Override public int size() {
-	    return a.length;
-	}
+  return new AbstractList<Integer>() {
+    @Override public Integer get(int i) {
+      return a[i];  // Auto-Boxing
     }
+
+    @Override public Integer set(int i, Integer val) {
+      int oldVal = a[i];
+      a[i] = val;  // Auto-Unboxing
+      return oldVal;  // Auto-Boxing
+    }
+
+    @Override public int size() {
+      return a.length;
+    }
+  }
 }
 ```
 
@@ -126,7 +126,7 @@ static List<Integer> intArrayAsList(int[] a) {
   메소드는 최대한 범용적으로 설계해야 한다. 메소드가 건네받은 값으로 무언가 제대로 된 일을 할 수 있다면  
   매개변수 제약은 적을수록 좋다. 하지만 구현하려는 개념 자체가 특정한 제약을 내재한 경우도 드물지 않다.
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -134,4 +134,4 @@ static List<Integer> intArrayAsList(int[] a) {
   메소드 코드 시작 부분에서 명시적으로 검사해야 한다. 이런 습관을 반드시 기르도록 하자. 그 노력은  
   유효성 검사가 실제 오류를 처음 걸러낼 때 충분히 보상받을 것이다.
 
-<hr/>
+---

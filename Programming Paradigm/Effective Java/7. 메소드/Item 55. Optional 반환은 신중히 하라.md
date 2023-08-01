@@ -23,16 +23,16 @@
 
 ```java
 public static <E extends Comparable<E>> E max(Collection<E> c) {
-    if(c.isEmpty()) {
-	throw new IllegalArgumentException("Empty collection.");
-    }
-    E result = null;
+  if(c.isEmpty()) {
+    throw new IllegalArgumentException("Empty collection.");
+  }
+  E result = null;
     for(E e : c) {
-	if(result == null || e.compareTo(result) > 0) {
-	    result = Objects.requireNonNull(e);
-	}
+    if(result == null || e.compareTo(result) > 0) {
+      result = Objects.requireNonNull(e);
     }
-    return result;
+  }
+  return result;
 }
 ```
 
@@ -41,16 +41,16 @@ public static <E extends Comparable<E>> E max(Collection<E> c) {
 
 ```java
 public static <E extends Comparable<E>> Optional<E> max(Collection<E> c) {
-    if(c.isEmpty()) {
-	return Optional.empty();
+  if(c.isEmpty()) {
+    return Optional.empty();
+  }
+  E result = null;
+  for(E e : c) {
+    if(result == null || e.compareTo(result) > 0) {
+      result = Objects.requireNonNull(e);
     }
-    E result = null;
-    for(E e : c) {
-	if(result == null || e.compareTo(result) > 0) {
-	    result = Objects.requireNonNull(e);
-	}
-    }
-    return Optional.of(result);
+  }
+  return Optional.of(result);
 }
 ```
 
@@ -66,7 +66,7 @@ public static <E extends Comparable<E>> Optional<E> max(Collection<E> c) {
 
 ```java
 public static <E extends Comparable<E>> Optional<E> max(Collection<E> c) {
-    return c.stream().max(Comparator.naturalOrder());
+  return c.stream().max(Comparator.naturalOrder());
 }
 ```
 
@@ -128,8 +128,8 @@ System.out.println("Parent PID: " + ph.parent().map(h -> String.valueOf(h.pid())
 
 ```java
 streamOfOptionals
-    .filter(Optional::isPresent)
-    .map(Optional::get);
+  .filter(Optional::isPresent)
+  .map(Optional::get);
 ```
 
 - 보다시피 `Optional`에 값이 있다면(`Optional::isPresent`) 그 값을 꺼내(`Optional::get`)  
@@ -142,7 +142,7 @@ streamOfOptionals
 
 ```java
 streamOfOptionals
-    .flatMap(Optional::stream);
+  .flatMap(Optional::stream);
 ```
 
 - 반환값으로 `Optional`을 사용한다고 해서 무조건 득이 되는 것은 아니다.  
@@ -181,7 +181,7 @@ streamOfOptionals
   선택적 필드들의 getter 들이 `Optional`을 반환하게 해주면 좋았을 것이다. 따라서 이럴 경우에는 필드  
   자체를 `Optional`로 선언하는 것도 좋은 방법이다.
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -190,4 +190,4 @@ streamOfOptionals
   성능에 민감한 메소드라면 null을 반환하거나 예외를 던지는 편이 나을 수도 있다. 그리고 `Optional`을  
   반환값 이외의 용도로 쓰는 경우는 매우 드물다.
 
-<hr/>
+---
