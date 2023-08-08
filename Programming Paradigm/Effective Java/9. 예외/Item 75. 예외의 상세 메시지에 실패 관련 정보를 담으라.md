@@ -42,10 +42,10 @@
  * @param index 인덱스의 실제값
  */
 public IndexOutOfBoundsException(int lowerBound, int upperBound, int index) {
-    super(String.format("Index %d is not between %d and %d", index, lowerBound, upperBound));
-    this.lowerBound = lowerBound;
-    this.upperBound = upperBound;
-    this.index = index;
+  super(String.format("Index %d is not between %d and %d", index, lowerBound, upperBound));
+  this.lowerBound = lowerBound;
+  this.upperBound = upperBound;
+  this.index = index;
 }
 ```
 
@@ -56,8 +56,8 @@ public IndexOutOfBoundsException(int lowerBound, int upperBound, int index) {
   메시지를 만들어내는 코드를 예외 클래스 안으로 모아주는 효과도 있어, 클래스 사용자가 메시지를 만드는  
   작업을 중복하지 않아도 된다.
 
-- Item 70에서 봤듯이, 예외는 실패와 관련한 정보를 얻을 수 있는 접근자 메소드를 적절히 제공하는 것이  
+- [Item 70](https://github.com/sang-w0o/Study/blob/master/Programming%20Paradigm/Effective%20Java/9.%20%EC%98%88%EC%99%B8/Item%2070.%20%EB%B3%B5%EA%B5%AC%ED%95%A0%20%EC%88%98%20%EC%9E%88%EB%8A%94%20%EC%83%81%ED%99%A9%EC%97%90%EB%8A%94%20%EA%B2%80%EC%82%AC%20%EC%98%88%EC%99%B8%EB%A5%BC%2C%20%ED%94%84%EB%A1%9C%EA%B7%B8%EB%9E%98%EB%B0%8D%20%EC%98%A4%EB%A5%98%EC%97%90%EB%8A%94%20%EB%9F%B0%ED%83%80%EC%9E%84%20%EC%98%88%EC%99%B8%EB%A5%BC%20%EC%82%AC%EC%9A%A9%ED%95%98%EB%9D%BC.md)에서 봤듯이, 예외는 실패와 관련한 정보를 얻을 수 있는 접근자 메소드를 적절히 제공하는 것이  
   좋다. 포착한 실패 정보는 예외 상황을 복구하는 데 유용할 수 있으므로 접근자 메소드는 비검사 예외보다는  
   검사 예외에서 더 빛을 발한다.
 
-<hr/>
+---

@@ -15,9 +15,9 @@
 
 ```java
 try {
-    foo();
+  foo();
 } catch(TheCheckedException e) {
-    throw new AssertionError("Unreachable");
+  throw new AssertionError("Unreachable");
 }
 ```
 
@@ -25,10 +25,10 @@ try {
 
 ```java
 try {
-    foo();
+  foo();
 } catch(TheCheckedException e) {
-    e.printStackTrace();
-    System.exit(1);
+  e.printStackTrace();
+  System.exit(1);
 }
 ```
 
@@ -50,9 +50,9 @@ try {
 
 ```java
 try {
-    obj.action(args);
+  obj.action(args);
 } catch(TheCheckedException e) {
-    // handle exception
+  // handle exception
 }
 ```
 
@@ -60,9 +60,9 @@ try {
 
 ```java
 if(obj.actionPermitted(args)) {
-    obj.action(args);
+  obj.action(args);
 } else {
-    // handle exception
+  // handle exception
 }
 ```
 
@@ -75,13 +75,13 @@ obj.action(args);
 ```
 
 - 이 한 줄 짜리 호출 방식이 주로 쓰일 것이라 판단되면 리팩토링하는 편이 바람직하다.  
-  한편, `actionPermitted()`는 상태 검사 메소드에 해당하므로 Item 69에서 말한 단점도 그대로 적용되니  
+  한편, `actionPermitted()`는 상태 검사 메소드에 해당하므로 [Item 69](https://github.com/sang-w0o/Study/blob/master/Programming%20Paradigm/Effective%20Java/9.%20%EC%98%88%EC%99%B8/Item%2069.%20%EC%98%88%EC%99%B8%EB%8A%94%20%EC%A7%84%EC%A7%9C%20%EC%98%88%EC%99%B8%20%EC%83%81%ED%99%A9%EC%97%90%EB%A7%8C%20%EC%82%AC%EC%9A%A9%ED%95%98%EB%9D%BC.md)에서 말한 단점도 그대로 적용되니  
   주의해야 한다. 즉, 외부 동기화 없이 여러 스레드가 동시에 접근할 수 있거나 외부 요인에 의해 상태가 변할  
   수 있다면 이 리팩토링은 적절하지 않다. `actionPermitted()`와 `action()` 호출 사이에 객체의  
   상태가 변할 수 있기 때문이다. 또한 `actionPermitted()`가 `action()` 메소드의 작업 일부를  
   중복 수행한다면 성능에서 손해이니, 역시 이 리팩토링이 적절하지 않을 수 있다.
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -90,4 +90,4 @@ obj.action(args);
   가능하고 호출자가 그 처리를 해주길 바란다면, 우선 `Optional`을 반환해도 될지 고민하자.  
   `Optional` 만으로는 상황을 처리하기에 충분한 정보를 제공할 수 없을 때만 검사 예외를 던지자.
 
-<hr/>
+---

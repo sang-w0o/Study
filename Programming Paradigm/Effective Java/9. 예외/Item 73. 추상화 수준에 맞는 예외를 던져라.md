@@ -11,10 +11,10 @@
 
 ```java
 try {
-    // 저수준 추상화 이용
+  // 저수준 추상화 이용
 } catch(LowerLevelException e) {
-    // 추상화 수준에 맞게 번역
-    throw new HigherLevelException(/* ... */);
+  // 추상화 수준에 맞게 번역
+  throw new HigherLevelException(/* ... */);
 }
 ```
 
@@ -29,12 +29,12 @@ try {
  *         즉 ({@code index < 0 || index >= size()})이면 발생한다.
  */
 public E get(int index) {
-    ListIterator<E> i = listIterator(index);
-    try {
-	return i.next();
-    } catch(NoSuchElementException e) {
-	throw new IndexOutOfBoundsException("Index: " + index);
-    }
+  ListIterator<E> i = listIterator(index);
+  try {
+    return i.next();
+  } catch(NoSuchElementException e) {
+    throw new IndexOutOfBoundsException("Index: " + index);
+  }
 }
 ```
 
@@ -45,10 +45,10 @@ public E get(int index) {
 
 ```java
 try {
-    // 저수준 추상화 이용
+  // 저수준 추상화 이용
 } catch(LowerLevelException cause) {
-    // 저수준 예외를 고수준 예외에 실어 보낸다.
-    throw new HigherLevelException(cause);
+  // 저수준 예외를 고수준 예외에 실어 보낸다.
+  throw new HigherLevelException(cause);
 }
 ```
 
@@ -57,9 +57,9 @@ try {
 
 ```java
 class HigherLevelException extends Exception {
-    HigherLevelException(Throwable cause) {
-	super(cause);
-    }
+  HigherLevelException(Throwable cause) {
+    super(cause);
+  }
 }
 ```
 
@@ -78,7 +78,7 @@ class HigherLevelException extends Exception {
   같은 적절한 로깅 기능을 활용해 기록해두면 좋다. 그렇게 해두면 클라이언트 코드와 사용자에게  
   문제를 전파하지 않으면서도 프로그래머가 로그를 분석해 추가 조취를 취할 수 있게 해준다.
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -86,4 +86,4 @@ class HigherLevelException extends Exception {
   곤란하다면 예외 번역을 사용하자. 이때 예외 연쇄를 이용하면 상위 계층에는 맥락에 어울리는  
   고수준 예외를 던지면서 근본 원인도 함께 알려주어 오류를 분석하기에 좋다.
 
-<hr/>
+---

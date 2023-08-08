@@ -64,4 +64,4 @@
 
 > 즉, 위 예시 상황에 대해서는 `IllegalArgumentException`을 선택하는 것이 적절하다.
 
-<hr/>
+---

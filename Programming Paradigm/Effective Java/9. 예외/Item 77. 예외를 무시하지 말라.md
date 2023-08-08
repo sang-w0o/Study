@@ -8,7 +8,7 @@
 
 ```java
 try {
-    // do something
+  // do something
 } catch(SomeException e) { }
 ```
 
@@ -29,9 +29,9 @@ Future<Integer> f = exec.submit(planarMap::chomaticNumber);
 
 int numColors = 4;
 try {
-    numColors = f.get(1L, TimeUnit.SECONDS);
+  numColors = f.get(1L, TimeUnit.SECONDS);
 } catch(TimeoutException | ExecutionException ignored) {
-    // 기본값을 사용한다.
+  // 기본값을 사용한다.
 }
 ```
 
@@ -41,4 +41,4 @@ try {
   처리하면 오류를 완전히 피할 수도 있다. 무시하지 않고 바깥으로 전파하게만 놔둬도 최소한  
   디버깅 정보를 남긴 채 프로그램이 신속히 중단되게는 할 수 있다.
 
-<hr/>
+---

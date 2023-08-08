@@ -16,13 +16,13 @@
 
 ```java
 public class Stack {
-    //..
-    public Object pop() {
-	if(size == 0) throw new EmptyStackException();
-    }
-    Object result = elements[--size];
-    elements[size] = null;
-    return result;
+  //..
+  public Object pop() {
+    if(size == 0) throw new EmptyStackException();
+  }
+  Object result = elements[--size];
+  elements[size] = null;
+  return result;
 }
 ```
 
@@ -63,4 +63,4 @@ public class Stack {
   한다는 것이 기본 규칙이다. 이 규칙을 지키지 못한다면 실패 시의 객체 상태를 API 설명에 명시해야 한다.  
   이것이 이상적이나, 아쉽게도 지금의 API 문서 상당 부분이 잘 지키지 않고 있다.
 
-<hr/>
+---

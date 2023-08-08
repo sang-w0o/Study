@@ -4,9 +4,9 @@
 
 ```java
 try {
-    int i = 0;
-    while(true)
-        range[i++].climb();
+  int i = 0;
+  while(true)
+    range[i++].climb();
 } catch(ArrayIndexOutOfBoundsExceptions e) { }
 ```
 
@@ -18,10 +18,10 @@ try {
 
 ```java
 for(Mountain m : range)
-    m.climb();
+  m.climb();
 ```
 
-- 그런데 예외를 써서 루프를 종류한 이유는 도대체 뭘까? 잘못된 추론을 근거로 성능을 높여보려  
+- 그런데 예외를 써서 루프를 종료한 이유는 도대체 뭘까? 잘못된 추론을 근거로 성능을 높여보려  
   한 것이다. JVM은 배열에 접근할 때마다 경계를 넘지 않는지 검사하는데, 일반적인 반복문도 배열  
   경계에 도달하면 종료한다. 따라서 이 검사를 반복문에도 명시하면 같은 일이 중복되므로 햐나를  
   생략한 것이다. 하지만 세 가지 면에서 잘못된 추론이다.
@@ -55,8 +55,8 @@ for(Mountain m : range)
 
 ```java
 for(Iterator<Foo> i = collection.iterator(); i.hasNext();) {
-    Foo foo = i.next();
-    // compute with foo
+  Foo foo = i.next();
+  // compute with foo
 }
 ```
 
@@ -64,13 +64,13 @@ for(Iterator<Foo> i = collection.iterator(); i.hasNext();) {
 
 ```java
 try {
-    Iterator<Foo> i = collection.iterator();
-    while(true) {
-	Foo foo = i.next();
-	// compute with foo
-    }
+  Iterator<Foo> i = collection.iterator();
+  while(true) {
+    Foo foo = i.next();
+    // compute with foo
+  }
 } catch(NoSuchElementException e) {
-    //..
+  //..
 }
 ```
 
@@ -93,11 +93,11 @@ try {
     잘못 사용했을 때 발견하기가 쉽다. 상태 검사 메소드 호출을 깜빡 잊었다면 상태 의존적 메소드가 예외를  
     던져 버그를 확실히 드러낼 것이다. 반면, 특정 값은 검사하지 않고 지나쳐도 발견하기가 어렵다.
 
-<hr/>
+---
 
 ## 핵심 정리
 
 - 예외는 예외 상황에서 쓸 의도로 설계되었다. 정상적인 제어 흐름에서 사용해서는 안 되며, 이를 프로그래머에게  
   강요하는 API를 만들어서도 안 된다.
 
-<hr/>
+---
