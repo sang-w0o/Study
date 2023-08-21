@@ -25,8 +25,8 @@
 private static final ConcurrentMap<String, String> map = new ConcurrentHashMap<>();
 
 public static String intern(String s) {
-    String previousValue = map.putIfAbsent(s, s);
-    return previousValue == null ? s : previousValue;
+  String previousValue = map.putIfAbsent(s, s);
+  return previousValue == null ? s : previousValue;
 }
 ```
 
@@ -35,14 +35,14 @@ public static String intern(String s) {
 
 ```java
 public static String intern(String s) {
-    String result = map.get(s);
+  String result = map.get(s);
+  if(result == null) {
+    result = map.putIfAbsent(s, s);
     if(result == null) {
-	result = map.putIfAbsent(s, s);
-	if(result == null) {
-	    result = s;
-	}
+      result = s;
     }
-    return result;
+  }
+  return result;
 }
 ```
 
@@ -54,7 +54,7 @@ public static String intern(String s) {
 - 컬렉션 인터페이스 중 일부는 작업이 성공적으로 완료됄 때까지 기다리도록, 즉 차단되도록 확장되었다. 예시를 보자.  
   `Queue`를 확장한 `BlockingQueue`에 추가된 메소드 중 `take()`는 큐의 첫 번째 원소를 꺼낸다.  
   이때 만약 큐가 비어있다면 새로운 원소가 추가될 때까지 기다린다. 이러한 특성 덕분에 `BlockingQueue`는 작업 큐  
-  (생산자-소비사 큐)로 쓰기에 적합하다. 작업 큐는 하나 이상의 생산자(producer) 스레드가 작업(work)을 큐에  
+  (생산자-소비자 큐)로 쓰기에 적합하다. 작업 큐는 하나 이상의 생산자(producer) 스레드가 작업(work)을 큐에  
   추가하고, 하나 이상의 소비자(consumer) 스레드가 큐에 있는 작업을 꺼내 처리하는 형태다. 짐작할 수 있듯이,  
   `ThreadPoolExecutor`를 포함한 대부분의 실행자 서비스 구현체에서 이 `BlockingQueue`를 사용한다.
 
@@ -76,32 +76,32 @@ public static String intern(String s) {
 
 ```java
 public static long time(Executor executor, int concurrency, Runnable action) throws InterruptedException {
-    CountdownLatch ready = new CountdownLatch(concurrency);
-    CountdownLatch start = new CountdownLatch(1);
-    CountdownLatch done = new CountdownLatch(concurrency);
+  CountdownLatch ready = new CountdownLatch(concurrency);
+  CountdownLatch start = new CountdownLatch(1);
+  CountdownLatch done = new CountdownLatch(concurrency);
 
-    for(int i = 0; i < concurrency; i++) {
-	executor.execute(() -> {
-	    // 타이머에게 준비를 마쳤음을 알린다.
-	    ready.countDown();
-	    try {
-		// 모든 작업자 스레드가 준비될 때까지 기다린다.
-		start.await();
-		action.run();
-	    } catch(InterruptedException e) {
-		Thread.currentThread().interrupt();
-	    } finally {
-		// 타이머에게 작업을 마쳤음을 알린다.
-		done.countDown();
-	    }
-	});
-    }
+  for(int i = 0; i < concurrency; i++) {
+    executor.execute(() -> {
+      // 타이머에게 준비를 마쳤음을 알린다.
+      ready.countDown();
+      try {
+        // 모든 작업자 스레드가 준비될 때까지 기다린다.
+        start.await();
+        action.run();
+      } catch(InterruptedException e) {
+        Thread.currentThread().interrupt();
+      } finally {
+        // 타이머에게 작업을 마쳤음을 알린다.
+        done.countDown();
+      }
+    });
+  }
 
-    ready.await(); // 모든 작업자가 준비될 때까지 기다린다.
-    long startNanos = System.nanoTime();
-    start.countDown(); // 작업자들을 깨운다.
-    done.await(); // 모든 작업자가 일을 끝마치기를 기다린다.
-    return System.nanoTime() - startNanos;
+  ready.await(); // 모든 작업자가 준비될 때까지 기다린다.
+  long startNanos = System.nanoTime();
+  start.countDown(); // 작업자들을 깨운다.
+  done.await(); // 모든 작업자가 일을 끝마치기를 기다린다.
+  return System.nanoTime() - startNanos;
 }
 ```
 
@@ -134,12 +134,12 @@ public static long time(Executor executor, int concurrency, Runnable action) thr
 
 ```java
 synchronized(obj) {
-    while(/* 조건이 충족되지 않을 때*/) {
-	obj.wait(); // lock을 놓고, 깨어나면 다시 잡는다.
-    }
+  while(/* 조건이 충족되지 않을 때*/) {
+    obj.wait(); // lock을 놓고, 깨어나면 다시 잡는다.
+  }
 
-    // 조건이 충족되었을 때의 동작 수행
-    //..
+  // 조건이 충족되었을 때의 동작 수행
+  //..
 }
 ```
 
@@ -161,7 +161,7 @@ synchronized(obj) {
     공개된 객체를 lock으로 사용해 대기하는 클래스는 이런 위험에 노출된다. 외부에 노출된 객체의  
     동기화된 메소드 내에서 호출하는 `wait()`는 모두 이 문제에 영향을 받는다.
 
-  - 깨우는 스레드는 지나치게 관대해서 대기중인 스레드 중 일부만 조건이 충족되어도 `notifyAll()`을 호출해  
+  - 깨우는 스레드가 지나치게 관대해서 대기중인 스레드 중 일부만 조건이 충족되어도 `notifyAll()`을 호출해  
     모든 스레드를 깨울 수도 있다.
 
   - 대기 중인 스레드가 드물게 `notify()` 없이도 깨어나는 경우가 있다.  
@@ -182,7 +182,7 @@ synchronized(obj) {
   `wait()`를 호출하는 공격으로부터 보호할 수 있다. 그런 스레드가 중요한 `notify()`를 삼켜버린다면, 꼭 깨어났어야 할  
   스레드들이 영원히 대기하게 될 수도 있다.
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -192,4 +192,4 @@ synchronized(obj) {
   표준 관용구에 따라 while문 내에서 호출하도록 하자. 일반적으로 `notify()` 보다는 `notifyAll()`을  
   사용해야 한다. 혹시라도 `notify()`를 사용한다면, 응답 불가 상태에 빠지지 않도록 각별히 주의하자.
 
-<hr/>
+---

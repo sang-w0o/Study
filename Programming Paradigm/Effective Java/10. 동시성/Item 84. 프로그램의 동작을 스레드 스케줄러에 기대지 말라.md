@@ -23,26 +23,26 @@
 
 ```java
 public class SlowCountdownLatch {
-    private int count;
+  private int count;
 
-    public SlowCountdownLatch(int count) {
-	if(count < 0) throw new IllegalArgumentException(count + "< 0");
-	this.count = count;
-    }
+  public SlowCountdownLatch(int count) {
+    if(count < 0) throw new IllegalArgumentException(count + "< 0");
+    this.count = count;
+  }
 
-    public void await() {
-	// await 메소드의 정의부 주목!
-	while(true) {
-	    synchronized(this) {
-		if(count == 0)
-		    return;
-	    }
-	}
+  public void await() {
+    // await 메소드의 정의부 주목!
+    while(true) {
+      synchronized(this) {
+        if(count == 0)
+          return;
+      }
     }
+  }
 
-    public synchronized void countDown() {
-	if(count != 0) count--;
-    }
+  public synchronized void countDown() {
+    if(count != 0) count--;
+  }
 }
 ```
 
@@ -61,7 +61,7 @@ public class SlowCountdownLatch {
   우선순위로 해결하려는 시도는 절대 합리적이지 않다. 진짜 원인을 찾아 수정하기 전까지 같은 문제가 반복해  
   터져나올 것이다.
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -70,4 +70,4 @@ public class SlowCountdownLatch {
   힌트일 뿐이다. 스레드 우선순위는 이미 잘 동작하는 프로그램의 서비스 품질을 높이기 위해 드물게 쓰일  
   수는 있지만, 간신히 동작하는 프로그램은 _'고치는 용도'_ 로 사용해서는 절대 안 된다.
 
-<hr/>
+---

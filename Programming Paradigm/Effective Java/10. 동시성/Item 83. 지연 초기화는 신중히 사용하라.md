@@ -33,8 +33,8 @@ private final FieldType field = computeFieldValue();
 private FieldType field;
 
 private synchronized FieldType getField() {
-    if(field == null) field = computeFieldValue();
-    return field;
+  if(field == null) field = computeFieldValue();
+  return field;
 }
 ```
 
@@ -46,7 +46,7 @@ private synchronized FieldType getField() {
 
 ```java
 private static class FieldHolder {
-    static final FieldType field = computeFieldValue();
+  static final FieldType field = computeFieldValue();
 }
 
 private static FieldType getField() { return FieldHolder.field; }
@@ -67,17 +67,17 @@ private static FieldType getField() { return FieldHolder.field; }
 private volatile FieldType field;
 
 private FieldType getField() {
-    FieldType result = field;
-    if(result != null) { // 첫 번째 검사(lock 사용 안함)
-	return result;
-    }
+  FieldType result = field;
+  if(result != null) { // 첫 번째 검사(lock 사용 안함)
+    return result;
+  }
 
-    synchronized(this) {
-	if(field != null) { // 두 번째 검사(lock 사용)
-	    field = computeFieldValue();
-	}
-	return field;
+  synchronized(this) {
+    if(field != null) { // 두 번째 검사(lock 사용)
+      field = computeFieldValue();
     }
+    return field;
+  }
 }
 ```
 
@@ -95,10 +95,10 @@ private FieldType getField() {
 private volatile FieldType field;
 
 private FieldType getField() {
-    FieldType result = field;
-    if(result == null)
-        field = result = computeFieldValue();
-    return result;
+  FieldType result = field;
+  if(result == null)
+    field = result = computeFieldValue();
+  return result;
 }
 ```
 
@@ -111,7 +111,7 @@ private FieldType getField() {
   불린다. 이 관용구는 어떤 환경에서는 필드 접근 속도를 높여주지만, 초기화가 스레드당 최대 한 번 더 이뤄질 수 있다.  
   아주 이례적인 기법으로, 보통은 거의 쓰지 않는다.
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -120,4 +120,4 @@ private FieldType getField() {
   필드에는 지연 초기화 홀더 클래스 관용구를 사용하자. 반복해 초기화해도 괜찮은 인스턴스 필드에는 단일검사  
   관용구도 고려 대상이다.
 
-<hr/>
+---

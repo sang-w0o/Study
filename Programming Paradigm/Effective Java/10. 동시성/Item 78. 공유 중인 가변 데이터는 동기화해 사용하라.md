@@ -37,18 +37,18 @@
 
 ```java
 public class StopThread {
-    private static boolean stopRequested;
+  private static boolean stopRequested;
 
-    public static void main(String[] args) throws InterruptedException {
-	Thread backgroundThread = new Thread(() -> {
-	    int i = 0;
-	    while(!stopRequested)
-	        i++;
-	});
-	backgroundThread.start();
-	TimeUnit.SECONDS.sleep(1);
-	stopRequested = true;
-    }
+  public static void main(String[] args) throws InterruptedException {
+    Thread backgroundThread = new Thread(() -> {
+      int i = 0;
+      while(!stopRequested)
+        i++;
+    });
+    backgroundThread.start();
+    TimeUnit.SECONDS.sleep(1);
+    stopRequested = true;
+  }
 }
 ```
 
@@ -61,12 +61,12 @@ public class StopThread {
 ```java
 // 원래 코드
 while(!stopRequested)
-    i++;
+  i++;
 
 // 최적화한 코드
 if(!stopRequested)
-    while(true)
-        i++;
+  while(true)
+    i++;
 ```
 
 - OpenJDK 서버 VM이 실제로 적용하는 끌어올리기(hoisting)라는 최적화 기법이다.  
@@ -76,26 +76,26 @@ if(!stopRequested)
 
 ```java
 public class StopThread {
-    private static boolean stopRequested;
+  private static boolean stopRequested;
 
-    private static synchronized void requestStop() {
-	stopRequested = true;
-    }
+  private static synchronized void requestStop() {
+    stopRequested = true;
+  }
 
-    private static synchronized boolean stopRequested() {
-	return stopRequested;
-    }
+  private static synchronized boolean stopRequested() {
+    return stopRequested;
+  }
 
-    public static void main(String[] args) throws InterruptedException {
-	Thread backgroundThread = new Thread(() -> {
-	    int i = 0;
-	    while(!stopRequested())
-	        i++;
-	});
-	backgroundThread.start();
-	TimeUnit.SECONDS.sleep(1);
-	requestStop();
-    }
+  public static void main(String[] args) throws InterruptedException {
+    Thread backgroundThread = new Thread(() -> {
+      int i = 0;
+      while(!stopRequested())
+        i++;
+    });
+    backgroundThread.start();
+    TimeUnit.SECONDS.sleep(1);
+    requestStop();
+  }
 }
 ```
 
@@ -113,18 +113,18 @@ public class StopThread {
 
 ```java
 public class StopThread {
-    private static volatile boolean stopRequested;
+  private static volatile boolean stopRequested;
 
-    public static void main(String[] args) throws InterruptedException {
-	Thread backgroundThread = new Thread(() -> {
-	    int i = 0;
-	    while(!stopRequested)
-	        i++;
-	});
-	backgroundThread.start();
-	TimeUnit.SECONDS.sleep(1);
-	stopRequested = true;
-    }
+  public static void main(String[] args) throws InterruptedException {
+    Thread backgroundThread = new Thread(() -> {
+      int i = 0;
+      while(!stopRequested)
+        i++;
+    });
+    backgroundThread.start();
+    TimeUnit.SECONDS.sleep(1);
+    stopRequested = true;
+  }
 }
 ```
 
@@ -134,7 +134,7 @@ public class StopThread {
 private static volatile int nextSerialNumber = 0;
 
 public static int generateSerialNumber() {
-    return nextSerialNumber++;
+  return nextSerialNumber++;
 }
 ```
 
@@ -153,7 +153,7 @@ public static int generateSerialNumber() {
   더 견고하게 만들려면 int 대신 long을 사용하거나, nextSerialNumber가 최대값에 도달하면  
   예외를 던지게 하자.
 
-- 아직 끝이 아니다. Item 59에서 봤듯이 `java.util.concurrent.atomic` 패키지의  
+- 아직 끝이 아니다. [Item 59](https://github.com/sang-w0o/Study/blob/master/Programming%20Paradigm/Effective%20Java/8.%20%EC%9D%BC%EB%B0%98%EC%A0%81%EC%9D%B8%20%ED%94%84%EB%A1%9C%EA%B7%B8%EB%9E%98%EB%B0%8D%20%EC%9B%90%EC%B9%99/Item%2059.%20%EB%9D%BC%EC%9D%B4%EB%B8%8C%EB%9F%AC%EB%A6%AC%EB%A5%BC%20%EC%9D%B5%ED%9E%88%EA%B3%A0%20%EC%82%AC%EC%9A%A9%ED%95%98%EB%9D%BC.md)에서 봤듯이 `java.util.concurrent.atomic` 패키지의  
   `AtomicLong`을 사용해보자. 이 패키지는 lock 없이도(lock-free) 스레드 안전한 프로그래밍을  
   지원하는 클래스들이 담겨져 있다. volatile은 동기화의 두 효과 중 통신 쪽만 지원하지만, 이 패키지는  
   원자성(배타적 실행)까지 지원한다. 우리가 `generateSerialNumber()`에서 원하는 바로 그 기능이다.  

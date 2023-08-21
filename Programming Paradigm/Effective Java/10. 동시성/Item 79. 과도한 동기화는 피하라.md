@@ -1,6 +1,6 @@
 # 과도한 동기화는 피하라
 
-- Item 78에서 충분하지 못한 동기화의 피해를 다뤘다면, 이번 아이템에서는 반대 상황을 다룬다.  
+- [Item 78](https://github.com/sang-w0o/Study/blob/master/Programming%20Paradigm/Effective%20Java/10.%20%EB%8F%99%EC%8B%9C%EC%84%B1/Item%2078.%20%EA%B3%B5%EC%9C%A0%20%EC%A4%91%EC%9D%B8%20%EA%B0%80%EB%B3%80%20%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%8A%94%20%EB%8F%99%EA%B8%B0%ED%99%94%ED%95%B4%20%EC%82%AC%EC%9A%A9%ED%95%98%EB%9D%BC.md)에서 충분하지 못한 동기화의 피해를 다뤘다면, 이번 아이템에서는 반대 상황을 다룬다.  
   과도한 동기화는 성능을 떨어뜨리고, 교착 상태에 빠뜨리고, 심지어 예측할 수 없는 동작을  
   낳기도 한다.
 
@@ -13,46 +13,46 @@
 
 - 구체적인 예시를 보자. 아래는 어떤 `Set`을 감싼 wrapper 클래스이고, 이 클래스의 클라이언트는  
   집합에 원소가 추가되면 알림을 받을 수 있다. 바로 관찰자 패턴이다. 핵심만 보여주기 위해 원소가  
-  제거되는 부분은 생략했다. 그리고 Item 18에서 사용한 `ForwardingSet`을 재사용해 구현했다.
+  제거되는 부분은 생략했다. 그리고 [Item 18](https://github.com/sang-w0o/Study/blob/master/Programming%20Paradigm/Effective%20Java/3.%20%ED%81%B4%EB%9E%98%EC%8A%A4%EC%99%80%20%EC%9D%B8%ED%84%B0%ED%8E%98%EC%9D%B4%EC%8A%A4/Item%2018.%20%EC%83%81%EC%86%8D%EB%B3%B4%EB%8B%A4%EB%8A%94%20%EC%BB%B4%ED%8F%AC%EC%A7%80%EC%85%98%EC%9D%84%20%EC%82%AC%EC%9A%A9%ED%95%98%EB%9D%BC.md)에서 사용한 `ForwardingSet`을 재사용해 구현했다.
 
 ```java
 public class ObservableSet<E> extends ForwardingSet<E> {
-    public ObservableSet(Set<E> set) { super(set); }
+  public ObservableSet(Set<E> set) { super(set); }
 
-    private final List<SetObserver<E>> observers = new ArrayList<>();
+  private final List<SetObserver<E>> observers = new ArrayList<>();
 
-    public void addObserver(SetObserver<E> observer) {
-      synchronized(observers) {
-        observers.add(observer);
-      }
+  public void addObserver(SetObserver<E> observer) {
+    synchronized(observers) {
+      observers.add(observer);
     }
+  }
 
-    public boolean removeObserver(SetObserver<E> observer) {
-	    synchronized(observers) {
-	      return observers.remove(observer);
-	    }
+  public boolean removeObserver(SetObserver<E> observer) {
+    synchronized(observers) {
+      return observers.remove(observer);
     }
+  }
 
-    private void notifyElementAdded(E element) {
-	    synchronized(observers) {
-	        for(SetObserver<E> observer : observers)
-	            observer.added(this, element);
-	    }
+  private void notifyElementAdded(E element) {
+    synchronized(observers) {
+      for(SetObserver<E> observer : observers)
+        observer.added(this, element);
     }
+  }
 
-    @Override public boolean add(E element) {
-	    boolean added = super.add(element);
-	    if(added) notifyElementAdded(element);
-	    return added;
-    }
+  @Override public boolean add(E element) {
+    boolean added = super.add(element);
+    if(added) notifyElementAdded(element);
+    return added;
+  }
 
-    @Override public boolean addAll(Collection<? extends E> c) {
-	    boolean result = false;
-	    for(E element : c) {
-	        result |= add(element);
-	    }
-	    return result;
+  @Override public boolean addAll(Collection<? extends E> c) {
+    boolean result = false;
+    for(E element : c) {
+      result |= add(element);
     }
+    return result;
+  }
 }
 ```
 
@@ -79,7 +79,7 @@ public static void main(String[] args) {
   ObservableSet<Integer> set = new ObservableSet<>(new HashSet<>());
   set.addObserver((s, e) -> System.out.println(e));
   for(int i = 0; i < 100; i++)
-	  set.add(i);
+    set.add(i);
 }
 ```
 
@@ -90,14 +90,14 @@ public static void main(String[] args) {
 public static void main(String[] args) {
   ObservableSet<Integer> set = new ObservableSet<>(new HashSet<>());
   set.addObserver(new SetObserver<>() {
-	  public void added(ObservableSet<Integer> set, Integer element) {
-	    System.out.println(element);
-	    if(element == 23)
-	      set.removeObserver(this);
-	    }
+    public void added(ObservableSet<Integer> set, Integer element) {
+      System.out.println(element);
+      if(element == 23)
+        set.removeObserver(this);
+      }
   });
   for(int i = 0; i < 100; i++)
-	  set.add(i);
+    set.add(i);
 }
 ```
 
@@ -121,19 +121,19 @@ public static void main(String[] args) {
 public static void main(String[] args) {
   ObservableSet<Integer> set = new ObservableSet<>(new HashSet<>());
   set.addObserver(new SetObserver<>() {
-	  public void added(ObservableSet<Integer> set, Integer element) {
-	    System.out.println(element);
-	      if(element == 23) {
-		      ExecutorService exec = Executors.newSingleThreadExecutor();
-		        try {
-		          exec.submit(() -> set.removeObserver(this)).get();
-		        } catch(ExecutionException | InterruptedException ex) {
-		          throw new AssertionError(ex);
-		        } finally {
-		          exec.shutdown();
-		        }
-	      }
-	  }
+    public void added(ObservableSet<Integer> set, Integer element) {
+      System.out.println(element);
+      if(element == 23) {
+        ExecutorService exec = Executors.newSingleThreadExecutor();
+        try {
+          exec.submit(() -> set.removeObserver(this)).get();
+        } catch(ExecutionException | InterruptedException ex) {
+          throw new AssertionError(ex);
+        } finally {
+          exec.shutdown();
+        }
+      }
+    }
   });
   for(int i = 0; i < 100; i++)
     set.add(i);
@@ -145,7 +145,7 @@ public static void main(String[] args) {
   쥐고 있기 때문이다. 그와 동시에 main 스레드는 백그라운드 스레드가 관찰자를 제거하기만을 기다리는 중이다.  
   이것이 바로 교착 상태다.
 
-- 사실 관찰자가 자신을 구독 해지사는 데 굳이 백그라운드 스레드를 이용할 이유가 없으니 조금  
+- 사실 관찰자가 자신을 구독 해지하는 데 굳이 백그라운드 스레드를 이용할 이유가 없으니 조금  
   억지스러운 예시지이지만, 여기서 보인 문제 자체는 진짜다. 실제 시스템(특히 GUI Toolkit)에서도  
   동기화된 영역 안에서 외계인 메소드를 호출해 교착 상태에 빠지는 사례는 자주 있다.
 
@@ -172,20 +172,20 @@ public class ObservableSet<E> extends ForwardingSet<E> {
 
   // 기존 코드
   private void notifyElementAdded(E element) {
-	  synchronized(observers) {
-	    for(SetObserver<E> observer : observers)
-	      observer.added(this, element);
-	  }
+    synchronized(observers) {
+      for(SetObserver<E> observer : observers)
+        observer.added(this, element);
+    }
   }
 
   // 바뀐 코드
   private void notifyElementAdded(E element) {
-	  List<SetObserver<E>> snapshot = null;
-	  synchronized(observers) {
-	    snapshot = new ArrayList<>(observers);
-	  }
-	  for(SetObserver<E> observer : snapshot)
-	    observer.added(this, element);
+    List<SetObserver<E>> snapshot = null;
+    synchronized(observers) {
+      snapshot = new ArrayList<>(observers);
+    }
+    for(SetObserver<E> observer : snapshot)
+      observer.added(this, element);
   }
 
   //..
@@ -214,36 +214,36 @@ public class ObservableSet<E> extends ForwardingSet<E> {
   private final List<SetObserver<E>> observers = new CopyOnWriteArrayList<>();
 
   public void addObserver(SetObserver<E> observer) {
-	  observers.add(observer);
+    observers.add(observer);
   }
 
   public boolean removeObserver(SetObserver<E> observer) {
-	  return observers.remove(observer);
+    return observers.remove(observer);
   }
 
   private void notifyElementAdded(E element) {
-	  for(SetObserver<E> observer : observers)
-	    observer.added(this, element);
+    for(SetObserver<E> observer : observers)
+      observer.added(this, element);
   }
 
   @Override public boolean add(E element) {
-	  boolean added = super.add(element);
-	  if(added) notifyElementAdded(element);
-	  return added;
+    boolean added = super.add(element);
+    if(added) notifyElementAdded(element);
+    return added;
   }
 
   @Override public boolean addAll(Collection<? extends E> c) {
-	  boolean result = false;
-	  for(E element : c) {
-	    result |= add(element);
-	  }
-	  return result;
+    boolean result = false;
+    for(E element : c) {
+      result |= add(element);
+    }
+    return result;
   }
 }
 ```
 
 - 기본 규칙은 **동기화 영역에서는 가능한 한 일을 적게 하는 것이다.** lock을 얻고, 공유 데이터를  
-  검사하고, 필요하면 수정하고, lock을 놓는다. 오래 걸리는 작업이라면 Item 78의 지침을 어기지 않으면서  
+  검사하고, 필요하면 수정하고, lock을 놓는다. 오래 걸리는 작업이라면 [Item 78](https://github.com/sang-w0o/Study/blob/master/Programming%20Paradigm/Effective%20Java/10.%20%EB%8F%99%EC%8B%9C%EC%84%B1/Item%2078.%20%EA%B3%B5%EC%9C%A0%20%EC%A4%91%EC%9D%B8%20%EA%B0%80%EB%B3%80%20%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%8A%94%20%EB%8F%99%EA%B8%B0%ED%99%94%ED%95%B4%20%EC%82%AC%EC%9A%A9%ED%95%98%EB%9D%BC.md)의 지침을 어기지 않으면서  
   동기화 영역 밖으로 옮기는 방법을 찾아보자.
 
 - 지금까지 정확성에 대해 보았으니, 이제 성능 측면도 간단히 살펴보자. Java의 동기화 비용은 빠르게  
@@ -272,7 +272,7 @@ public class ObservableSet<E> extends ForwardingSet<E> {
   비차단 동시성 제어(nonblocking concurrency control) 등 다양한 기법을 동원해 동시성을 높힐 수 있다.
 
 - 여러 스레드가 호출할 가능성이 있는 메소드가 정적 필드를 수정한다면, 그 필드를 사용하기 전에 반드시  
-  동기해야 한다.(비결정적 행동도 용인하는 클래스라면 상관없다.) 그런데 클라이언트가 여러 스레드로 복제돼  
+  동기화해야 한다.(비결정적 행동도 용인하는 클래스라면 상관없다.) 그런데 클라이언트가 여러 스레드로 복제돼  
   구동되는 상황이라면 다른 클라이언트에서 이 메소드를 호출하는 것을 막을 수 없으니 외부에서 동기화할  
   방법이 없다. 결과적으로, 이 정적 필드가 심지어 private 이더라도 서로 관련 없는 스레드들이 동시에  
   읽고 수정할 수 있게 된다. 사실상 전역 변수와 같아진다는 뜻이다. 이전에 `generateSerialNumber()`의  
@@ -286,7 +286,7 @@ public static synchronized int generateSerialNumber() {
 }
 ```
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -296,4 +296,4 @@ public static synchronized int generateSerialNumber() {
   과거 어느 때보다 중요하다. 합당한 이유가 있을 때만 내부에서 동기화하고, 동기화했는지의  
   여부를 문서에 명확히 밝히자.
 
-<hr/>
+---
