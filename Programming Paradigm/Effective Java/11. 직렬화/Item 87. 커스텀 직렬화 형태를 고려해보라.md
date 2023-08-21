@@ -20,25 +20,25 @@
 
 ```java
 public class Name implements Serializable {
-    /*
-     * 성. null이 아니어야 한다.
-     * @serial
-     */
-    private final String lastName;
+  /*
+   * 성. null이 아니어야 한다.
+   * @serial
+   */
+  private final String lastName;
 
-    /*
-     * 이름. null이 아니어야 한다.
-     * @serial
-     */
-    private final String firstName;
+  /*
+   * 이름. null이 아니어야 한다.
+   * @serial
+   */
+  private final String firstName;
 
-    /*
-     * 중간 이름. 중간 이름이 없다면 null.
-     * @serial
-     */
-    private final String middleName;
+  /*
+   * 중간 이름. 중간 이름이 없다면 null.
+   * @serial
+   */
+  private final String middleName;
 
-    //..
+  //..
 }
 ```
 
@@ -57,16 +57,16 @@ public class Name implements Serializable {
 
 ```java
 public final class StringList implements Serializable {
-    private int size = 0;
-    private Entry head = null;
+  private int size = 0;
+  private Entry head = null;
 
-    private static class Entry implements Serializable {
-	String data;
-	Entry next;
-	Entry previous;
-    }
+  private static class Entry implements Serializable {
+    String data;
+    Entry next;
+    Entry previous;
+  }
 
-    //..
+  //..
 }
 ```
 
@@ -96,47 +96,47 @@ public final class StringList implements Serializable {
 
 ```java
 public final class StringList implements Serializable {
-    private transient int size = 0;
-    private transient Entry head = null;
+  private transient int size = 0;
+  private transient Entry head = null;
 
-    // 이제 직렬화되지 않는다.
-    private static class Entry {
-	String data;
-	Entry next;
-	Entry previous;
+  // 이제 직렬화되지 않는다.
+  private static class Entry {
+    String data;
+    Entry next;
+    Entry previous;
+  }
+
+  // 지정한 문자열을 이 리스트에 추가한다.
+  public final void add(String s) { /* ... */ }
+
+  /**
+   * 이 {@code StringList} 인스턴스를 직렬화한다.
+   *
+   * @serialData 이 리스트의 크기(포함된 문자열의 개수)를 기록한 후
+   * ({@code int}), 이어서 모든 원소를(각각은 {@code String})
+   * 순서대로 기록한다.
+   */
+  private void writeObject(ObjectOutputStream s) throws IOException {
+    s.defaultWriteObject();
+    s.writeInt(size);
+
+    // 모든 원소들을 올바른 순서로 기록한다.
+    for(Entry e = head; e != null; e = e.next) {
+      s.writeObject(e.data);
     }
+  }
 
-    // 지정한 문자열을 이 리스트에 추가한다.
-    public final void add(String s) { /* ... */ }
+  private void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException {
+    s.defaultReadObject();
+    int numElements = s.readInt();
 
-    /**
-     * 이 {@code StringList} 인스턴스를 직렬화한다.
-     *
-     * @serialData 이 리스트의 크기(포함된 문자열의 개수)를 기록한 후
-     * ({@code int}), 이어서 모든 원소를(각각은 {@code String})
-     * 순서대로 기록한다.
-     */
-    private void writeObject(ObjectOutputStream s) throws IOException {
-	s.defaultWriteObject();
-	s.writeInt(size);
-
-	// 모든 원소들을 올바른 순서로 기록한다.
-	for(Entry e = head; e != null; e = e.next) {
-	    s.writeObject(e.data);
-	}
+    // 모든 원소를 읽어 이 리스트에 삽입한다.
+    for(int i = 0; i < numElements; i++) {
+      add((String) s.readObject());
     }
+  }
 
-    private void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException {
-	s.defaultReadObject();
-	int numElements = s.readInt();
-
-	// 모든 원소를 읽어 이 리스트에 삽입한다.
-	for(int i = 0; i < numElements; i++) {
-	    add((String) s.readObject());
-	}
-    }
-
-    //..
+  //..
 }
 ```
 
@@ -185,7 +185,7 @@ public final class StringList implements Serializable {
 
 ```java
 private synchronized void writeObject(ObjectOutputStream out) throws IOException {
-    out.defaultWriteObject();
+  out.defaultWriteObject();
 }
 ```
 
@@ -213,7 +213,7 @@ private static final long serialVersionUID = /* 무작위로 고른 long 값 */;
   **구버전으로 직렬화된 인스턴스들과의 호환성을 끊으려는 경우를 제외하고는 Serial Version UID를 절대**  
   **수정하지 말자.**
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -224,4 +224,4 @@ private static final long serialVersionUID = /* 무작위로 고른 long 값 */;
   없다. 직렬화 호환성을 유지하기 위해 영원히 지원해야 하는 것이다. 잘못된 직렬화 형태를 선택하면 해당 클래스의  
   복잡성과 성능에 영구히 부정적인 영향을 남긴다.
 
-<hr/>
+---

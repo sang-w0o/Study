@@ -1,34 +1,34 @@
 # `readObject()` 메소드는 방어적으로 작성하라
 
-- Item 50에서는 불변인 날짜 범위 클래스를 만드는 데 가변인 `Date` 필드를 사용했다. 그래서 불변식을 지키고  
+- [Item 50](https://github.com/sang-w0o/Study/blob/master/Programming%20Paradigm/Effective%20Java/7.%20%EB%A9%94%EC%86%8C%EB%93%9C/Item%2050.%20%EC%A0%81%EC%8B%9C%EC%97%90%20%EB%B0%A9%EC%96%B4%EC%A0%81%20%EB%B3%B5%EC%82%AC%EB%B3%B8%EC%9D%84%20%EB%A7%8C%EB%93%A4%EB%9D%BC.md)에서는 불변인 날짜 범위 클래스를 만드는 데 가변인 `Date` 필드를 사용했다. 그래서 불변식을 지키고  
   불변성을 유지하기 위해 생성자와 접근자에서 `Date` 객체를 방어적으로 복사하느라 코드가 상당히 길어졌다.
 
 ```java
 public final class Period {
-    private final Date start;
-    private final Date end;
+  private final Date start;
+  private final Date end;
 
-    /**
-     * @param start 시작 시각
-     * @param end 끝 시각; 시작 시각보다 뒤여야 한다.
-     * @throws IllegalAgrumentException 시작 시간이 종료 시각보다 늦을 때 발생한다.
-     * @throws NullPointerException start나 end가 null이면 발생한다.
-     */
-     public Period(Date start, Date end) {
-	if (start.compareTo(end) > 0) {
-	    throw new IllegalArgumentException("start must be before end");
-	}
-	this.start = new Date(start.getTime());
-	this.end = new Date(end.getTime());
-     }
+  /**
+   * @param start 시작 시각
+   * @param end 끝 시각; 시작 시각보다 뒤여야 한다.
+   * @throws IllegalAgrumentException 시작 시간이 종료 시각보다 늦을 때 발생한다.
+   * @throws NullPointerException start나 end가 null이면 발생한다.
+   */
+  public Period(Date start, Date end) {
+    if (start.compareTo(end) > 0) {
+      throw new IllegalArgumentException("start must be before end");
+    }
+    this.start = new Date(start.getTime());
+    this.end = new Date(end.getTime());
+  }
 
-     public Date start() { return new Date(start.getTime()); }
+  public Date start() { return new Date(start.getTime()); }
 
-     public Date end() { return new Date(end.getTime()); }
+  public Date end() { return new Date(end.getTime()); }
 
-     public String toString() { return start = " - " + end; }
+  public String toString() { return start = " - " + end; }
 
-     //..
+  //..
 }
 ```
 
@@ -50,24 +50,24 @@ public final class Period {
 
 ```java
 public class BogusPeriod {
-    private static final byte[] serializedForm = {
-	(byte)0xac, (byte)0xed, (byte)0x00, (byte)0x05, 0x73, 0x72, 0x00, 0x06,
-	0x50, 0x65, 0x72, 0x69, 0x6f, 0x64, 0x74, 0x40, 0x7e, (byte)0xf8,
-	//..
-    }
+  private static final byte[] serializedForm = {
+    (byte)0xac, (byte)0xed, (byte)0x00, (byte)0x05, 0x73, 0x72, 0x00, 0x06,
+    0x50, 0x65, 0x72, 0x69, 0x6f, 0x64, 0x74, 0x40, 0x7e, (byte)0xf8,
+    //..
+  }
 }
 
 public static void main(String[] args) throws Exception {
-    Period p = (Period) deserialize(serializedForm);
-    System.out.println(p);
+  Period p = (Period) deserialize(serializedForm);
+  System.out.println(p);
 }
 
 static Object deserialize(byte[] data) {
-    try {
-	return new ObjectInputStream(new ByteArrayInputStream(data)).readObject();
-    } catch (Exception e) {
-	throw new IllegalArgumentException(e);
-    }
+  try {
+    return new ObjectInputStream(new ByteArrayInputStream(data)).readObject();
+  } catch (Exception e) {
+    throw new IllegalArgumentException(e);
+  }
 }
 ```
 
@@ -79,13 +79,13 @@ static Object deserialize(byte[] data) {
 
 ```java
 public final class Period implements Serializable {
-    //..
+  //..
 
-    private void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException {
-	s.defaultReadObject();
+  private void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException {
+    s.defaultReadObject();
 
-	if(start.compareTo(end) > 0) throw new InvalidObjectException("start > end");
-    }
+    if(start.compareTo(end) > 0) throw new InvalidObjectException("start > end");
+  }
 }
 ```
 
@@ -98,37 +98,37 @@ public final class Period implements Serializable {
 
 ```java
 public class MutablePeriod {
-    public final Period period;
+  public final Period period;
 
-    public final Date start;
+  public final Date start;
 
-    public final Date end;
+  public final Date end;
 
-    public MutablePeriod() {
-	try {
-	    ByteArrayOutputStream bos = new ByteArrayOutputStream();
-	    ObjectOutputStream out = new ObjectOutputStream(bos);
+  public MutablePeriod() {
+    try {
+      ByteArrayOutputStream bos = new ByteArrayOutputStream();
+      ObjectOutputStream out = new ObjectOutputStream(bos);
 
-	    // 유요한 Period 인스턴스를 직렬화한다.
-	    out.writeObject(new Period(new Date(), new Date()));
+      // 유효한 Period 인스턴스를 직렬화한다.
+      out.writeObject(new Period(new Date(), new Date()));
 
-	    /*
-	     * 악의적인 '이전 객체 참조'. 즉 내부 Date로의 참조를 추가한다.
-	     */
-	    byte[] ref = {0x71, 0x7e, 0, 5};
-	    bos.write(ref); // start 필드
-	    ref[4] = 4;
-	    bos.write(ref); // end 필드
+      /*
+       * 악의적인 '이전 객체 참조'. 즉 내부 Date로의 참조를 추가한다.
+       */
+      byte[] ref = {0x71, 0x7e, 0, 5};
+      bos.write(ref); // start 필드
+      ref[4] = 4;
+      bos.write(ref); // end 필드
 
-	    // Period를 역직렬화한 후 Date 참조를 '훔친다'.
-	    ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(bos.toByteArray()));
-	    period = (Period) in.readObject();
-	    start = (Date) in.readObject();
-	    end = (Date) in.readObject();
-	} catch(IOException | ClassNotFoundException e) {
-	    throw new AssertionError(e);
-	}
+      // Period를 역직렬화한 후 Date 참조를 '훔친다'.
+      ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(bos.toByteArray()));
+      period = (Period) in.readObject();
+      start = (Date) in.readObject();
+      end = (Date) in.readObject();
+    } catch(IOException | ClassNotFoundException e) {
+      throw new AssertionError(e);
     }
+  }
 }
 ```
 
@@ -136,15 +136,15 @@ public class MutablePeriod {
 
 ```java
 public static void main(String[] args) {
-    MutablePeriod mp = new MutablePeriod();
-    Period p = mp.period;
-    Date pEnd = mp.end;
+  MutablePeriod mp = new MutablePeriod();
+  Period p = mp.period;
+  Date pEnd = mp.end;
 
-    // 시간을 되돌린다.
-    pEnd.setYear(78);
+  // 시간을 되돌린다.
+  pEnd.setYear(78);
 
-    // 60년대로 회귀
-    pEnd.setYear(69);
+  // 60년대로 회귀
+  pEnd.setYear(69);
 }
 ```
 
@@ -160,18 +160,18 @@ public static void main(String[] args) {
 
 ```java
 public final class Period implements Serializable {
-    //..
+  //..
 
-    private void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException {
-	s.defaultReadObject();
+  private void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException {
+    s.defaultReadObject();
 
-	// 가변 요소들을 방어적으로 복사한다.
-	start = new Date(start.getTime());
-	end = new Date(end.getTime());
+    // 가변 요소들을 방어적으로 복사한다.
+    start = new Date(start.getTime());
+    end = new Date(end.getTime());
 
-	// 불변식 만족 여부 검사
-	if(start.compareTo(end) > 0) throw new InvalidObjectException("start > end");
-    }
+    // 불변식 만족 여부 검사
+    if(start.compareTo(end) > 0) throw new InvalidObjectException("start > end");
+  }
 }
 ```
 
@@ -191,7 +191,7 @@ public final class Period implements Serializable {
   재정의 가능 메소드를 직접적으로, 혹은 간접적으로든 호출해서는 안 된다. 이 규칙을 어겼는데 해당 메소드가 재정의된다면  
   하위 클래스의 상태가 완전히 역직렬화되기 전에 하위 클래스에서 재정의된 메소드가 실행된다. 결국 프로그램은 오작동으로 이어질 것이다.
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -210,4 +210,4 @@ public final class Period implements Serializable {
 
   - 직접적이든 간접적이든, 재정의할 수 있는 메소드는 호출하지 말자.
 
-<hr/>
+---

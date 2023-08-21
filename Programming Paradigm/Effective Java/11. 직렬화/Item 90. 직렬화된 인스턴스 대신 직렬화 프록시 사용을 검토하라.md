@@ -16,52 +16,52 @@
 
 ```java
 public final class Period implements Serializable {
-    private Date start;
-    private Date end;
+  private Date start;
+  private Date end;
 
-    /**
-     * @param start 시작 시각
-     * @param end 끝 시각; 시작 시각보다 뒤여야 한다.
-     * @throws IllegalAgrumentException 시작 시간이 종료 시각보다 늦을 때 발생한다.
-     * @throws NullPointerException start나 end가 null이면 발생한다.
-     */
-     public Period(Date start, Date end) {
-	if (start.compareTo(end) > 0) {
-	    throw new IllegalArgumentException("start must be before end");
-	}
-	this.start = new Date(start.getTime());
-	this.end = new Date(end.getTime());
-     }
+  /**
+   * @param start 시작 시각
+   * @param end 끝 시각; 시작 시각보다 뒤여야 한다.
+   * @throws IllegalAgrumentException 시작 시간이 종료 시각보다 늦을 때 발생한다.
+   * @throws NullPointerException start나 end가 null이면 발생한다.
+   */
+  public Period(Date start, Date end) {
+    if (start.compareTo(end) > 0) {
+      throw new IllegalArgumentException("start must be before end");
+    }
+    this.start = new Date(start.getTime());
+    this.end = new Date(end.getTime());
+  }
 
-     public Date start() { return new Date(start.getTime()); }
+  public Date start() { return new Date(start.getTime()); }
 
-     public Date end() { return new Date(end.getTime()); }
+  public Date end() { return new Date(end.getTime()); }
 
-     public String toString() { return start = " - " + end; }
+  public String toString() { return start = " - " + end; }
 
-     private void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException {
-	s.defaultReadObject();
+  private void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException {
+    s.defaultReadObject();
 
-	// 가변 요소들을 방어적으로 복사한다.
-	start = new Date(start.getTime());
-	end = new Date(end.getTime());
+    // 가변 요소들을 방어적으로 복사한다.
+    start = new Date(start.getTime());
+    end = new Date(end.getTime());
 
-	// 불변식 만족 여부 검사
-	if(start.compareTo(end) > 0) throw new InvalidObjectException("start > end");
+    // 불변식 만족 여부 검사
+    if(start.compareTo(end) > 0) throw new InvalidObjectException("start > end");
+  }
+
+  // 직렬화 프록시
+  private static class SerializationProxy implements Serializable {
+    private final Date start;
+    private final Date end;
+
+    SerializationProxy(Period p) {
+      this.start = p.start;
+      this.end = p.end;
     }
 
-    // 직렬화 프록시
-    private static class SerializationProxy implements Serializable {
-	private final Date start;
-	private final Date end;
-
-	SerializationProxy(Period p) {
-	    this.start = p.start;
-	    this.end = p.end;
-	}
-
-	private static final long serialVersionUID = 1L; // 아무 값이나 상관 없다.
-    }
+    private static final long serialVersionUID = 1L; // 아무 값이나 상관 없다.
+  }
 }
 ```
 
@@ -70,12 +70,12 @@ public final class Period implements Serializable {
 
 ```java
 public final class Period implements Serializable {
-    //..
+  //..
 
-    // 직렬화 프록시 패턴을 위한 메소드
-    private Object writeReplace() {
-	return new SerializationProxy(this);
-    }
+  // 직렬화 프록시 패턴을 위한 메소드
+  private Object writeReplace() {
+    return new SerializationProxy(this);
+  }
 }
 ```
 
@@ -90,9 +90,9 @@ public final class Period implements Serializable {
 ```java
 public final class Period implements Serializable {
 
-    private void readObject(ObjectInputStream s) throws InvalidObjectException {
-	throw new InvalidObjectException("Proxy required.");
-    }
+  private void readObject(ObjectInputStream s) throws InvalidObjectException {
+    throw new InvalidObjectException("Proxy required.");
+  }
 }
 ```
 
@@ -108,19 +108,19 @@ public final class Period implements Serializable {
 
 ```java
 private static class SerializationProxy implements Serializable {
-    private final Date start;
-    private final Date end;
+  private final Date start;
+  private final Date end;
 
-    SerializationProxy(Period p) {
-	this.start = p.start;
-	this.end = p.end;
-    }
+  SerializationProxy(Period p) {
+    this.start = p.start;
+    this.end = p.end;
+  }
 
-    private Object readResolve() {
-	return new Period(start, end); // public 생성자 사용
-    }
+  private Object readResolve() {
+    return new Period(start, end); // public 생성자 사용
+  }
 
-    private static final long serialVersionUID = 1L; // 아무 값이나 상관 없다.
+  private static final long serialVersionUID = 1L; // 아무 값이나 상관 없다.
 }
 ```
 
@@ -143,26 +143,26 @@ private static class SerializationProxy implements Serializable {
 
 ```java
 private static class SerializationProxy<E extends Enum<E>> implements Serializable {
-    // 이 EnumSet의 원소 타입
-    private final Class<E> elementType;
+  // 이 EnumSet의 원소 타입
+  private final Class<E> elementType;
 
-    // 이 EnumSet 내의 원소들
-    private final Enum<?>[] elements;
+  // 이 EnumSet 내의 원소들
+  private final Enum<?>[] elements;
 
-    SerializationProxy(EnumSet<E> s) {
-	elementType = s.elementType();
-	elements = s.toArray(new Enum<?>[0]);
+  SerializationProxy(EnumSet<E> s) {
+    elementType = s.elementType();
+    elements = s.toArray(new Enum<?>[0]);
+  }
+
+  private Object readResolve() {
+    EnumSet<E> result = EnumSet.noneOf(elementType);
+    for(Enum<?> e : elements) {
+      result.add((E) e);
     }
+    return result;
+  }
 
-    private Object readResolve() {
-	EnumSet<E> result = EnumSet.noneOf(elementType);
-	for(Enum<?> e : elements) {
-	    result.add((E) e);
-	}
-	return result;
-    }
-
-    private static final long serialVersionUID = -22393799407077455L;
+  private static final long serialVersionUID = -22393799407077455L;
 }
 ```
 
@@ -173,11 +173,11 @@ private static class SerializationProxy<E extends Enum<E>> implements Serializab
 
 - 마지막으로, 직렬화 프록시 패턴이 주는 강력함과 안전성에도 대가는 따르다. 속도가 방어적 복사보다 느려진다.
 
-<hr/>
+---
 
 ## 핵심 정리
 
 - 제3자가 확장할 수 없는 클래스라면 가능한 한 직렬화 프록시 패턴을 사용하자. 이 패턴이 아마도 중요한  
   불변식을 안정적으로 직렬화해주는 가장 쉬운 방법일 것이다.
 
-<hr/>
+---

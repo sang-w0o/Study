@@ -1,18 +1,18 @@
 # 인스턴스 수를 통제해야 한다면 `readResolve()` 보다는 열거 타입을 사용하라
 
-- Item 3에서 싱글톤 패턴을 보면서 아래 예시를 보았다. 이 클래스는 바깥에서 생성자를 호출하지 못하게  
+- [Item 3](https://github.com/sang-w0o/Study/blob/master/Programming%20Paradigm/Effective%20Java/1.%20%EA%B0%9D%EC%B2%B4%20%EC%83%9D%EC%84%B1%EA%B3%BC%20%ED%8C%8C%EA%B4%B4/Item%203.%20private%20%EC%83%9D%EC%84%B1%EC%9E%90%EB%82%98%20%EC%97%B4%EA%B1%B0%20%ED%83%80%EC%9E%85%EC%9C%BC%EB%A1%9C%20%EC%8B%B1%EA%B8%80%ED%84%B4%EC%9E%84%EC%9D%84%20%EB%B3%B4%EC%9E%A5%ED%95%98%EB%9D%BC.md)에서 싱글톤 패턴을 보면서 아래 예시를 보았다. 이 클래스는 바깥에서 생성자를 호출하지 못하게  
   막는 방식으로 인스턴스가 오직 1개만 만들어짐을 보장했다.
 
 ```java
 public class Elvis {
-    public static final Elvis INSTANCE = new Elvis();
-    private Elvis() { /* ... */ }
+  public static final Elvis INSTANCE = new Elvis();
+  private Elvis() { /* ... */ }
 
-    public void leaveTheBuilding() { /* ... */ }
+  public void leaveTheBuilding() { /* ... */ }
 }
 ```
 
-- Item 3에서 봤듯이 이 클래스는 선언에 `implements Serializable`을 추가하는 순간 더 이상 싱글톤이  
+- [Item 3](https://github.com/sang-w0o/Study/blob/master/Programming%20Paradigm/Effective%20Java/1.%20%EA%B0%9D%EC%B2%B4%20%EC%83%9D%EC%84%B1%EA%B3%BC%20%ED%8C%8C%EA%B4%B4/Item%203.%20private%20%EC%83%9D%EC%84%B1%EC%9E%90%EB%82%98%20%EC%97%B4%EA%B1%B0%20%ED%83%80%EC%9E%85%EC%9C%BC%EB%A1%9C%20%EC%8B%B1%EA%B8%80%ED%84%B4%EC%9E%84%EC%9D%84%20%EB%B3%B4%EC%9E%A5%ED%95%98%EB%9D%BC.md)에서 봤듯이 이 클래스는 선언에 `implements Serializable`을 추가하는 순간 더 이상 싱글톤이  
   아니게 된다. 기본 직렬화를 쓰지 않더라도, 그리고 명시적인 `readObject()`를 제공하더라도 소용 없다.  
   어떤 `readObject()`를 사용하든 이 클래스가 초기화될 때 만들어진 인스턴스와는 별개인 인스턴스를 반환하게 된다.
 
@@ -26,19 +26,19 @@ public class Elvis {
 
 ```java
 public class Elvis implements Serializable {
-    //..
+  //..
 
-    private Object readResolve() {
-	// 진짜 Elvis를 반환하고, 가짜 Elvis는 GC에 맡긴다.
-	return INSTANCE;
-    }
+  private Object readResolve() {
+    // 진짜 Elvis를 반환하고, 가짜 Elvis는 GC에 맡긴다.
+    return INSTANCE;
+  }
 }
 ```
 
 - 이 메소드는 역직렬화한 객체는 무시하고 클래스 초기화 때 만들어진 `Elvis` 인스턴스를 반환한다. 따라서 `Elvis`  
   인스턴스의 직렬화 형태는 아무런 실 데이터를 가질 이유가 없으니, 모든 인스턴스 필드를 transient로 선언해야 한다.  
   **사실, `readResolve()`를 인스턴스 통제 목적으로 사용한다면 객체 참조 타입 인스턴스 필드는 모두**  
-  **transient로 선언해야 한다.** 그렇지 않으면 Item 88에서 살펴본 `MutablePeriod`와 비슷한 공격 방식으로  
+  **transient로 선언해야 한다.** 그렇지 않으면 [Item 88](https://github.com/sang-w0o/Study/blob/master/Programming%20Paradigm/Effective%20Java/11.%20%EC%A7%81%EB%A0%AC%ED%99%94/Item%2088.%20readObject%20%EB%A9%94%EC%86%8C%EB%93%9C%EB%8A%94%20%EB%B0%A9%EC%96%B4%EC%A0%81%EC%9C%BC%EB%A1%9C%20%EC%9E%91%EC%84%B1%ED%95%98%EB%9D%BC.md)에서 살펴본 `MutablePeriod`와 비슷한 공격 방식으로  
   `readResolve()`가 수행되기 전에 역직렬화된 객체의 참조를 공격할 여지가 남는다.
 
 - 다소 복잡한 공격 방법이지만, 기본 아이디어는 간단하다. 싱글톤이 transient가 아닌 non-transient 참조 필드를  
@@ -62,15 +62,15 @@ public class Elvis implements Serializable {
 
 ```java
 public class Elvis implements Serializable {
-    public static final Elvis INSTANCE = new Elvis();
-    private Elvis() { }
+  public static final Elvis INSTANCE = new Elvis();
+  private Elvis() { }
 
-    private String[] favoriteSongs = { "Hound Dog", "Heartbreak Hotel" };
-    public void printFavorites() {
-	System.out.println(Arrays.toString(favoriteSongs));
-    }
+  private String[] favoriteSongs = { "Hound Dog", "Heartbreak Hotel" };
+  public void printFavorites() {
+    System.out.println(Arrays.toString(favoriteSongs));
+  }
 
-    public Object readResolve() { return INSTANCE; }
+  public Object readResolve() { return INSTANCE; }
 }
 ```
 
@@ -78,18 +78,18 @@ public class Elvis implements Serializable {
 
 ```java
 public class ElvisStealer implements Serializable {
-    static Elvis impersonator;
-    private Elvis payload;
+  static Elvis impersonator;
+  private Elvis payload;
 
-    private Object readResolve() {
-	// resolve되기 전의 Elvis 인스턴스의 참조 저장
-	impersonator = payload;
+  private Object readResolve() {
+    // resolve되기 전의 Elvis 인스턴스의 참조 저장
+    impersonator = payload;
 
-	// favoriteSongs 필드에 맞는 타입의 객체 반환
-	return new String[] {"A Fool Such as I"};
-    }
+    // favoriteSongs 필드에 맞는 타입의 객체 반환
+    return new String[] {"A Fool Such as I"};
+  }
 
-    private static final long serialVersionUID = 0;
+  private static final long serialVersionUID = 0;
 
 }
 ```
@@ -98,23 +98,23 @@ public class ElvisStealer implements Serializable {
 
 ```java
 public class ElvisImpersonator {
-    // 진짜 Elvis 인스턴스로는 만들어질 수 없는 byte stream
-    private static final byte[] serializedForm = {
-	(byte)0xac, (byte)0xed, (byte)0x00, (byte)0x05, 0x73, 0x72, 0x00, 0x05,
-	0x45, 0x6c, 0x76, 0x69, 0x73, (byte)0x84, (byte)0xe6,
-	//..
-    };
+  // 진짜 Elvis 인스턴스로는 만들어질 수 없는 byte stream
+  private static final byte[] serializedForm = {
+    (byte)0xac, (byte)0xed, (byte)0x00, (byte)0x05, 0x73, 0x72, 0x00, 0x05,
+    0x45, 0x6c, 0x76, 0x69, 0x73, (byte)0x84, (byte)0xe6,
+    //..
+  };
 
-    public static void main(String[] args) {
-	// ElvisStealer.impersonator를 초기화한 다음, 진짜 Elvis(즉, Elvis.INSTANCE) 반환
-	Elvis elvis = (Elvis)deserialize(serializedForm);
-	Elvis impersonator = ElvisStealer.impersonator;
+  public static void main(String[] args) {
+    // ElvisStealer.impersonator를 초기화한 다음, 진짜 Elvis(즉, Elvis.INSTANCE) 반환
+    Elvis elvis = (Elvis)deserialize(serializedForm);
+    Elvis impersonator = ElvisStealer.impersonator;
 
-	elvis.printFavorites();
-	// [Hound Dog, Heartbreak Hotel]
-	impersonator.printFavorites();
-	// [A Fool Such as I]
-    }
+    elvis.printFavorites();
+    // [Hound Dog, Heartbreak Hotel]
+    impersonator.printFavorites();
+    // [A Fool Such as I]
+  }
 }
 ```
 
@@ -130,9 +130,9 @@ public class ElvisImpersonator {
 
 ```java
 public enum Elvis {
-    INSTANCE;
-    private String[] favoriteSongs = { "Hound Dog", "Heartbreak Hotel" };
-    public void printFavorites() { System.out.println(Arrays.toString(favoriteSongs)); }
+  INSTANCE;
+  private String[] favoriteSongs = { "Hound Dog", "Heartbreak Hotel" };
+  public void printFavorites() { System.out.println(Arrays.toString(favoriteSongs)); }
 }
 ```
 
@@ -147,7 +147,7 @@ public enum Elvis {
   protected나 public이면서 하위 클래스에서 재정의하지 않았다면, 하위 클래스의 인스턴스를 역직렬화할 때  
   상위 클래스의 인스턴스를 생성하기에 `ClassCastException`을 일으킬 수 있다.
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -155,4 +155,4 @@ public enum Elvis {
   직렬화와 인스턴스 통제가 모두 필요하다면 `readResolve()`를 작성해 넣어야 하고, 그 클래스에서  
   모든 참조 타입 인스턴스 필드를 transient로 선언해야 한다.
 
-<hr/>
+---

@@ -67,7 +67,7 @@
 
 ```java
 private void readObjectNoData() throws InvalidObjectException {
-    throw new InvalidObjectException("Stream data missing");
+  throw new InvalidObjectException("Stream data missing");
 }
 ```
 
@@ -83,9 +83,9 @@ private void readObjectNoData() throws InvalidObjectException {
   나와있지 않듯, 이 필드들이 클래스 정의에 어떻게 추가되는지도 정의되지 않았다. 다시 말해 내부 클래스에 대한 기본 직렬화  
   형태는 분명하지가 않다. 단, 정적 멤버 클래스는 `Serializable`을 구현해도 된다.
 
-> Item 24. 정적 멤버 클래스는 바깥 인스턴스로부터 참조를 갖지 않는다.
+> [Item 24.](https://github.com/sang-w0o/Study/blob/master/Programming%20Paradigm/Effective%20Java/3.%20%ED%81%B4%EB%9E%98%EC%8A%A4%EC%99%80%20%EC%9D%B8%ED%84%B0%ED%8E%98%EC%9D%B4%EC%8A%A4/Item%2024.%20%EB%A9%A4%EB%B2%84%ED%81%B4%EB%9E%98%EC%8A%A4%EB%8A%94%20%EB%90%98%EB%8F%84%EB%A1%9D%20static%EC%9C%BC%EB%A1%9C%20%EB%A7%8C%EB%93%A4%EC%96%B4%EB%9D%BC.md) 정적 멤버 클래스는 바깥 인스턴스로부터 참조를 갖지 않는다.
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -93,4 +93,4 @@ private void readObjectNoData() throws InvalidObjectException {
   상호작용할 일이 없고 서버가 신뢰할 수 없는 데이터에 노출될 가능성이 없는 등, 보호된 환경에서만 쓰일 클래스가  
   아니라면 `Serializable`의 구현은 아주 신중하게 다뤄야 한다. 상속할 수 있는 클래스라면 주의사항이 더욱 많아진다.
 
-<hr/>
+---

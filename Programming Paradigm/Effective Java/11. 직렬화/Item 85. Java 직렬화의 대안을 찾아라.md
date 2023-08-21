@@ -1,6 +1,6 @@
 # Java 직렬화의 대안을 찾아라
 
-- 1997년, Java에 처음으로 직렬화가 도입되었다. 그때만 하더라도 직렬화는 연구용 언어닌 Modula-3에서나  
+- 1997년, Java에 처음으로 직렬화가 도입되었다. 그때만 하더라도 직렬화는 연구용 언어인 Modula-3에서나  
   시도되었을 뿐, 대중적 언어에 적용된 건 처음이었기에 다소 위험하지 않겠냐는 이야기가 나왔다.  
   프로그래머가 어렵지 않게 분산 객체를 만들 수 있다는 구호는 매력적이었지만, 보이지 않는 생성자,  
   API와 구현 사이의 모호해진 경계, 잠재적인 정확성 문제, 성능, 보안, 유지보수성 등 그 대가가 컸다.  
@@ -35,19 +35,19 @@
 
 ```java
 static byte[] bomb() {
-    Set<Object> root = new HashSet<>();
-    Set<Object> s1 = root;
-    Set<Object> s2 = new HashSet<>();
-    for(int i = 0; i < 100; i++) {
-	Set<Object> t1 = new HashSet<>();
-	Set<Object> t2 = new HashSet<>();
-	t1.add("foo");  // t1을 t2와 다르게 만든다.
-	s1.add(t1); s1.add(t2);
-	s2.add(t1); s2.add(t2);
-	s1 = t1;
-	s2 = t2;
-    }
-    return serialize(root);
+  Set<Object> root = new HashSet<>();
+  Set<Object> s1 = root;
+  Set<Object> s2 = new HashSet<>();
+  for(int i = 0; i < 100; i++) {
+    Set<Object> t1 = new HashSet<>();
+    Set<Object> t2 = new HashSet<>();
+    t1.add("foo");  // t1을 t2와 다르게 만든다.
+    s1.add(t1); s1.add(t2);
+    s2.add(t1); s2.add(t2);
+    s1 = t1;
+    s2 = t2;
+  }
+  return serialize(root);
 }
 ```
 
@@ -100,7 +100,7 @@ static byte[] bomb() {
   고민해봐야 한다. 하지만 현실적인 이유로 지금도 직렬화 가능 클래스를 작성하거나 유지보수해야 하는 사람이 있을 수 있다.  
   직렬화 가능 클래스를 올바르고 안전하고 효율적으로 작성하려면 상당한 주의가 필요하다.
 
-<hr/>
+---
 
 ## 핵심 정리
 
@@ -109,4 +109,4 @@ static byte[] bomb() {
   막아줄 수 없음을 기억하자. 클래스가 직렬화를 지원하도록 만들지 말고, 꼭 그렇게 해야만 한다면 정말 신경써서  
   작성해야 한다.
 
-<hr/>
+---
