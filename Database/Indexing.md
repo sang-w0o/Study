@@ -1,6 +1,6 @@
 # About Database Indexing
 
-<h2>Index란</h2>
+## Index란
 
 - `Index`는 테이블의 데이터를 더 빠르게 가져오기(read) 위한 데이터베이스의 검색 엔진이 사용하는  
   특별한 lookup table이다. 기본적으로 index는 테이블 내의 특정 데이터(row)들을 가리키는  
@@ -27,20 +27,20 @@
   이 index를 사용하여 특정 name을 검색하면, 레코드들이 name을 기준으로 정렬되어 있기에 이진 검색이  
   가능해지므로 시간 복잡도는 `O(log n)`이 된다.
 
-<hr/>
+---
 
-<h2>Index를 왜 사용할까?</h2>
+## Index를 왜 사용할까?
 
 - 위에서도 언급되어 있듯이, index를 적절하게 활용하면 데이터베이스에서 특정 데이터를 조회하는 시간을  
   효과적으로 감소시킬 수 있다. 기본적으로 index를 사용하면 `SELECT`절과 `WHERE`절이 있는 query들의  
   속도를 향상시켜준다. 하지만 이와 반대로 `INSERT`와 `UPDATE` query의 수행 속도는 느려진다.  
   따라서 index를 무조건 사용하지 말고, 적절하게 사용할 수 있어야 한다.
 
-<hr/>
+---
 
-<h2>Index를 생성하는 방법</h2>
+## Index를 생성하는 방법
 
-<h3>CREATE_INDEX</h3>
+### CREATE_INDEX
 
 - `CREATE INDEX` 절은 this_is_index_name이라는 index를 this_is_table_name이라는 테이블에 생성한다.  
   하나의 index는 여러 개의 컬럼을 참조할 수 있다.
@@ -50,7 +50,7 @@ CREATE INDEX this_is_index_name
 	ON this_is_table_name (this_is_column_name, this_is_column_name, ...);
 ```
 
-<h3>CREATE UNIQUE INDEX</h3>
+### CREATE UNIQUE INDEX
 
 - `CREATE UNIQUE INDEX` 절은 unique한 index를 생성한다. Unique index는 중복 값을 가질 수 없다.  
   중복 값을 가질 수 없다는 것은 해당 column(들)이 각각 unique 제약을 가진다는 것을 의미한다.
@@ -60,7 +60,7 @@ CREATE UNIQUE INDEX this_is_index_name
 	ON this_is_table_name (this_is_column_name, this_is_column_name, ...);
 ```
 
-<h3>DROP INDEX</h3>
+### DROP INDEX
 
 - `DROP INDEX`절은 테이블의 index를 제거할 때 사용한다.  
   아래 구문은 MySQL의 경우에 사용할 수 있는 구문이다.
@@ -69,9 +69,9 @@ CREATE UNIQUE INDEX this_is_index_name
 ALTER TABLE this_is_table_name DROP INDEX this_is_index_name;
 ```
 
-<hr/>
+---
 
-<h2>Index가 몇 개의 컬럼을 참조하도록 해야할까?</h2>
+## Index가 몇 개의 컬럼을 참조하도록 해야할까?
 
 - 하나의 컬럼만을 참조하는 Single-Column Index를 생성할지, 아니면 여러 개의 컬럼을 참조하는  
   Multi-Column Index를 생성할지는 상황에 따라 결정해야 한다.  
@@ -83,18 +83,18 @@ ALTER TABLE this_is_table_name DROP INDEX this_is_index_name;
   좋으며, 여러 개의 컬럼에 대한 조건을 명시하는 경우가 많다면 Multi-Column Index를 사용하는 것이  
   가장 효과적이다.
 
-<hr/>
+---
 
-<h2>Implicit Index</h2>
+## Implicit Index
 
 - 위에서 `CREATE INDEX` 또는 `CREATE UNIQUE INDEX`를 통해 만드는 index는  
   명시적(Explicit) index이다. 반면, 데이터베이스에 의해 테이블이 생성될 때 같이 생성되는 index도 있는데,  
   이들을 Implicit Index라 한다. 자동으로 생성되는 implicit index는 **primary key와 unique 제약이**  
   **있는 컬럼들** 에 대해 생성된다.
 
-<hr/>
+---
 
-<h2>Index 사용을 피해야하는 경우</h2>
+## Index 사용을 피해야하는 경우
 
 - Index를 사용하는 목적은 데이터베이스의 성능을 위함인데, 특정 경우에는 index를 사용하는 것을 지양해야 한다.
 
@@ -107,14 +107,14 @@ ALTER TABLE this_is_table_name DROP INDEX this_is_index_name;
     - RDBMS에서는 NULL 값을 _값이 없다_ 고 판단하기에, NULL값은 indexing의 대상이아니다. 따라서 사실상 index를 만들어도 의미가 없다.
   - 자주 값 또는 속성 자체가 변경되는 컬럼
 
-<hr/>
+---
 
-<h2>테스트 해보기</h2>
+## 테스트 해보기
 
 - 간단하게 Spring으로 데이터베이스에 50만개의 데이터를 넣는 코드를 작성하고, 실행해보았습니다.  
   ~~(10만개 넣어보고 유의미한 차이를 못 느껴서 100만개로 한건 비밀..)~~
 
-![picture 1](../images/c7fc42b72672455f5a3ba94cffcc3217abf7d954aa4ae8d7205be1189674b714.png)
+![picture 1](/images/c7fc42b72672455f5a3ba94cffcc3217abf7d954aa4ae8d7205be1189674b714.png)
 
 > 열심히 쿼리를 수행하는 중..
 
@@ -124,15 +124,15 @@ ALTER TABLE this_is_table_name DROP INDEX this_is_index_name;
 
 ```sql
 CREATE TABLE users(
-    user_id integer auto_increment primary key,
-    email varchar(45) not null unique,
-    name varchar(45) not null,
-    created_at datetime not null default now(),
-    deleted_at datetime null
+  user_id integer auto_increment primary key,
+  email varchar(45) not null unique,
+  name varchar(45) not null,
+  created_at datetime not null default now(),
+  deleted_at datetime null
 );
 ```
 
-- 이제 Implicit index가 없는 데이터를 하나 찾아보겠습니다.  
+- 이제 implicit index가 없는 데이터를 하나 찾아보겠습니다.  
   마지막으로 저장된 user의 name이 "NAME_1000000"이기에 이로 검색했습니다.
 
 ```sql
@@ -174,6 +174,41 @@ SELECT * FROM users WHERE name = 'NAME_1000018' AND created_at = '2021-08-17 14:
 
 - 확실히 SELECT 쿼리의 성능이 눈에 띄게 좋아진 것을 볼 수 있습니다.
 
-<hr/>
+---
 
-- 참고 링크: <a href="https://medium.com/javarevisited/indexes-when-to-use-and-when-to-avoid-them-39c56e5a7329">Medium</a>
+## MariaDB의 indexing
+
+- MariaDB는 storage engine에 따라 사용 가능한 index의 종류가 다릅니다.
+
+| Storage Engine | Index Type   |
+| -------------- | ------------ |
+| Aria           | BTREE, RTREE |
+| InnoDB         | BTREE        |
+| MyISAM         | BTREE, RTREE |
+| Memory / Heap  | HASH, BTREE  |
+
+- 일반적으로 사용되는 index 타입은 BTREE 입니다. 단, Memory 테이블의 경우 HASH가 기본 값입니다.
+
+- B-tree와 hash 자료구조를 이해하면 서로 다른 query들이 서로 다른 storage engine에서 어떻게 동작하는지 예측할 수 있습니다.
+
+### B-tree indexes
+
+- B-tree index는 column의 `>`, `>=`, `=`, `<=`, `<`, `BETWEEN`, `LIKE` 비교 연산을 하기 위해 사용됩니다.  
+  예를 들어, `SELECT * FROM users WHERE name LIKE 'sangwoo%`의 query는 수행할 수 있지만,  
+  `SELECT * FROM users WHERE name LIKE '%sangwoo'`의 query는 수행할 수 없습니다.  
+  그 이유는 `LIKE 'sangwoo%'`는 비교 연산자가 사용되지만, `LIKE '%sangwoo'`는 비교 연산자가 사용되지 않기 때문입니다.
+
+- 또한 B-tree index는 row 검색을 위해 leftmost prefix를 사용할 수 있습니다.  
+  예를 들어, `SELECT * FROM users WHERE name = 'sangwoo' AND ...`
+
+### Hash indexes
+
+- Hash index는 B-tree index와는 반대로 동등 연산자에 대해서만 사용할 수 없습니다.  
+  따라서 ordering에 사용할 수 없으며, optimizer에게 주어진 두 값 사이에 얼마나 많은 row들이 존재하는지도 알려주지 못합니다.
+
+- Hash index는 leftmost prefixing을 지원하지 않습니다.
+
+---
+
+- 참고 링크 1: [Medium](https://medium.com/javarevisited/indexes-when-to-use-and-when-to-avoid-them-39c56e5a7329)
+- 참고 링크 2: [MariaDB](https://mariadb.com/kb/en/storage-engine-index-types/)
