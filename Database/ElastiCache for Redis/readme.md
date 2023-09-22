@@ -1,0 +1,1 @@
+- [Amazon ElastiCache for Redis](https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/GettingStarted.html) 공식 문서 중 일부를 정리한 폴더입니다.
