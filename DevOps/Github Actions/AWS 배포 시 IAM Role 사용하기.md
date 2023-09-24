@@ -95,3 +95,38 @@ jobs:
 - 다음으로 권한에는 Github action에서 AWS에 접근하기 위해 필요한 권한을 자유롭게 추가해주면 된다.
 
 ---
+
+## Github Actions workflow 파일 수정
+
+- 이제 기존에 존재하던 Github Actions가 IAM User의 credential이 아닌 IAM Role을 사용하도록 해보자.  
+  위에 있던 workflow yml 파일이 아래와 같이 바뀐다.
+
+```yml
+# trigger
+name: Example of using AWS
+
+jobs:
+  deploy:
+    name: Deploy to AWS
+    runs-on: ubuntu-latest
+    # permissions 추가
+    permissions:
+      id-token: write
+      contents: read
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        # access key, secret key 대신 role-to-assume 및 audience 사용
+        role-to-ssume: ${{ secrets.AWS_ROLE_ARN }}
+        aws-region: ${{ secrets.AWS_REGION }}
+	audience: sts.amazonaws.com
+```
+
+- 이제 해당 action이 수행될 때마다 `aws-actions/configure-aws-credentials@v1` 단계에서는 Github action에서 발급한  
+  token을 들고 AWS에 접근하고, 접근 권한이 수락되면 지정된 권한을 가진 IAM role을 사용해 뒤의 배포를 진행하게 된다.
+
+---
